@@ -1,0 +1,47 @@
+<header v-deep>
+    <div class="icon square" style="border: 1px solid; cursor: pointer" @dblclick="closeapp"></div>
+    <button type="button" title="back" @click="hist(-1)">&lt;</button>
+    <button type="button" title="go" @click="hist(+1)">&gt;</button>
+    <button type="button" title="Up" @click="pathUp">^</button>
+    <button type="button" title="Home" @click="goHome">/</button>
+    <div class="current_directory" contenteditable @paste.prevent="cleanPaste" @keydown.enter.prevent @keyup.enter="goPath">{{pwd}}</div>
+    <button type="button" title="Go" @click="goPath">↲</button>
+    <span style="display: inline-block; width: 0.5em;"></span>
+    <button type="button" @click="reload" style="display: inline-block; width: 1em; background: url(components/HeaderBar/reload.svg) no-repeat center;" title="Reload" aria-label="Reload the current remote directory"></button>
+</header>
+
+<style>
+header>>> {
+    display: flex;
+    flex-direction: row;
+
+    padding: 5px;
+    border-bottom: 1px solid;
+    font-size: 1.2rem;
+}
+header>>> .square {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+}
+header>>> .current_directory {
+    flex: 1 1 0%;
+    height: calc(1em + 4px);
+    font-family: Consolas;
+    /* overflow-x: auto; */
+    /* overflow-y: hidden; */
+    overflow: hidden;
+    white-space: nowrap;
+}
+header>>> button {
+    border: none;
+    background-color: white;
+    transition: all .2s;
+}
+header>>> button:not(:disabled):hover {
+    background-color: #e0e0e0;
+}
+header>>> button:disabled {
+    opacity: 0.5;;
+}
+</style>

@@ -1,0 +1,31 @@
+<my-container v-deep v-if="(appInstance_?.instance?.$data?.current_page) === 'server'">
+    <div v-deep v-if="isLoading" style="padding: 10px;">Connecting to server...</div>
+    <div v-deep v-if="errorText" style="color: red; padding: 10px;" v-html="errorText"></div>
+    <div v-deep v-if="errorText" style="margin-top: 20px; padding: 10px;">
+        <ElButton type="primary" @click="reload">{{tr('ui.string:reload')}}</ElButton>
+        <ElButton @click="goLogin">{{tr('ui.login.ui/relogin')}}</ElButton>
+    </div>
+
+    <div v-deep v-if="(viewType === 'index' && currentSrv)" style="padding: 10px">
+        <div style="font-size:large">{{currentSrv.name}} /</div>
+        <hr>
+        <ElSwitch v-model="advancedVolumeView" size="large" active-text="Advanced Mode" inactive-text="" />
+        <ElTable :data="indexTableData" border style="width: 100%" highlight-current-row @row-click="handleIndexRowClick">
+            <ElTableColumn prop="text" :label="tr('ui.string:name')" />
+            <ElTableColumn prop="drive" :label="tr('ui.fs:mountpath')" />
+            <ElTableColumn prop="name" :label="tr('ui.fs:labelname')" />
+            <ElTableColumn prop="fs" :label="tr('ui.fs:filesystem')" />
+            <ElTableColumn prop="guid" label="GUID" />
+        </ElTable>
+    </div>
+
+    <FileExplorer v-if="viewType === 'explore'" :server="currentSrv" :path="explorerPath" />
+</my-container>
+
+<style>
+my-container>>> {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+</style>

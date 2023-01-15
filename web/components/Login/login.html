@@ -1,0 +1,125 @@
+<div v-deep>
+    <form @submit.prevent="Login">
+        <h1>{{ tr('ui.login.ui/login') }}</h1>
+    
+        <section class="input_box">
+            <div data-type="server">
+                <label>
+                    <span>{{ tr('ui.login.ui/server') }}</span>
+                    <input required type="text" name="server" autocomplete="username" v-model="server" :disabled="formDataLoading">
+                </label>
+            </div>
+        
+            <div data-type="password">
+                <label>
+                    <span>{{ tr('ui.login.ui/pswd') }}</span>
+                    <input required type="password" name="password" autocomplete="current-password" v-model="passwd" :disabled="formDataLoading">
+                </label>
+            </div>
+        
+            <div data-type="https">
+                <label style="flex-direction: row; align-items: center;">
+                    <ElSwitch v-model="https" size="large" :disabled="formDataLoading" />
+                    <span>&nbsp;HTTPS</span>
+                </label>
+
+                <ElDialog v-model="showHttpsConfirm" align-center draggable append-to-body @opened="enforceNoHttps = false" @close="enforceNoHttps || (https = true)">
+                    <template #header>Confirm</template>
+                    <div v-text="tr('ui.login.ui/httpsConfirmText')"></div>
+                    <template #footer>
+                        <ElButton @click="showHttpsConfirm = false;">{{tr('dialog.cancel')}}</ElButton>
+                        <ElButton type="primary" @click="enforceNoHttps = true; showHttpsConfirm = false;">{{tr('dialog.ok')}}</ElButton>
+                    </template>
+                </ElDialog>
+            </div>
+        </section>
+
+        <section v-if="errorMessage" style="color: red; text-align: initial; padding-left: 5px;">
+            <b>{{tr('error')}}:&nbsp;</b>
+            <span>{{ errorMessage }}</span>
+        </section>
+
+        <section class="box btn-login" style="margin: 15px 0 10px 0; display: flex;">
+            <button :disabled="formDataLoading" type="submit">{{ loginButtonText }}</button>
+            <button type="button" title="Cancel" @click="cancelOperation">{{tr('ui.login.ui/cancel')}}</button>
+        </section>
+    </form>
+</div>
+
+
+<style>
+div>>> {
+    padding: 10px;
+}
+>>> form {
+    display: flex;
+    flex-direction: column;
+
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    background-color: #FCFCFC;
+    text-align: center;
+
+    font-family: Consolas;
+}
+>>> label > span, >>> label > input {
+    text-align: initial;
+}
+>>> .input_box {
+    padding: 0 10px;
+}
+>>> .input_box > * {
+    margin: 10px 0;
+}
+>>> .input_box > div > label {
+    display: flex;
+    flex-direction: column;
+}
+>>> .input_box input:not([type="checkbox"]) {
+    border-radius: 10px;
+    padding: 10px;
+    line-height: 1em;
+    transition: 0.2s;
+    width: 100%;
+    box-sizing: border-box;
+
+    border: 1px solid var(--border-color);
+
+    --border-color: #aaa;
+}
+>>> .input_box input:not([type="checkbox"]):hover:not(:disabled) {
+    background-color: var(--win32-dialog-background-color);
+}
+>>> .input_box input:not([type="checkbox"]) {
+    outline: none;
+}
+>>> .input_box input:not([type="checkbox"]):focus,
+>>> .input_box *.invalid input:not([type="checkbox"]) {
+    --border-color: #ff596a;
+}
+>>> .input_box input:not([type="checkbox"]):valid {
+    --border-color: #2ba186;
+}
+>>> .input_box label.invalid::after {
+    content: "* Invalid content";
+    display: block;
+    color: #ff596a;
+    text-align: left;
+    margin-bottom: 0.5rem;
+}
+
+>>> .btn-login button {
+    margin: 0 10px;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    transition: 0.2s;
+    flex: 1;
+    font-size: large;
+}
+>>> .btn-login button:hover:not(:disabled) {
+    background-color: #E9E9E9;
+}
+
+</style>

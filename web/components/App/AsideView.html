@@ -1,0 +1,39 @@
+<div style="margin-bottom: 15px"><ElButton data-id="allServers" type=primary plain style="width: 100%" @click="goServerList">{{tr('ui.string:allServers')}}</ElButton></div>
+
+<tree-view v-deep style="font-family: monospace;">
+    <tree-node>
+        <tree-text>{{tr("ui.string:myServer")}}</tree-text>
+        <tree-content>
+            <tree-node collapsed="true" v-for="item in servers">
+                <tree-text><a href="javascript:" class="fileLink" @click.prevent="toggleServer" :data-addr="item.addr" :title="item.addr">{{ item.name }}</a></tree-text>
+                <tree-content style="font-size: small; min-width: max-content;">
+                    <div>Click the above link to enter</div>
+                    <div>
+                        <tree-node>
+                            <tree-text>{{tr('Information')}}</tree-text>
+                            <tree-node>
+                                <tree-text>{{tr('ui.string:serverAddr')}}</tree-text>
+                                <div>{{item.addr}}</div>
+                            </tree-node>
+                            <tree-node>
+                                <tree-text>{{tr('ui.login.ui/pswd')}}</tree-text>
+                                <span tabindex="0" class="pswdview" :data-real="item.pswd"></span>
+                            </tree-node>
+                        </tree-node>
+                    </div>
+                </tree-content>
+            </tree-node>
+        </tree-content>
+    </tree-node>
+
+</tree-view>
+
+<style>
+>>> .pswdview::after {
+    content: "******";
+}
+>>> .pswdview:hover::after,>>> .pswdview:focus::after{
+    content: attr(data-real);
+    font-size: x-small;
+}
+</style>

@@ -1,0 +1,112 @@
+<style>
+a, button {
+    cursor: pointer;
+}
+*:disabled { cursor: not-allowed !important; }
+
+>>> [data-app] a {
+    color: blue;
+    text-decoration: none;
+}
+>>> [data-app] a:hover {
+    text-decoration: underline;
+}
+</style>
+
+<style>
+>>> .skip-to-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 12;
+    padding: 10px;
+    background: blue;
+    color: white;
+    outline: none;
+    text-decoration: none;
+}
+>>> .skip-to-content:not(:focus) {
+    top: -1000%;
+}
+</style>
+
+<style>
+>>> [data-app] {
+    position: fixed;
+    left: 0; right: 0; top: 0; bottom: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    transition: filter .2s;
+}
+@media (prefers-color-scheme: dark) {
+>>>, >>> * {
+    /* filter: grayscale(1); */
+    background: black;
+    color: white;
+}
+}
+>>> [data-app] > .main {
+    flex: 1;
+    height: 0;
+
+    display: flex;
+    flex-direction: row;
+}
+>>> [data-app] > .main > aside {
+    display: block;
+    border-right: 1px solid;
+    min-width: 10%;
+    max-width: 30%;
+    padding: 10px;
+    overflow: auto;
+}
+@media (max-width: 499px) {
+>>> [data-app] > .main > aside {
+    display: none;
+    border: none;
+}
+}
+>>> [data-app] > .main > aside[data-resizing="true"] {
+    cursor: e-resize;
+}
+>>> [data-app] > .main.srvList > aside {
+    max-width: unset;
+    width: 100% !important;
+    border: none;
+    display: block;
+}
+>>> [data-app] > .main.srvList > main {
+    display: none;
+}
+>>> [data-app] > .main > main {
+    flex: 1;
+    padding: 0;
+    overflow: auto;
+}
+</style>
+
+<div v-deep>
+    <a href="#content" class="skip-to-content" tabindex="1" @click.prevent.stop="skipToContent">Skip to content</a>
+    <a href="#/servers/" class="skip-to-content" tabindex="1" @click.prevent.stop="skipToServerList">Skip to server list</a>
+
+    <div data-app>
+        <HeaderBar />
+
+        <div class="main">
+            <aside v-on:pointermove.self.passive="aside_onPointerMove" v-on:pointerdown.self="aside_onPointerDown" v-on:pointerup="aside_onPointerUp" v-bind:style="asideStyle" v-bind:data-resizing="asideResizing" @contextmenu.prevent.stop>
+                <AsideView :servers="servers" @toggle-server="toggleServer" />
+            </aside>
+
+            <main>
+                <MainView v-if="current_page === 'main'" />
+                <LoginComponent v-if="current_page === 'login'" @server-added="updateServerDataFromLogin" />
+                <ServerView />
+                <ServerList v-if="current_page === 'serverList'" :servers="servers" @toggle-server="toggleServer" />
+                <ServerManagement v-if="current_page === 'manageServer'" :serversProp="servers" @updatedata="updateServerDataFromManagement" />
+            </main>
+        </div>
+    </div>
+</div>
+

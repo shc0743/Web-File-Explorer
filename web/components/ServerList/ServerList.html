@@ -1,0 +1,48 @@
+<div v-deep>
+    <h1 tabindex="0">服务器列表</h1>
+
+    <p><ElButton size="large" @click="addServer">{{ tr('ui.string:addServer') }}</ElButton></p>
+
+    <ElCard v-for="item in servers" style="overflow: auto; margin-top: 30px;">
+        <template #header>
+            <div class="card-header">
+                <span>{{ item.name }}</span>
+
+                <span>
+                    <ElButton :data-addr="item.addr" @click="editServer">{{ tr('Edit') }}</ElButton>
+                    <ElButton type="primary" plain :data-addr="item.addr" @click="toggleServer">{{ tr('Open') }}</ElButton>
+                </span>
+            </div>
+        </template>
+
+        <div>
+            <ElDescriptions :title="item.name" :column="1" border>
+                <ElDescriptionsItem>
+                    <template #label>ID</template>
+                    <span>{{ btoa(item.addr) }}</span>
+                </ElDescriptionsItem>
+
+                <ElDescriptionsItem>
+                    <template #label>{{tr('ui.string:serverAddr')}}</template>
+                    <span>{{ item.addr }}</span>
+                </ElDescriptionsItem>
+
+                <ElDescriptionsItem>
+                    <template #label>{{tr('ui.login.ui/pswd')}}</template>
+                    <span>{{ '*'.repeat(item.pswd.length) }}</span>
+                </ElDescriptionsItem>
+            </ElDescriptions>
+        </div>
+    </ElCard>
+</div>
+
+<style>
+[v-deep] {
+    padding: 20px;
+}
+>>> .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+</style>
