@@ -19,5 +19,5 @@
   const el = document.createElement('script');
   el.type = 'importmap';
   el.textContent = JSON.stringify(content);
-  document.currentScript.append(el);
+  document.currentScript.after(el);
 })(false);
