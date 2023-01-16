@@ -1,0 +1,66 @@
+name: Bug Report
+description: Report a bug
+title: ""
+labels: ["bug", "pending"]
+body:
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Where does the bug happen?
+      options:
+        - Web App (/web)
+        - Native App (/MyWebFileExplorer)
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Briefly describe your issue.
+    validations:
+      required: true
+  - type: textarea
+    id: current-behavior
+    attributes:
+      label: Current Behavior
+      description: A concise description of what you're experiencing.
+    validations:
+      required: false
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: A concise description of what you expected to happen.
+    validations:
+      required: false
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: How to reproduce the bug?
+    validations:
+      required: true
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      description: Where are you seeing the problem on?
+      value: |
+        OS: 
+        Browser:
+        Other Information: 
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: |
+        Is there any log in the browser console (web app) 
+        or in the AppName.exe.data directory?
+        You can copy and paste logs from browser console,
+        or drag-drop log files into this textarea.
+  - type: textarea
+    attributes:
+      label: Anything else?
+      description: |
+        Links? References? Anything that will give us more context about the issue you are encountering!
