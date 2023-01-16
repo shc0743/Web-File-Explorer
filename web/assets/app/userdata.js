@@ -2,10 +2,10 @@
 
 // config
 const db_name = 'Web-File-Explorer_web-data_' + globalThis.location.pathname.replace(/(\/|\\|\:|\;|\"|\'|\+|\=|\[|\]|\(|\)|\,|\.)/g, '_');
-const version = 4;
+const version = 5;
 
 
-import { openDB, } from 'idb';
+import { openDB } from 'idb';
 
 
 const el_dbExpired = document.createElement('dialog');
@@ -27,14 +27,16 @@ el_dbExpired.oncancel = () => false;
 const dbUpgrade = {
     0: function (db, transaction) { },
     1: function (db, transaction) {
-        db.createObjectStore('config');
+        db.createObjectStore('config', { autoIncrement: true });
     },
     2: function (db, transaction) {
         db.createObjectStore('servers', { keyPath: 'addr' });
     },
     3: function (db, transaction) {
-        db.deleteObjectStore('config');
-        db.createObjectStore('config', { autoIncrement: true });
+
+    },
+    4: function (db, transaction) {
+        db.createObjectStore('remoteFileEditCache', { keyPath: 'id' });
     },
 };
 

@@ -1,4 +1,4 @@
-import { getHTML } from '../../assets/js/browser_side-compiler.js';
+import { getHTML } from '@/assets/js/browser_side-compiler.js';
 
 
 const componentId = '5e27aada552c4391ae259fff10206d35';

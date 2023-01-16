@@ -1,4 +1,4 @@
-import { getHTML } from '../../assets/js/browser_side-compiler.js';
+import { getHTML } from '@/assets/js/browser_side-compiler.js';
 import { ElCard, ElButton, ElDescriptions, ElDescriptionsItem } from 'element-plus';
 
 

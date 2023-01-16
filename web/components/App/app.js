@@ -1,4 +1,4 @@
-import { getHTML } from '../../assets/js/browser_side-compiler.js';
+import { getHTML } from '@/assets/js/browser_side-compiler.js';
 import '../tree-view/TreeView.js';
 import MainView from './main-view.js';
 import AsideView from './AsideView.js';

@@ -1,4 +1,4 @@
-import { getHTML } from '../../assets/js/browser_side-compiler.js';
+import { getHTML } from '@/assets/js/browser_side-compiler.js';
 import { ElButton, ElTable, ElTableColumn, ElSwitch } from 'element-plus';
 import FileExplorer from '../FileExplorer/FileExplorer.js';
 
