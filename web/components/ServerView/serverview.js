@@ -191,12 +191,14 @@ async function ExecuteHandler(srv_data, srv_id, hash) {
 
     if (hash.startsWith('#/s/' + srv_id + '/')) {
         hash = hash.substring(('#/s/' + srv_id + '/').length);
+        hash = hash.replaceAll('\\', '/');
         // console.log(hash);
 
         // 传入子组件
         this.$data.isLoading = false;
-
+        this.$data.explorerPath = hash;
         this.$data.viewType = 'explore';
+        // this.$nextTick(() => this.$refs.fileExplorerInstance.update());
         return;
     }
 

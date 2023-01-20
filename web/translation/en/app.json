@@ -8,6 +8,7 @@
   "doctitle$=server": "Server",
   "doctitle$=serverList": "Server List",
   "doctitle$=manageServer": "Manage servers",
+
   "ui.welcome.title/h1[0]": "Start",
   "ui.login.ui/server": "Server",
   "ui.login.ui/pswd": "Password",
@@ -22,5 +23,12 @@
   "ui.string:Help": "Help",
   "ui.login.ui/httpsConfirmText": "Are you sure not to use HTTPS? It is not safe.",
   "ui.string:serverAddr": "Server address",
-  "ui.string:allServers": "All Servers"
+  "ui.string:allServers": "All Servers",
+  "ui.string:reload": "Reload",
+  "ui.string:authFailed": "Verification failed, please log in again",
+  "ui.string:name": "Name",
+  "ui.fs:labelname": "Label Name",
+  "ui.fs:mountpath": "Mount Path",
+  "ui.fs:filesystem": "Filesystem",
+  "ui.string:clickTextToEdit": "Click text to edit content"
 }

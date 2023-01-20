@@ -1,8 +1,8 @@
 
 
 // config
-const db_name = 'Web-File-Explorer_web-data_' + globalThis.location.pathname.replace(/(\/|\\|\:|\;|\"|\'|\+|\=|\[|\]|\(|\)|\,|\.)/g, '_');
-const version = 5;
+export const db_name = 'Web-File-Explorer_web-data_' + globalThis.location.pathname.replace(/(\/|\\|\:|\;|\"|\'|\+|\=|\[|\]|\(|\)|\,|\.)/g, '_');
+export const version = 5;
 
 
 import { openDB } from 'idb';
@@ -79,6 +79,20 @@ await new Promise(function (resolve, reject) {
 
 export { db };
 globalThis.userdata = db;
+
+
+
+
+
+export function createServerData({
+    addr = '',
+    name = addr,
+    pswd = '',
+    remarks = '',
+}) {
+    if (!addr) return null;
+    return { addr, name, pswd, remarks, };
+}
 
 
 

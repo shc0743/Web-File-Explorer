@@ -1,4 +1,4 @@
-<div style="margin-bottom: 15px"><ElButton data-id="allServers" type=primary plain style="width: 100%" @click="goServerList">{{tr('ui.string:allServers')}}</ElButton></div>
+<div v-deep class="btn-container"><ElButton data-id="allServers" type=primary plain style="width: 100%" @click="goServerList">{{tr('ui.string:allServers')}}</ElButton></div>
 
 <tree-view v-deep style="font-family: monospace;">
     <tree-node>
@@ -19,6 +19,10 @@
                                 <tree-text>{{tr('ui.login.ui/pswd')}}</tree-text>
                                 <span tabindex="0" class="pswdview" :data-real="item.pswd"></span>
                             </tree-node>
+                            <tree-node collapsed>
+                                <tree-text>{{tr('Remarks')}}</tree-text>
+                                <div>{{item.remarks}}</div>
+                            </tree-node>
                         </tree-node>
                     </div>
                 </tree-content>
@@ -35,5 +39,11 @@
 >>> .pswdview:hover::after,>>> .pswdview:focus::after{
     content: attr(data-real);
     font-size: x-small;
+}
+.btn-container>>> {
+    margin-bottom: 15px;
+    position: sticky;
+    left: 0; top: 0;
+    box-shadow: 0 0 0 10px var(--background);
 }
 </style>

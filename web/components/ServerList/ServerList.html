@@ -1,15 +1,16 @@
 <div v-deep>
-    <h1 tabindex="0">服务器列表</h1>
+    <h1>{{tr('doctitle$=serverList')}}</h1>
 
     <p><ElButton size="large" @click="addServer">{{ tr('ui.string:addServer') }}</ElButton></p>
 
-    <ElCard v-for="item in servers" style="overflow: auto; margin-top: 30px;">
+    <ElCard v-for="item in srvBuffer" style="overflow: auto; margin-top: 30px;">
         <template #header>
             <div class="card-header">
-                <span>{{ item.name }}</span>
+                <TextEdit v-model="item.name" inline :id-init="item.addr" custom-data="name" @changed="updateData" />
 
                 <span>
-                    <ElButton :data-addr="item.addr" @click="editServer">{{ tr('Edit') }}</ElButton>
+                    <ElButton @click="editServer">{{ tr('Edit') }}</ElButton>
+                    <ElButton type="danger" plain :data-addr="item.addr" @click="deleteServer">{{ tr('Delete') }}</ElButton>
                     <ElButton type="primary" plain :data-addr="item.addr" @click="toggleServer">{{ tr('Open') }}</ElButton>
                 </span>
             </div>
@@ -24,16 +25,26 @@
 
                 <ElDescriptionsItem>
                     <template #label>{{tr('ui.string:serverAddr')}}</template>
-                    <span>{{ item.addr }}</span>
+                    <TextEdit :id-init="item.addr" custom-data="addr" v-model="item.addr" @changed="updateData" :parser="value => UriEncode(value)" />
                 </ElDescriptionsItem>
 
                 <ElDescriptionsItem>
                     <template #label>{{tr('ui.login.ui/pswd')}}</template>
-                    <span>{{ '*'.repeat(item.pswd.length) }}</span>
+                    <TextEdit :id-init="item.addr" custom-data="pswd" v-model="item.pswd" @changed="updateData" show-password />
+                </ElDescriptionsItem>
+
+                <ElDescriptionsItem>
+                    <template #label>{{tr('Remarks')}}</template>
+                    <TextEdit :id-init="item.addr" custom-data="remarks" v-model="item.remarks" @changed="updateData" type="textarea" autosize />
                 </ElDescriptionsItem>
             </ElDescriptions>
         </div>
     </ElCard>
+
+    <ElDialog v-model="showDeleteConfirm" title="" align-center :show-close="false" :close-on-click-modal="false" style="width: auto">
+        <ElButton type="primary" @click="showDeleteConfirm=false">{{tr('dialog.cancel')}}</ElButton>
+        <ElButton type="danger" @click="confirmDelete">{{tr('Delete')}}</ElButton>
+    </ElDialog>
 </div>
 
 <style>

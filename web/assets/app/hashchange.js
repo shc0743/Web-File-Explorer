@@ -8,8 +8,6 @@ export default {
     },
 
     "#/servers/"(hash) {
-        if (hash === ('#/servers/manage'))
-            return this.$data.current_page = 'manageServer';
         this.$data.current_page = 'serverList';
     }
 

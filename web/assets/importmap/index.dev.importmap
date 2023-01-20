@@ -3,7 +3,8 @@
     "@/": "./",
     "vue": "./modules/vue/vue.esm-browser.js",
     "idb": "./modules/idb/idb.esm.js",
-    "element-plus": "./modules/element-plus/index.full.min.mjs.js",
-    "element-plus/": "./modules/element-plus/"
+    "element-plus": "./modules/element-plus/index.full.mjs.js",
+    "element-plus/": "./modules/element-plus/",
+    "icons-vue": "./modules/element-plus/icons-vue.min.js"
   }
 }

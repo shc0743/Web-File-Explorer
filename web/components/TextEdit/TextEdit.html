@@ -1,0 +1,27 @@
+<ElInput v-model="text_"
+    v-if="editMode"
+    ref="inputbox"
+    v-bind="$attrs"
+    :type="type"
+    :disabled="disabled"
+    :clearable="clearable"
+    :placeholder="placeholder"
+    :autosize="autosize"
+    :formatter="formatter"
+    :parser="parser"
+    @blur="finishEdit"
+    @keydown.enter="onEnter"
+    @keydown.esc="finishEditWithoutSaving"
+    :style="styleInput"
+/>
+<span v-else
+    v-deep
+    ref="textbox"
+    v-bind="$attrs"
+    v-text="textComputed"
+    tabindex="0"
+    @click="doEdit"
+    @keydown.enter="doEdit"
+    title="Edit by clicking this"
+></span>
+

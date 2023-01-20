@@ -1,0 +1,7 @@
+
+
+globalThis.sw_env = {
+    
+};
+
+

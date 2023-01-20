@@ -19,7 +19,7 @@
         </ElTable>
     </div>
 
-    <FileExplorer v-if="viewType === 'explore'" :server="currentSrv" :path="explorerPath" />
+    <FileExplorer v-if="viewType === 'explore'" ref="fileExplorerInstance" :server="currentSrv" :path="explorerPath" />
 </my-container>
 
 <style>

@@ -221,10 +221,28 @@ void server::FileServer::getFileList(const HttpRequestPtr& req, std::function<vo
 		FindClose(hFind);
 	}
 
+	//srand(time(0) % rand());
+	//wstring szTemp = L".temp-RESPONSE-" + to_wstring(time(0)) + L"-" + to_wstring(rand()) + L".tmp";
+	//HANDLE hTemp = CreateFileW(szTemp.c_str(), GENERIC_WRITE,
+	//	0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+	//if (!hTemp) return err(k500InternalServerError, "Cannot create file");
+	//DWORD dwTemp = 0;
+	//WriteFile(hTemp, result.c_str(), DWORD((result.length() + 1) * sizeof(WCHAR)), &dwTemp, 0);
+	//CloseHandle(hTemp);
+
+	//HttpResponsePtr resp = HttpResponse::newFileResponse(ws2s(szTemp));
+	//resp->setContentTypeString("text/plain; charset=utf-16");
+	//CORSadd(req, resp);
+	//callback(resp);
+
+	//DeleteFileW(szTemp.c_str());
+
 	HttpResponsePtr resp = HttpResponse::newHttpResponse();
+	resp->setContentTypeCode(CT_TEXT_PLAIN);
 	CORSadd(req, resp);
 	resp->setBody(ws2s(result));
 	callback(resp);
+
 
 }
 
@@ -260,6 +278,7 @@ void server::FileServer::getVolumeList(const HttpRequestPtr& req, std::function<
 
 	HttpResponsePtr resp = HttpResponse::newHttpResponse();
 	CORSadd(req, resp);
+	resp->setContentTypeCode(CT_TEXT_PLAIN);
 	resp->setBody(ws2s(result1 + L"\n" + result2));
 	callback(resp);
 }

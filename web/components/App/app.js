@@ -1,11 +1,12 @@
 import { getHTML } from '@/assets/js/browser_side-compiler.js';
+import { db_name } from '@/assets/app/userdata.js';
 import '../tree-view/TreeView.js';
+import '../VList/VList.js';
 import MainView from './main-view.js';
 import AsideView from './AsideView.js';
 import LoginComponent from '../Login/login.js';
 import HeaderBar from '../HeaderBar/HeaderBar.js';
 import ServerView from '../ServerView/serverview.js';
-import ServerManagement from '../ServerManagement/ServerManagement.js';
 import ServerList from '../ServerList/ServerList.js';
 
 
@@ -31,7 +32,6 @@ const data = {
         LoginComponent,
         HeaderBar,
         ServerView,
-        ServerManagement,
         ServerList,
     },
 
@@ -78,18 +78,18 @@ const data = {
             location.hash = '#/s/' + btoa(data);
         },
 
-        async updateServerDataFromManagement(op, arg1, arg2) {
-            if (op === 'delete') {
-                globalThis.userdata.delete('servers', arg1).catch(() => console.warn('Warning: Failed to delete server', arg1));
-                // globalThis.appInstance_.sideFileTree.$refs.tree.remove(arg1);
-            }
-            else if (op === 'modify') {
-                await globalThis.userdata.delete('servers', arg1);
-                await globalThis.userdata.put('servers', arg2);
-            }
-
-            this.$nextTick(() => this.$forceUpdate());
-        },
+        // async updateServerDataFromManagement(op, arg1, arg2) {
+        //     if (op === 'delete') {
+        //         globalThis.userdata.delete('servers', arg1).catch(() => console.warn('Warning: Failed to delete server', arg1));
+        //         // globalThis.appInstance_.sideFileTree.$refs.tree.remove(arg1);
+        //     }
+        //     else if (op === 'modify') {
+        //         await globalThis.userdata.delete('servers', arg1);
+        //         await globalThis.userdata.put('servers', arg2);
+        //     }
+        //
+        //     this.$nextTick(() => globalThis.loadServers());
+        // },
 
         async updateServerDataFromLogin(info) {
             const isNotNewData = await(userdata.get('servers', info.addr));
@@ -98,7 +98,7 @@ const data = {
             await userdata.put('servers', info);
             if (!!isNotNewData) return;
 
-            let prevNodeId = null, targetNodeIndex = -1;
+            /*let prevNodeId = null, targetNodeIndex = -1;
             const keys = await userdata.getAllKeys('servers');
             for (let i = 0; i < keys.length; ++i) {
                 if (keys[i] === info.addr) {
@@ -114,7 +114,9 @@ const data = {
                 this.$data.servers.splice(targetNodeIndex, 0, info);
                 // console.log('now=', this.$data.servers);
                 // globalThis.appInstance_.sideFileTree.$refs.tree.insertAfter([{ addr: '1' }], prevNodeId);
-            }
+            }*/
+            globalThis.loadServers();
+            globalThis.notifyDataUpdate();
         }
 
 
@@ -122,11 +124,15 @@ const data = {
 
     created() {
         globalThis.appInstance_.instance = this;
-        globalThis.appInstance_.serversLoadRequest = loadServers_();
+        globalThis.appInstance_.serversLoadRequest = globalThis.loadServers();
     },
 
     mounted() {
-
+        globalThis.addEventListener('storage', function (ev) {
+            if (ev.key === db_name + '-update') {
+                globalThis.loadServers();
+            }
+        });
     },
 
     watch: {

@@ -1,4 +1,5 @@
 import { getHTML } from '@/assets/js/browser_side-compiler.js';
+import { createServerData } from '@/assets/app/userdata.js';
 
 import { ElDialog, ElButton, ElSwitch } from 'element-plus';
 
@@ -103,11 +104,11 @@ async function Login() {
 
 
         // auth succeed, add to server list
-        const srvinfo = {
+        const srvinfo = createServerData({
             addr: server,
             name: server,
             pswd: passwd,
-        };
+        });
 
         // finished
         _this.$data._abortController = null;

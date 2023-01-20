@@ -68,6 +68,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			}
 			SetFileAttributesW(root.c_str(), FILE_ATTRIBUTE_HIDDEN);
 		}
+		SetCurrentDirectoryW(root.c_str());
 		std::wstring webroot = root + L"\\webroot";
 		(cl.getopt(L"webroot", webroot));
 		if (-1 != IsFileOrDirectory(webroot)) {

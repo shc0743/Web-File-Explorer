@@ -21,15 +21,17 @@
   "ui.string:myServer": "我的服务器",
   "ui.string:Help": "帮助",
   "ui.login.ui/httpsConfirmText": "确定不使用 HTTPS? 这不安全。",
-  "Edit": "编辑", "Modify": "修改", "Open": "打开",
-  "ui.string:serverAddr": "服务器地址",
+  "Edit": "编辑", "Modify": "修改", "Open": "打开", "Delete": "删除",
   "Information": "信息",
   "No Server": "没有服务器",
+  "ui.string:serverAddr": "服务器地址",
   "ui.string:allServers": "所有服务器",
   "ui.string:reload": "重新加载",
   "ui.string:authFailed": "验证失败，请重新登录",
   "ui.string:name": "名称",
   "ui.fs:labelname": "卷标",
   "ui.fs:mountpath": "装载点",
-  "ui.fs:filesystem": "文件系统"
+  "ui.fs:filesystem": "文件系统",
+  "ui.string:clickTextToEdit": "点击文本以编辑",
+  "Remarks": "备注"
 }

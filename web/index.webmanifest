@@ -1,0 +1,16 @@
+{
+  "name": "Web File Explorer",
+  "short_name": "WebFileExplorer",
+  "description": "Web-File-Explorer: Explore your file in a web browser, add/edit/delete them online; HTTP RESTful API supported",
+  "icons": [
+    {
+      "src": "public/favicon.png",
+      "sizes": "1x1",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "${PLACEHOLDER.STARTURL}",
+  "display": "standalone",
+  "theme_color": "#FFFFFF",
+  "background_color": "#FFFFFF"
+}

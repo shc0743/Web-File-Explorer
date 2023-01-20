@@ -9,9 +9,10 @@ import { reportFatalError } from './error-reporter.js';
 const updateLoadStat = (globalThis.ShowLoadProgress) ? globalThis.ShowLoadProgress : function () {};
 
 
+let db_name = null;
 try {
     updateLoadStat('Loading userdata');
-    await import('./userdata.js');
+    db_name = (await import('./userdata.js')).db_name;
 }
 catch (error) {
     throw reportFatalError(error, 'main');
@@ -46,19 +47,22 @@ async function loadServers_() {
     return arr;
 };
 globalThis.loadServers_ = loadServers_;
-//globalThis.loadServers = function () {
-//    if (globalThis.appInstance_.pendingServerLoadRequest) {
-//        return globalThis.appInstance_.pendingServerLoadRequest;
-//    }
-//    globalThis.appInstance_.pendingServerLoadRequest = loadServers_();
-//    globalThis.appInstance_.pendingServerLoadRequest.then(function () {
-//        delete globalThis.appInstance_.pendingServerLoadRequest;
-//    });
-//    return globalThis.appInstance_.pendingServerLoadRequest;
-//}
+globalThis.loadServers = function () {
+    if (globalThis.appInstance_.pendingServerLoadRequest) {
+        return globalThis.appInstance_.pendingServerLoadRequest;
+    }
+    globalThis.appInstance_.pendingServerLoadRequest = loadServers_();
+    globalThis.appInstance_.pendingServerLoadRequest.then(function () {
+        delete globalThis.appInstance_.pendingServerLoadRequest;
+    });
+    return globalThis.appInstance_.pendingServerLoadRequest;
+};
+globalThis.notifyDataUpdate = function () {
+    localStorage.setItem(db_name + '-update', (new Date).getTime());
+};
 
 updateLoadStat('Loading Vue Application');
-// import Vue_App from '../../components/App/app.js'; // don't use this because some browser handles this incorrectly
+// import Vue_App from '../../components/App/app.js'; // don't use this because some browser preload modules so that the progress cannot show correctly
 const Vue_App = (await import('../../components/App/app.js')).default;
 
 updateLoadStat('Creating Vue application');

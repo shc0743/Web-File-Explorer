@@ -15,5 +15,9 @@ export async function getHTML(jspath, cid) {
         ;
 }
 
+export function getVdeep(cid) {
+    return `data-v-${cid}`;
+}
+
 
 

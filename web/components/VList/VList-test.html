@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VList test page</title>
+</head>
+<body>
+<v-list-view id=MyList></v-list-view>
+<script>
+MyList.data = function () {
+const r = []
+for (let i=0;i<100_000;++i) r.push([i])
+return r
+}
+</script>
+<style>
+#MyList {
+position: fixed;
+left: 0; right: 0; top: 0; bottom: 0;
+--padding: 10px;
+}
+</style>
+<script type=module>
+import './VList.js'
+MyList.update()
+</script>
+</body>
+</html>
