@@ -195,8 +195,9 @@ async function ExecuteHandler(srv_data, srv_id, hash) {
         // console.log(hash);
 
         // 传入子组件
+        try { this.$data.explorerPath = decodeURIComponent(hash) }
+        catch { this.$data.explorerPath = hash }
         this.$data.isLoading = false;
-        this.$data.explorerPath = hash;
         this.$data.viewType = 'explore';
         // this.$nextTick(() => this.$refs.fileExplorerInstance.update());
         return;
