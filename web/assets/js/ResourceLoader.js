@@ -8,10 +8,10 @@ export function LoadCSSAsLink(src) {
     return link;
 }
 
-export function LoadCSS(css) {
+export function LoadCSS(css, parent = null) {
     const style = document.createElement('style');
     style.innerHTML = css;
-    (document.head || document.documentElement).append(style);
+    (parent || document.head || document.documentElement).append(style);
     return style;
 }
 

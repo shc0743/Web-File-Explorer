@@ -33,5 +33,7 @@
   "ui.fs:mountpath": "装载点",
   "ui.fs:filesystem": "文件系统",
   "ui.string:clickTextToEdit": "点击文本以编辑",
-  "Remarks": "备注"
+  "Remarks": "备注",
+  "ui.string:confirmMultipleFileOpen": "确认要打开 $1 个文件?",
+  "ui.string:objectNotSelected": "未选择对象"
 }

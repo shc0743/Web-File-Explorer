@@ -1,7 +1,17 @@
 <div v-deep ref="app">
-    <v-list-view ref="lst"></v-list-view>
+    <v-list-view
+        ref="lst"
+        @open="openFile"
+    />
     <div class="ctls">
-        <span>{{objectCountStr}}</span>
+        <span style="vertical-align: bottom">
+            <span>{{objectCountStr}}</span>
+            <span style="margin: 0 5px">|</span>
+            <ElInput size="small" v-model="filterText" placeholder="Filter..." clearable style="display: inline" @input="doFilter" />
+            <span style="margin: 0 5px">|</span>
+            <ElButton size="small" @click="openFile">{{tr('Open')}}</ElButton>
+        </span>
+
         <span><label><span></span>
             <ElSelect v-model="viewType" size="small" placement="top-end">
                 <ElOption value="list" label="List" />
@@ -27,15 +37,9 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    font-family: monospace;
 }
->>> .icon {
-    display: inline-block;
-    width: 1em;
-    height: 1em;
-    background-position: center;
-    background-repeat: no-repeat;
-}
->>> .icon.is-folder {
-    /* background-image: url(); */
+>>> .ctls * {
+    white-space: nowrap;
 }
 </style>

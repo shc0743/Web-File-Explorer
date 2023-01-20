@@ -9,14 +9,17 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-// VList v3
+// VList v2
+// supports very big data
+//
 
+
+// 能力有限实在做不好了，就这样吧
 
 {
-    const globStyle = document.createElement('style');
-    globStyle.textContent = `
+const globStyle = document.createElement('style');
+globStyle.textContent = `
 v-list-view {
---background: #ffffff;
 --v-list-row-color: #000000;
 --v-list-row-bg: #ffffff;
 --v-list-row-outline: none;
@@ -34,34 +37,41 @@ v-list-view {
 v-list-view {
 display: block;
 box-sizing: border-box;
-overflow: auto;
+overflow: hidden;
+position: relative;
 }
 v-list-view:focus {
 outline: none;
 }
 `;
-    (document.head || document.documentElement).append(globStyle);
+(document.head || document.documentElement).append(globStyle);
 }
 
 const rowMarginBottom = 6;
 const vListStyle = document.createElement('style');
 vListStyle.textContent = `
 #container {
+    position: absolute;
+    left: 0; right: 0; top: 0; bottom: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: row;
+}
+#wrapper {
     padding: var(--padding);
-    box-sizing: content-box;
+    flex: 1;
+    overflow: hidden;
+    touch-action: none;
+}
+#content {
     position: relative;
 }
-#header {
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    padding: var(--padding);
-    border-bottom: 1px solid #ccc;
-    background: var(--background);
-}
-#header.empty {
-    padding: 0;
-    border: none;
+#vscroll {
+    position: absolute;
+    left: 0; top: 0;
+    display: block;
+    width: 1px;
+    height: 200%;
 }
 v-list-row {
     position: relative;
@@ -106,54 +116,53 @@ v-list-row.checked {
 class HTMLVirtualListElement extends HTMLElement {
     #shadowRoot = null;
     #divContainer = null;
-    #header = null;
+    #divWrapper = null;
+    #divContent = null;
+    #scrollbar = null;
     #data = null;
+    #selection = [];
     #el = new Map();
-    #selection = new Map();
     #height = 0;
     #line_height = 0;
-    #mutationObserver = null;
     #resizeObserver = null;
 
     constructor() {
         super();
 
         this.#shadowRoot = this.attachShadow({ mode: 'open' });
-        this.#header = document.createElement('header');
-        this.#header.id = 'header';
-        {
-            let slot1 = document.createElement('slot');
-            slot1.name = 'header';
-            this.#header.append(slot1);
-        }
-        this.#shadowRoot.append(this.#header);
         this.#divContainer = document.createElement('div');
         this.#divContainer.id = 'container';
+        this.#divWrapper = document.createElement('div');
+        this.#divWrapper.id = 'wrapper';
+        this.#divContent = document.createElement('div');
+        this.#divContent.id = 'content';
+        this.#scrollbar = document.createElement('v-list-scrollbar');
+        this.#scrollbar.id = 'scrollbar';
+        this.#scrollbar.type = 'vertical';
         this.#shadowRoot.append(this.#divContainer);
+        this.#divWrapper.append(this.#divContent);
+        this.#divContainer.append(this.#divWrapper);
+        this.#divContainer.append(this.#scrollbar);
         this.#shadowRoot.append(vListStyle.cloneNode(true));
-        if (!this.#divContainer) throw new Error(`Error in constructor: Failed to find divContainer`);
         this.#resizeObserver = new ResizeObserver(() => {
             globalThis.requestAnimationFrame(() => this.updateOnScroll());
         });
-        this.#mutationObserver = new MutationObserver(this.#mutationFn.bind(this));
 
         this.on('contextmenu', this.#oncontextmenu);
         this.on('focus', this.#onfocus);
-        this.on('keydown', this.#onkeydown, { capture: true });
-        this.on('scroll', this.#onscroll, { passive: true });
-        this.on('click', this.#onContainerClick);
-        this.on('dblclick', this.#ondblclick, { capture: true });
-        this.#divContainer.addEventListener('click', ev => {
-            if (ev.target !== this.#divContainer) return;
+        this.on('keydown', this.#onkeydown);
+        // this.on('scroll', this.#onscroll, { passive: true });
+        this.on('click', this.#onContainerClick, { capture: true });
+        this.#divContent.addEventListener('click', ev => {
+            if (ev.target !== this.#divContent) return;
             // clear selection
             this.selection = null;
         });
+        this.on('wheel', this.#onwheel, { passive: true });
+        this.#scrollbar.addEventListener('scrolling', this.#onScrollbarScroll.bind(this));
+        this.#scrollbar.addEventListener('scroll', this.#onScrollbarScroll.bind(this));
 
-        this.#selection._delete = this.#selection.delete;
-        this.#selection.add = this.#addSelection.bind(this);
-        this.#selection.delete = this.#deleteSelection.bind(this);
-
-
+        
     }
 
     #dataFunc = null;
@@ -175,28 +184,12 @@ class HTMLVirtualListElement extends HTMLElement {
     connectedCallback() {
         this.tabIndex = 0;
 
-        this.#mutationObserver?.observe(this, {
-            attributes: true,
-            subtree: true,
-            childList: true,
-        });
         this.#resizeObserver?.observe(this);
-
-        this.#mutationFn();
 
     }
 
     disconnectedCallback() {
-        this.tabIndex = 0;
-
-        this.#mutationObserver?.disconnect();
         this.#resizeObserver?.unobserve(this);
-
-    }
-
-
-    #mutationFn() {
-        this.#header.classList[(this.querySelector('[slot="header"]') ? 'remove' : 'add')]('empty');
 
     }
 
@@ -208,7 +201,7 @@ class HTMLVirtualListElement extends HTMLElement {
     }
 
     #onfocus(ev) {
-        if (!this.#divContainer.querySelector('.checked')) {
+        if (!this.#divContent.querySelector('.checked')) {
             this.#setPfocus();
             return;
         }
@@ -219,28 +212,29 @@ class HTMLVirtualListElement extends HTMLElement {
 
         if (ev.key === ' ') {
             ev.preventDefault();
-            const el = this.#divContainer.querySelector('v-list-row.pfocus');
+            const el = this.#divContent.querySelector('v-list-row.pfocus');
             el?.classList.remove('pfocus');
             el?.classList.add('checked');
             return;
         }
         if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
             ev.preventDefault();
-            let el = this.#divContainer.querySelector('v-list-row.current');
-            if (!el) el = this.#divContainer.querySelector('v-list-row.checked,v-list-row.pfocus');
-            if (!el) el = this.#divContainer.querySelector('v-list-row');
+            let el = this.#divContent.querySelector('v-list-row.current');
+            if (!el) el = this.#divContent.querySelector('v-list-row.checked,v-list-row.pfocus');
+            if (!el) el = this.#divContent.querySelector('v-list-row');
             if (!el) return;
             let elTarget = (ev.key === 'ArrowUp') ? el.previousElementSibling : el.nextElementSibling;
             if (!elTarget) {
-                this.scrollBy(0, (this.#line_height + rowMarginBottom) * ((ev.key === 'ArrowUp') ? -1 : 1));
+                this.#scrollbar.value += ((this.#line_height + rowMarginBottom) * ((ev.key === 'ArrowUp') ? -1 : 1));
+                globalThis.requestAnimationFrame(() =>this.#onkeydown(ev));
                 return;
             }
 
             if (ev.ctrlKey) {
-
+                
             }
             else if (ev.shiftKey) {
-
+                
             }
             else {
                 this.clearSelection(true);
@@ -248,56 +242,44 @@ class HTMLVirtualListElement extends HTMLElement {
             }
             return;
         }
-        if (ev.key === 'Enter' && this.selection.size) {
-            ev.preventDefault();
-            this.dispatchEvent(new CustomEvent('open', { target: this }));
-            return;
-        }
         if (ev.key === 'Escape') {
             ev.preventDefault();
             this.selection = null;
             return;
         }
-        if ((ev.key === 'a' || ev.key === 'A') && ev.ctrlKey) {
-            ev.preventDefault();
-            this.selection = 'all';
-            return;
-        }
         // console.log(ev.key);
     }
 
-    #onscroll() {
-        globalThis.requestAnimationFrame(() => this.updateOnScroll());
+
+    #onwheel(ev) {
+        // console.log(ev);
+        this.#scrollbar.value += ev.deltaY;
+    }
+
+    // #onscroll() {
+    //    globalThis.requestAnimationFrame(() => this.updateOnScroll());
+    // }
+
+    #onScrollbarScroll(ev) {
+        this.updateOnScroll();
     }
 
     #onContainerClick(ev) {
-        const path = ev.composedPath();
-
         if (ev.ctrlKey || ev.shiftKey) {
-
+        
             return;
         }
 
-        for (const i of path) {
-            if (i?.tagName?.toLowerCase() === 'v-list-row') {
-                this.selection = i.dataset.n;
-                break;
-            }
-        }
-    }
-
-    #ondblclick(ev) {
         const path = ev.composedPath();
-
         for (const i of path) {
             if (i?.tagName?.toLowerCase() === 'v-list-row') {
-                this.dispatchEvent(new CustomEvent('open', { target: i }));
+                this.clearSelection(true);
+                i.classList.add('checked');
                 break;
             }
         }
+
     }
-
-
 
     get selection() {
         return this.#selection;
@@ -308,80 +290,27 @@ class HTMLVirtualListElement extends HTMLElement {
             return true;
         }
 
-        this.clearSelection(true);
-        const r = this.#updateSelection(value);
-        if (r) this.dispatchEvent(new CustomEvent('selectionchanged', { target: this }));
-        return r;
+        return this.#updateSelection(value);
     }
     #updateSelection(newSelection) {
-        this.#selection.clear();
-
-        if (newSelection instanceof Array || newSelection instanceof Set) {
-            for (let i of newSelection) {
-                this.#selection.add(i, i);
-            }
-            this.#updateSelectionElement();
-            return true;
-        }
-        if (!isNaN(newSelection)) {
-            newSelection = Number(newSelection);
-            this.#selection.add(newSelection);
-            this.#updateSelectionElement();
-            return true;
-        }
-
-        if (newSelection === 'all') {
-            let datalen = this.#data.length;
-            for (let i = 0; i < datalen; ++i) this.#selection.set(i, i);
-            this.#updateSelectionElement();
-            return true;
-        }
-
-        return false;
-    }
-    #updateSelectionElement() {
-        for (const el of this.#divContainer.querySelectorAll('v-list-row')) {
-            if (this.#selection.has(parseInt(el.dataset.n))) {
-                el.classList.add('checked');
-            }
-        }
+        
+        return false
     }
     clearSelection(clearPfocus = false) {
-        this.#selection.clear();
-        this.#divContainer.querySelectorAll('v-list-row.checked').forEach(el => el.classList.remove('checked'));
-        this.#divContainer.querySelectorAll('v-list-row.pfocus').forEach(el => el.classList.remove('pfocus'));
+        this.#divContent.querySelectorAll('v-list-row.checked').forEach(el => el.classList.remove('checked'));
+        this.#divContent.querySelectorAll('v-list-row.pfocus').forEach(el => el.classList.remove('pfocus'));
         if (!clearPfocus) this.#setPfocus();
-    }
-    #addSelection(i) {
-        if (isNaN(i)) return false;
-        this.#selection.set(Number(i), Number(i));
-        this.#updateSelectionElement();
-        return true;
-    }
-    #deleteSelection(i) {
-        if (isNaN(i)) return false;
-        if (!this.#selection._delete.call(this.#selection, Number(i), Number(i))) return false;
-        this.#updateSelectionElement();
-        return true;
     }
 
     #setPfocus() {
-        this.#divContainer.querySelector('v-list-row')?.classList.add('pfocus');
+        this.#divContent.querySelector('v-list-row')?.classList.add('pfocus');
     }
 
-    async filter(fn) {
-        await this.update();
-        if (!fn) return;
-        this.#data = this.#data.filter(fn);
-        this.updateHeight();
-        await this.#updateOnScroll(true);
-        return this.#data.length;
-    }
 
     #computeHeight() {
         const row = document.createElement('v-list-row');
         row.innerHTML = 'test';
-        this.#divContainer.append(row);
+        this.#divContent.append(row);
         const style = globalThis.getComputedStyle(row);
         const h = parseInt(style.height) + parseInt(style.paddingTop) + parseInt(style.paddingBottom);
         this.#line_height = h + rowMarginBottom;
@@ -390,44 +319,129 @@ class HTMLVirtualListElement extends HTMLElement {
     }
     updateHeight() {
         this.#computeHeight();
-        this.#divContainer.style.height = this.#height.toString() + 'px';
+        this.#scrollbar.min = 0;
+        this.#scrollbar.max = this.#height;
+        // this.#divPseudoContent.setAttribute('style', `height: ${this.#height}px;`);
     }
 
     #updating = false;
-    async update() {
+    update() {
         if (this.#updating) return;
 
         this.#updating = true;
-        this.#divContainer.innerHTML = '';
+        this.#divContent.innerHTML = '';
 
         this.#data = this.data();
         if (!(this.#data instanceof Array) && !(this.#data instanceof Promise)) {
-            this.#updating = false;
             throw new TypeError(`data function returned an incorrect result`);
         }
         function f(data) {
-            this.#updating = false;
             if (this.#data !== data) this.#data = data;
             if (!(this.#data instanceof Array)) {
                 throw new TypeError(`data promise returned an incorrect result`);
             }
-            if (this.#data.length > 200_001) {
-                throw new Error(`Too more data`);
-            }
-
-            this.selection = null;
-            this.updateHeight();
-            this.updateOnScroll(true);
+            this.#updating = false;
+            
+            globalThis.queueMicrotask(() => {
+                this.updateHeight();
+                this.updateOnScroll(true);
+            });
         };
-        if (this.#data instanceof Promise) try {
-            this.#data = await this.#data;
-            f.call(this, this.#data);
-        } catch (error) {}
-        else f.call(this, this.#data);
+        if (this.#data instanceof Promise) this.#data.then(f.bind(this)).catch(() => { });
+        else globalThis.setTimeout(f.bind(this), 4, this.#data);
     }
 
-    //#updateOnScrollLock = false;
+
+    updateOnScroll(forceRedraw = false) {
+        const rangeOverlay = 10; // 渲染可视范围内的 ± 10 条数据
+
+        if (!this.#data) return;
+
+        const scrollPos = this.#scrollbar.value;
+
+        let begin = Math.max(0, Math.floor((scrollPos) / this.#line_height) - rangeOverlay);
+        let end = Math.min(this.#data.length, Math.floor((scrollPos + this.clientHeight) / this.#line_height) + rangeOverlay);
+        // let beginRaw = (scrollPos) / (this.#line_height);
+        // let begin = Math.floor(beginRaw);
+        // let end = (Math.floor((scrollPos + this.clientHeight) / this.#line_height));
+        let itemCount = this.#data.length;
+        const numInRange = function (num, min, max) {
+            return num >= min && num <= max;
+        };
+
+        if (forceRedraw) {
+            this.#el.clear();
+            this.#divContent.innerHTML = '';
+        }
+
+        let offset = 0;
+        if (scrollPos !== 0) {
+            offset = -rangeOverlay;
+        }
+        this.#divContent.style.top = offset + 'px';
+
+        let createdElementsIndex = [];
+        for (let i of this.#el) {
+            // 元素已存在
+            if (!numInRange(i[0], begin, end)) {
+                // 移除不需要的元素
+                i[1].remove();
+                this.#el.delete(i[0]);
+            }
+        }
+        for (let i = begin; i < end; ++i){
+            const el = this.#el.get(i);
+            if (!el) {
+                // 创建新行
+                const data = this.#data[i];
+                const el = this.#createRow(data, i);
+                // el.style.top = offset + 'px';
+                this.#el.set(i, el);
+                createdElementsIndex.push(i);
+            }
+        }
+        
+
+        // 整体添加新创建的元素
+        if (createdElementsIndex.length) {
+            const _locator = document.createElement('div');
+            let _row1n = parseInt(this.#divContent.querySelector('v-list-row')?.dataset.n);
+            if (!isNaN(_row1n) && createdElementsIndex[0] < _row1n)
+                this.#divContent.prepend(_locator);
+            else
+                this.#divContent.append(_locator);
+            for (let i of createdElementsIndex) {
+                const el = this.#el.get(i);
+                if (!el) continue;
+                _locator.before(el);
+            }
+            _locator.remove();
+        }
+
+
+    }
+
+    #createRow(data, n) {
+        const el = document.createElement('v-list-row');
+        el.dataset.n = n;
+
+        for (const i of data) {
+            const d = document.createElement('v-list-item');
+            (i.html) ? (d.innerHTML = i.html) :
+                (d.innerText = i.text || i);
+            el.append(d);
+        }
+
+        return el;
+    }
+
+    /*
+
+    #updateOnScrollLock = false;
+    // #updateOnScroll_debounced = null;
     updateOnScroll() {
+        // if (!this.#updateOnScroll_debounced) this.#updateOnScroll_debounced = debounce(this.#updateOnScroll, 20, this);
+        // return this.#updateOnScroll_debounced.apply(this, arguments);
         return this.#updateOnScroll.apply(this, arguments);
     }
     async #updateOnScroll(forceRedraw = false) {
@@ -435,18 +449,19 @@ class HTMLVirtualListElement extends HTMLElement {
 
         if (!this.#data) return;
         // console.debug(new Date().getTime(), 'scroll before');
-        //if (this.#updateOnScrollLock) return;
-        //this.#updateOnScrollLock = true;
+        if (this.#updateOnScrollLock) return;
+        this.#updateOnScrollLock = true;
         // console.debug(new Date().getTime(), 'scroll execute');
         // console.log('-- scroll executed; time:' + new Date().getTime());
 
         await Promise.resolve();
 
         const scrollPos = this.scrollTop;
-
+        
         let begin = Math.max(0, Math.floor((scrollPos) / this.#line_height) - rangeOverlay);
         let end = Math.min(this.#data.length, Math.floor((scrollPos + this.clientHeight) / this.#line_height) + rangeOverlay);
         //let current = Math.floor(scrollPos / this.#line_height);
+        let itemCount = this.#data.length;
         const numInRange = function (num, min, max) {
             return num >= min && num <= max;
         };
@@ -463,24 +478,27 @@ class HTMLVirtualListElement extends HTMLElement {
         this.#divContainer.style.setProperty('--offset', offset + 'px');
 
         let createdElementsIndex = [];
-        for (let i of this.#el) {
-            // 元素已存在
-            if (!numInRange(i[0], begin, end)) {
-                // 移除不需要的元素
-                i[1].remove();
-                this.#el.delete(i[0]);
-            }
-        }
-        for (let i = begin; i < end; ++i) {
+        for (let i = 0; i < itemCount; ++i) {
             const el = this.#el.get(i);
             if (!el) {
-                // 创建新行
-                const data = this.#data[i];
-                const el = this.#createRow(data, i);
-                // el.style.top = offset + 'px';
-                this.#el.set(i, el);
-                if (this.#selection.has(i)) el.classList.add('checked');
-                createdElementsIndex.push(i);
+                // 如果需要，创建新行
+                if (numInRange(i, begin, end)) {
+                    const data = this.#data[i];
+                    const el = this.#createRow(data, i);
+                    // el.style.top = offset + 'px';
+                    this.#el.set(i, el);
+                    createdElementsIndex.push(i);
+                }
+            }
+            else {
+                // 元素已存在
+                if (!numInRange(i, begin, end)) {
+                    // 移除不需要的元素
+                    el.remove();
+                    this.#el.delete(i);
+                } else {
+                    // el.style.top = offset + 'px';
+                }
             }
         }
 
@@ -502,13 +520,13 @@ class HTMLVirtualListElement extends HTMLElement {
 
         // console.debug(new Date().getTime(), 'scroll finish');
         // console.log('-- scroll finished; time:' + new Date().getTime())
-        //this.#updateOnScrollLock = false;
+        this.#updateOnScrollLock = false;
     }
 
     #createRow(data, n) {
         const el = document.createElement('v-list-row');
         el.dataset.n = n;
-
+        
         for (const i of data) {
             const d = document.createElement('v-list-item');
             (i.html) ? (d.innerHTML = i.html) :
@@ -517,7 +535,7 @@ class HTMLVirtualListElement extends HTMLElement {
         }
 
         return el;
-    }
+    }*/
 
 
 }
@@ -538,22 +556,16 @@ class HTMLVirtualListRowElement extends HTMLElement {
 }
 
 
-
 class HTMLVirtualListItemElement extends HTMLElement {
     constructor() {
         super();
 
-
+        
     }
 
 }
 
 
-
-
-/*
-滚动条功能也算肝了亿会，不忍心删掉，需要的可以直接使用
-*/
 const scrollbarSize = 6;
 const vScrollStyle = document.createElement('style');
 vScrollStyle.textContent = `
@@ -685,9 +697,9 @@ class HTMLVirtualListScrollbarElement extends HTMLElement {
         } else {
             this.#thumb.classList.add('visible');
         }
-
+        
         let pos = (this.#value * (client_size - thumbsize)) / sum;
-
+        
 
         {
             let a = 'width', b = 'height';
@@ -754,7 +766,7 @@ class HTMLVirtualListScrollbarElement extends HTMLElement {
                 if (ev.detail.data === 1) this.value = this.max;
                 else if (ev.detail.data === 0) this.value = this.min;
                 break;
-
+        
             default:
                 break;
         }
@@ -805,7 +817,7 @@ class HTMLVirtualListScrollThumbElement extends HTMLElement {
                     }
                 }));
                 break;
-
+        
             default: return;
         }
         ev.preventDefault();
@@ -813,6 +825,7 @@ class HTMLVirtualListScrollThumbElement extends HTMLElement {
         return false;
     }
 }
+
 
 
 
@@ -832,19 +845,16 @@ export {
     HTMLVirtualListScrollbarElement,
     HTMLVirtualListScrollThumbElement,
 };
+    
+    
 
-
-
-
-
+    
+    
 export function debounce(fn, delay, thisArg = globalThis) {
     let timeId = null;
     return function () {
-        const outerThis = this;
         if (timeId) clearTimeout(timeId);
         timeId = setTimeout(function (args) {
-            if (thisArg === globalThis && outerThis !== globalThis)
-                return fn.apply(outerThis, args);
             return fn.apply(thisArg, args);
         }, delay, arguments);
         return timeId;

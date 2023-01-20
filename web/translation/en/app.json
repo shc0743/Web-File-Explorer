@@ -30,5 +30,7 @@
   "ui.fs:labelname": "Label Name",
   "ui.fs:mountpath": "Mount Path",
   "ui.fs:filesystem": "Filesystem",
-  "ui.string:clickTextToEdit": "Click text to edit content"
+  "ui.string:clickTextToEdit": "Click text to edit content",
+  "ui.string:confirmMultipleFileOpen": "Are you sure you want to open $1 files?",
+  "ui.string:objectNotSelected": "No object selected"
 }
