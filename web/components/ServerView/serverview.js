@@ -54,8 +54,8 @@ const data = {
         },
 
         handleIndexRowClick(row) {
-            if (!row.drive) return;
-            location.hash += row.drive.replaceAll('\\', '/');
+            if (!row.guid) return;
+            location.hash += row.guid.replaceAll('\\', '/');
         }
 
     },
