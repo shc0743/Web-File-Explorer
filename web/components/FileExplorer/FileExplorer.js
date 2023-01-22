@@ -248,6 +248,21 @@ const data = {
                 return ElMessage.error(tr('ui.fo.error/cantLoadDataFromRemote'));
             }
 
+            if (data[0]._srv !== this.server.addr) try {
+                // 确认跨域文件传输
+                await ElMessageBox({
+                    title: tr("ui.fo.confirm/crossOriginFileTransfer"),
+                    message: h('div', null, [
+                        h('span', { style: 'word-break:break-word' }, tr("ui.fo.confirm/crossOriginFileTransferText")
+                            .replaceAll('$1', data[0]._srv).replaceAll('$2', this.server.addr)),
+                    ]),
+                    showCancelButton: true,
+                    confirmButtonText: tr('dialog.ok'),
+                    cancelButtonText: tr('dialog.cancel'),
+
+                });
+            } catch { return; }
+
             ElMessageBox({
                 title: 'File Operation',
                 message: h('div', null, [

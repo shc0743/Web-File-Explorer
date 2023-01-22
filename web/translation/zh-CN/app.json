@@ -45,5 +45,7 @@
   "ui.fo.error/cantLoadDataFromRemote": "无法从远程服务器加载数据",
   "ui.fo.error/fileNotFound": "找不到文件",
   "ui.fo.error/folderNotFound": "找不到文件夹",
-  "ui.fo.error/cantPutFileInFile": "不可以将文件放入另一个文件。"
+  "ui.fo.error/cantPutFileInFile": "不可以将文件放入另一个文件。",
+  "ui.fo.confirm/crossOriginFileTransfer": "跨域文件传输确认",
+  "ui.fo.confirm/crossOriginFileTransferText": "您想将文件从 $1 传输至 $2 ，确认继续？"
 }
