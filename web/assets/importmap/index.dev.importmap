@@ -5,6 +5,7 @@
     "idb": "./modules/idb/idb.esm.js",
     "element-plus": "./modules/element-plus/index.full.mjs.js",
     "element-plus/": "./modules/element-plus/",
-    "icons-vue": "./modules/element-plus/icons-vue.min.js"
+    "icons-vue": "./modules/element-plus/icons-vue.min.js",
+    "win32-constants": "./modules/win32-constants/win32-constants.js"
   }
 }

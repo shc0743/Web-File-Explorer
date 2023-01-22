@@ -120,6 +120,22 @@ import('./hashchange.js').then(function (data) {
 
 
 
+globalThis.addEventListener('storage', function (ev) {
+    if (ev.key === db_name + '-update') {
+        globalThis.loadServers();
+    }
+});
+
+
+globalThis.addEventListener('keydown', function (ev) {
+    if (ev.key === 'F5' && !(ev.ctrlKey || ev.shiftKey)) {
+        ev.preventDefault();
+        return window.dispatchEvent(new HashChangeEvent('hashchange'));
+    }
+});
+
+
+
 
 
 

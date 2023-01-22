@@ -30,6 +30,9 @@
     <ClCompile Include="ui.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="..\includes\ConvertUTF.cpp">
+      <Filter>资源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\..\..\..\..\Program\source\VSProjects\resource\tool.h">
@@ -42,6 +45,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
+      <Filter>资源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\includes\ConvertUTF.h">
       <Filter>资源文件</Filter>
     </ClInclude>
   </ItemGroup>

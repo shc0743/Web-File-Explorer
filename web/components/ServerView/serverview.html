@@ -1,5 +1,4 @@
-<my-container v-deep v-if="(appInstance_?.instance?.$data?.current_page) === 'server'">
-    <div v-deep v-if="isLoading" style="padding: 10px;">Connecting to server...</div>
+<my-container v-deep ref="view" v-if="(appInstance_?.instance?.$data?.current_page) === 'server'">
     <div v-deep v-if="errorText" style="color: red; padding: 10px;" v-html="errorText"></div>
     <div v-deep v-if="errorText" style="margin-top: 20px; padding: 10px;">
         <ElButton type="primary" @click="reload">{{tr('ui.string:reload')}}</ElButton>
@@ -20,6 +19,7 @@
     </div>
 
     <FileExplorer v-if="viewType === 'explore'" ref="fileExplorerInstance" :server="currentSrv" :path="explorerPath" />
+    <FileView v-if="viewType === 'fileview'" ref="fileViewInstance" :server="currentSrv" :path="explorerPath" />
 </my-container>
 
 <style>

@@ -15,7 +15,7 @@ a, button {
 
 <style>
 >>> .skip-to-content {
-    position: absolute;
+    position: fixed;
     left: 0;
     top: 0;
     z-index: 12;
@@ -102,7 +102,7 @@ a, button {
     <a href="#/servers/" class="skip-to-content" tabindex="1" @click.prevent.stop="skipToServerList">Skip to server list</a>
 
     <div data-app>
-        <HeaderBar />
+        <HeaderBar @requestreload="reload_content" />
 
         <div class="main">
             <aside v-on:pointermove.self.passive="aside_onPointerMove" v-on:pointerdown.self="aside_onPointerDown" v-on:pointerup="aside_onPointerUp" v-bind:style="asideStyle" v-bind:data-resizing="asideResizing" @contextmenu.prevent.stop>

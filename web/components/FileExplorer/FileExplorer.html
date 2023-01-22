@@ -1,8 +1,17 @@
 <div v-deep ref="app">
     <v-list-view
         ref="lst"
+        :data="renderList"
+        allow-drag
+        :customDragData="customDragData"
+        :customCheckDrag="customCheckDrag"
         @open="openFile"
-    />
+        @drop="handleObjectDropping"
+    >
+        <div class="header" slot="header">
+            <span v-for="item in selectedColumns">{{item}}</span>
+        </div>
+    </v-list-view>
     <div class="ctls">
         <span style="vertical-align: bottom">
             <span>{{objectCountStr}}</span>
@@ -18,6 +27,7 @@
             </ElSelect>
         </label></span>
     </div>
+
 </div>
 
 <style>
@@ -41,5 +51,11 @@
 }
 >>> .ctls * {
     white-space: nowrap;
+}
+>>> .header {
+    display: table-header-group;
+}
+>>> .header > span {
+    display: table-cell;
 }
 </style>

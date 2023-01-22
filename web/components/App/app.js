@@ -78,45 +78,19 @@ const data = {
             location.hash = '#/s/' + btoa(data);
         },
 
-        // async updateServerDataFromManagement(op, arg1, arg2) {
-        //     if (op === 'delete') {
-        //         globalThis.userdata.delete('servers', arg1).catch(() => console.warn('Warning: Failed to delete server', arg1));
-        //         // globalThis.appInstance_.sideFileTree.$refs.tree.remove(arg1);
-        //     }
-        //     else if (op === 'modify') {
-        //         await globalThis.userdata.delete('servers', arg1);
-        //         await globalThis.userdata.put('servers', arg2);
-        //     }
-        //
-        //     this.$nextTick(() => globalThis.loadServers());
-        // },
-
         async updateServerDataFromLogin(info) {
             const isNotNewData = await(userdata.get('servers', info.addr));
             
             if (isNotNewData && isNotNewData.name) info.name = isNotNewData.name;
             await userdata.put('servers', info);
             if (!!isNotNewData) return;
-
-            /*let prevNodeId = null, targetNodeIndex = -1;
-            const keys = await userdata.getAllKeys('servers');
-            for (let i = 0; i < keys.length; ++i) {
-                if (keys[i] === info.addr) {
-                    if (i - 1 < 0) break;
-                    targetNodeIndex = i;
-                    prevNodeId = keys[i - 1]?.addr;
-                }
-            }
-            if (targetNodeIndex < 0) {
-                this.$data.servers.push(info);
-            } else {
-                // console.log('prev=', this.$data.servers);
-                this.$data.servers.splice(targetNodeIndex, 0, info);
-                // console.log('now=', this.$data.servers);
-                // globalThis.appInstance_.sideFileTree.$refs.tree.insertAfter([{ addr: '1' }], prevNodeId);
-            }*/
+            
             globalThis.loadServers();
             globalThis.notifyDataUpdate();
+        },
+
+        reload_content() {
+            window.dispatchEvent(new HashChangeEvent('hashchange'));
         }
 
 
@@ -128,11 +102,7 @@ const data = {
     },
 
     mounted() {
-        globalThis.addEventListener('storage', function (ev) {
-            if (ev.key === db_name + '-update') {
-                globalThis.loadServers();
-            }
-        });
+        
     },
 
     watch: {

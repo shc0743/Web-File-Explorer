@@ -32,5 +32,15 @@
   "ui.fs:filesystem": "Filesystem",
   "ui.string:clickTextToEdit": "Click text to edit content",
   "ui.string:confirmMultipleFileOpen": "Are you sure you want to open $1 files?",
-  "ui.string:objectNotSelected": "No object selected"
+  "ui.string:objectNotSelected": "No object selected",
+  "ui.string:filename": "Name",
+  "doNotAskAgain": "Do not ask me again",
+  "ui.fo.confirm/move": "Are you sure you want to move '$1' into '$2'?",
+  "ui.fo.confirm/copy": "Are you sure you want to copy '$1' into '$2'?",
+  "ui.fo.confirm/link": "Are you sure you want to create a link of '$1' into '$2'?",
+  "ui.fo.confirm/upload": "Are you sure you want to upload $1 files to the following directory?",
+  "ui.fo.error/cantLoadDataFromRemote": "Unable to load data from remote server",
+  "ui.fo.error/fileNotFound": "File not found",
+  "ui.fo.error/folderNotFound": "Folder not found",
+  "ui.fo.error/cantPutFileInFile": "You can't put a file into another file."
 }

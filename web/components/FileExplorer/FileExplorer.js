@@ -1,5 +1,6 @@
+import { h } from 'vue';
 import { getHTML } from '@/assets/js/browser_side-compiler.js';
-import { ElButton, ElSelect, ElOption, ElLoading, ElMessage, ElMessageBox, ElInput } from 'element-plus';
+import { ElButton, ElSelect, ElOption, ElLoading, ElMessage, ElMessageBox, ElDialog, ElInput } from 'element-plus';
 import { LoadCSS } from '../../assets/js/ResourceLoader.js';
 
 
@@ -13,12 +14,15 @@ const data = {
             viewType: 'list',
             objectCount: 0,
             filterText: '',
+            selectedColumns: [
+                tr('ui.string:filename'),
+            ],
             
         }
     },
 
     components: {
-        ElButton, ElSelect, ElOption, ElInput,
+        ElButton, ElSelect, ElOption, ElDialog, ElInput,
     },
 
     props: {
@@ -28,31 +32,36 @@ const data = {
 
     methods: {
         update() {
-            this.loadingInstance = ElLoading.service({ lock: false, fullscreen: false, target: '#myApp main my-container' });
+            if (!this.loadingInstance)
+                this.loadingInstance = ElLoading.service({ lock: true, fullscreen: false, target: this.$refs.app });
+            // console.log('created loading service in FileExplorer:', this.loadingInstance);
             this.$nextTick(async () => {
                 this.listdata = await this.loadList();
                 if (('ok' in this.listdata && (!this.listdata.ok)) || this.listdata instanceof Error) {
-                    this.loadingInstance.close();
+                    if (this.loadingInstance) this.loadingInstance.close();
+                    // console.log('closed loading service in FileExplorer');
                     if (this.listdata instanceof Error)
                         ElMessage.error(`Failed to load data: ${this.listdata}`);
                     else
-                        ElMessage.error(`Failed to load data: HTTP error ${this.listdata.status}`);
+                        ElMessage.error(`Failed to load data: HTTP error ${this.listdata.status}, error text:\n`
+                            + await this.listdata.text());
                     return history.back();
                 }
                 
                 this.objectCount = this.listdata.length;
-                this.$refs.lst.data = this.renderList.bind(this);
+                this.$nextTick(() => this.$refs.lst.update());
                 document.title = this.path;
-                this.loadingInstance.close();
+                if (this.loadingInstance) this.loadingInstance.close();
+                // console.log('closed loading service in FileExplorer');
 
             });
         },
 
         async loadList() {
             const forbiddenKeywords = ['d|.', 'd|..'];
-            const url = new URL('/fileList', this.server.addr);
+            const url = new URL('/files', this.server.addr);
             url.searchParams.append('path', this.path);
-            try{
+            try {
                 const resp = await fetch(url, {
                     method: 'post',
                     headers: { 'x-auth-token': this.server.pswd },
@@ -65,19 +74,23 @@ const data = {
 
         renderList() {
             const r = [];
+            if (!this.listdata || !Array.isArray(this.listdata)) return [];
             for (let i of this.listdata) {
                 if (i.length < 3) continue;
                 const a = i.split('|');
                 const b = [{}, a[1]];
                 if (a[0] === 'd') {
-                    b[0].html = `<span class="icon is-folder"></span>`; // TODO: 添加文件夹图标
+                    b[0].html = `<span class="icon is-folder"></span>`;
+                    b[0].type = 'd';
                 }
                 else if (a[0] === 'f') {
                     b[0].html = `<span class="icon is-file"></span>`;
+                    b[0].type = 'f';
                 }
                 else {
                     b[0] = a[0];
                 }
+                b[0] && (b[0]._srv = this.server.addr, b[0]._pswd = this.server.pswd, b[0]._path = this.path);
                 r.push(b);
             }
             return r;
@@ -90,10 +103,12 @@ const data = {
                 return this.$refs.lst.update();
             }
             this.objectCount = await this.$refs.lst.filter(el => {
-                if (!el || !el[1]) return false;
-                return el[1].includes(text);
+                if (!el) return false;
+                if (Array.isArray(el)) return el[1]?.includes?.(text);
+                if (el.includes) return el.includes(text);
+                return false;
             });
-        }, 200),
+        }, 500),
 
         async openFile() {
             const selection = this.$refs.lst.selection;
@@ -111,27 +126,25 @@ const data = {
 
             let item_ = selection.keys(), item, isFirst = true, val;
             let currentPath = String(this.path);
-            if (!currentPath.endsWith("/")) currentPath += "/";
-            let computeHash = item => {
-                try { return '#/s/' + btoa(this.server.addr) + '/' + currentPath + encodeURIComponent(item) + '/'; }
-                catch { return null }
-            };
+            if (!(currentPath.endsWith("/") || currentPath.endsWith("\\"))) currentPath += "/";
             let __result = null;
+            let el_data = this.listdata;
+            if (!el_data) {
+                return;
+            }
+            if (this.$refs.lst.getFilter())
+                el_data = this.listdata.filter(this.$refs.lst.getFilter());
 
             while ((item = item_.next()) && !item.done) {
-                val = this.listdata[item.value];
+                val = el_data?.[item.value];
                 if (!val) continue;
-                if (val.startsWith('f|')) {
-                    // TODO: 打开文件
-                    continue;
-                }
-                if (!val.startsWith('d|')) {
+                if (!(val.startsWith('f|') || val.startsWith('d|'))) {
                     continue; // 未知项目
                 }
+                const isDir = val.startsWith('d|');
                 val = val.split('|')[1];
-                const hash = computeHash(val);
+                const hash = computeHash.call(this, val, currentPath, isDir);
                 if (!hash) continue;
-                // console.log(hash);
 
                 if (isFirst) {
                     isFirst = false;
@@ -145,6 +158,113 @@ const data = {
                 location.hash = __result;
             }
         },
+
+        customDragData(i) {
+            return ['application/x-web-file-explorer-item', JSON.stringify(this.$refs.lst.$data[i])];
+        },
+        customCheckDrag(types) {
+            for (let i of types) {
+                if (i === 'application/x-web-file-explorer-item') return true;
+                if (i === 'Files') return { dropEffect: 'copy' };
+            }
+            return false;
+        },
+
+        async handleObjectDropping(ev) {
+            const dataTransfer = ev.dataTransfer;
+            let targetElem;
+            for (let i of ev.composedPath()) {
+                if (i?.tagName?.toLowerCase() === 'v-list-row' || i?.tagName?.toLowerCase() === 'v-list-view') {
+                    targetElem = i;
+                    break;
+                }
+            }
+            if (!targetElem) return;
+            let targetdir;
+            let target = this.$refs.lst.$data?.[targetElem.dataset.n];
+            if (targetElem === this.$refs.lst) {
+                targetdir = this.path;
+            }
+            else if (!target) {
+                console.warn('[FileExplorer][Warn] handleObjectDropping:', 'targetElem found but target not found');
+                return;
+            }
+            else {
+                targetdir = target[0]._path;
+                if (!(targetdir?.endsWith?.('/') || targetdir?.endsWith?.('\\'))) targetdir += '/';
+                targetdir += target[1];
+            }
+            console.log(target, dataTransfer);
+            if (dataTransfer.files?.length) {
+                const files = dataTransfer.files;
+                // 文件上传
+                if (!targetdir) return;
+                ElMessageBox({
+                    title: 'File Operation',
+                    message: h('div', null, [
+                        h('span', null, tr('ui.fo.confirm/upload').replaceAll('$1', dataTransfer.files.length)),
+                        h('textarea', { rows: 3, readonly: true, style: 'width:100%;box-sizing:border-box;' }, targetdir),
+                    ]),
+                    showCancelButton: true,
+                    confirmButtonText: tr('dialog.ok'),
+                    cancelButtonText: tr('dialog.cancel'),
+
+                }).then(() => {
+                    for (let i of files)
+                    console.log(i)
+
+                }).catch(() => { });
+                return;
+            }
+
+            // 处理内部文件操作
+            let lastDropEffect = this.$refs.lst.lastDropEffect;
+            let data = dataTransfer.getData('application/x-web-file-explorer-item');
+            try { data = JSON.parse(data) } catch { return console.warn('Failed to parse application data') };
+            console.log(lastDropEffect, data);
+            let src, dist = targetdir;
+            try { src = data[0]._path + data[1]; }
+            catch { return console.warn('Failed to resolve application data') };
+            
+            const get = async (file, srv, pswd) => {
+                const url = new URL('/isFileOrDirectory', srv);
+                url.searchParams.set('name', file);
+                const result = await fetch(url, { headers: { 'x-auth-token': pswd } });
+                if (!result.ok) throw null;
+                const text = await result.text();
+                return text;
+            }
+            try {
+                const r1 = await get(dist, this.server.addr, this.server.pswd);
+                if (r1 !== '-1') {
+                    return ElMessage.error(tr((r1 === '0') ? 'ui.fo.error/folderNotFound' : 'ui.fo.error/cantPutFileInFile'));
+                }
+                const r2 = await get(src, data[0]._srv, data[0]._pswd);
+                if (r2 === '0') {
+                    return ElMessage.error(tr('ui.fo.error/fileNotFound'));
+                }
+            }
+            catch {
+                return ElMessage.error(tr('ui.fo.error/cantLoadDataFromRemote'));
+            }
+
+            ElMessageBox({
+                title: 'File Operation',
+                message: h('div', null, [
+                    h('span', { style: 'word-break:break-word' }, tr('ui.fo.confirm/' + lastDropEffect)
+                        .replaceAll('$1', src).replaceAll('$2', dist)),
+                ]),
+                showCancelButton: true,
+                confirmButtonText: tr('dialog.ok'),
+                cancelButtonText: tr('dialog.cancel'),
+
+            }).then(() => {
+                for (let i of files)
+                    console.log(i)
+
+            }).catch(() => { });
+        }
+
 
     },
 
@@ -213,6 +333,11 @@ function debounce(fn, delay, thisArg = globalThis) {
         return timeId;
     };
 }
+
+function computeHash(item, currentPath, isFolder = false) {
+    try { return '#/s/' + btoa(this.server.addr) + '/' + currentPath + encodeURIComponent(item) + (isFolder ? '/' : ''); }
+    catch { return null }
+};
 
 
 

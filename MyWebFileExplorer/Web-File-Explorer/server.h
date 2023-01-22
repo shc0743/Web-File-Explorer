@@ -36,8 +36,10 @@ namespace server {
 			ADD_METHOD_TO(server::FileServer::patchFile, "/file?name={}", Options, Patch, "server::AuthFilter");
 			ADD_METHOD_TO(server::FileServer::delFile, "/file?name={}", Options, Delete, "server::AuthFilter");
 
-			ADD_METHOD_TO(server::FileServer::getFileList, "/fileList?path={}", Options, Post, "server::AuthFilter");
+			ADD_METHOD_TO(server::FileServer::getFileList, "/files?path={}", Options, Post, "server::AuthFilter");
 			ADD_METHOD_TO(server::FileServer::getVolumeList, "/volumes", Options, Post, "server::AuthFilter");
+
+			ADD_METHOD_TO(server::FileServer::isFileOrDirectory, "/isFileOrDirectory?name={}", Options, Get, "server::AuthFilter");
 		METHOD_LIST_END
 
 
@@ -53,6 +55,8 @@ namespace server {
 
 		void getFileList(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& file) const;
 		void getVolumeList(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback) const;
+
+		void isFileOrDirectory(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& file) const;
 
 	public:
 		FileServer() {

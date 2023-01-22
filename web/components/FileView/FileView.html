@@ -1,0 +1,17 @@
+<div v-deep>
+    <div>
+        
+    </div>
+</div>
+
+<style>
+[v-deep] {
+    width: calc(100% - (2 * var(--padding)));
+    height: calc(100% - (2 * var(--padding)));
+    padding: 10px;
+    --padding: 10px;
+
+    display: grid;
+    place-items: center;
+}
+</style>

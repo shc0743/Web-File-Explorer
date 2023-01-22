@@ -1,6 +1,7 @@
 import { getHTML } from '@/assets/js/browser_side-compiler.js';
-import { ElButton, ElTable, ElTableColumn, ElSwitch } from 'element-plus';
+import { ElButton, ElTable, ElTableColumn, ElSwitch, ElLoading } from 'element-plus';
 import FileExplorer from '../FileExplorer/FileExplorer.js';
+import FileView from '../FileView/FileView.js';
 
 
 const componentId = '6f396fb8f6bc431daeaa4a7fb2451c35';
@@ -8,7 +9,7 @@ const componentId = '6f396fb8f6bc431daeaa4a7fb2451c35';
 const data = {
     data() {
         return {
-            isLoading: false,
+            loadingInstance: false,
             errorText: '',
             viewType: 'unset',
             currentSrv: null,
@@ -21,7 +22,7 @@ const data = {
 
     components: {
         ElButton, ElTable, ElTableColumn, ElSwitch,
-        FileExplorer,
+        FileExplorer, FileView,
     },
 
     methods: {
@@ -30,7 +31,7 @@ const data = {
         },
 
         reset() {
-            this.$data.isLoading = false;
+            this.isLoading = false;
             this.$data.errorText = '';
             this.$data.currentSrv = null;
         },
@@ -63,11 +64,28 @@ const data = {
     watch: {
         advancedVolumeView() {
             this.$nextTick(() => this.updateVolumeView());
-        }
+        },
     },
 
     computed: {
         appInstance_() { return globalThis.appInstance_ },
+        isLoading: {
+            get() {
+                return this.$data.loadingInstance;
+            },
+            set(value) {
+                if (this.$data.loadingInstance) {
+                    this.$data.loadingInstance.close();
+                    // console.log('closed loading service in serverview');
+                }
+                if (!!value) {
+                    this.$data.loadingInstance = ElLoading.service({ lock: true, fullscreen: false, target: this.$refs.view });
+                    // console.log('created loading service in serverview:', this.loadingInstance);
+                } else {
+                    this.$data.loadingInstance = false;
+                }
+            },
+        },
     },
 
     mounted() {
@@ -116,7 +134,7 @@ async function hashchangeHandler() {
             'globalThis.appInstance_.serverView.$data.errorText=\'\'">login</a> first';
     }
 
-    globalThis.appInstance_.serverView.$data.isLoading = true;
+    globalThis.appInstance_.serverView.isLoading = true;
     ExecuteHandler.call(globalThis.appInstance_.serverView, srv_data, srv_id, hash);
 
 }
@@ -127,11 +145,14 @@ window.addEventListener('hashchange', hashchangeHandler);
     
 async function ExecuteHandler(srv_data, srv_id, hash) {
     this.$data.currentSrv = srv_data;
+    let srvid_prefix = '#/s/' + srv_id + '/';
+    document.title = srv_id;
 
-    if (hash === '#/s/' + srv_id + '/') {
+    if (hash === srvid_prefix) {
         this.$data.viewType = 'index';
-        this.$data.isLoading = true;
+        this.isLoading = true;
         this.$data.indexTableData.length = 0;
+        document.title = srv_data.name;
 
         try {
             let vols = await fetch(srv_data.addr + '/volumes', {
@@ -152,7 +173,7 @@ async function ExecuteHandler(srv_data, srv_id, hash) {
             const text = await vols.text();
             if (text === 'NotSupported') {
                 this.reset();
-                location.hash = '#/s/' + srv_id + '/$/';
+                location.hash = '#/s/' + srv_id + '//';
                 return;
             }
             const arr1 = text.split('\n');
@@ -175,7 +196,7 @@ async function ExecuteHandler(srv_data, srv_id, hash) {
                 });
             }
             
-            this.$data.isLoading = false;
+            this.isLoading = false;
 
             this.$nextTick(() => this.updateVolumeView());
 
@@ -189,17 +210,37 @@ async function ExecuteHandler(srv_data, srv_id, hash) {
         return;
     }
 
-    if (hash.startsWith('#/s/' + srv_id + '/')) {
-        hash = hash.substring(('#/s/' + srv_id + '/').length);
+    if (hash.startsWith(srvid_prefix)) {
+        hash = hash.substring((srvid_prefix).length);
         hash = hash.replaceAll('\\', '/');
         // console.log(hash);
 
         // 传入子组件
-        try { this.$data.explorerPath = decodeURIComponent(hash) }
-        catch { this.$data.explorerPath = hash }
-        this.$data.isLoading = false;
-        this.$data.viewType = 'explore';
-        // this.$nextTick(() => this.$refs.fileExplorerInstance.update());
+        let $is = 'file';
+        let val = hash;
+        try { val = decodeURIComponent(hash) } catch { }
+        if (val.endsWith('/') || val.endsWith('\\')) {
+            $is = 'dir';
+        }
+        else try {
+            const url = new URL('/isFileOrDirectory', srv_data.addr);
+            url.searchParams.set('name', val);
+            const result = await fetch(url, { headers: { 'x-auth-token': srv_data.pswd } });
+            if (!result.ok) throw null;
+            const text = await result.text();
+            if (text !== '1') $is = 'dir';
+        } catch {}
+
+        this.$data.explorerPath = val;
+        if ($is === 'file') {
+            this.$data.viewType = 'fileview';
+        }
+        else {
+            this.$data.viewType = 'explore';
+        }
+        this.isLoading = false;
+        this.$refs.fileExplorerInstance?.update();
+        this.$refs.fileViewInstance?.update();
         return;
     }
 

@@ -1,4 +1,8 @@
 import { getHTML } from '@/assets/js/browser_side-compiler.js';
+import { ElButton, ElButtonGroup, ElIcon } from 'element-plus';
+import { ArrowLeft, ArrowRight, RefreshRight, Top } from 'icons-vue';
+import MainMenuBar from './MainMenuBar.js';
+import SysCtl from './SysCtl.js';
 
 
 const componentId = '865c73f3eb1842599741f5498dd5a2ec';
@@ -10,6 +14,14 @@ const data = {
 
         }
     },
+
+    components: {
+        ElButton, ElButtonGroup, ElIcon,
+        ArrowLeft, ArrowRight, RefreshRight, Top,
+        MainMenuBar, SysCtl,
+    },
+
+    emits: ['requestreload'],
 
     methods: {
         closeapp() {
@@ -44,7 +56,7 @@ const data = {
         },
 
         reload() {
-            
+            this.$emit('requestreload');
         },
 
         goHome() { location.hash = '#/' },

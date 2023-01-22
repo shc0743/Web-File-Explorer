@@ -35,5 +35,15 @@
   "ui.string:clickTextToEdit": "点击文本以编辑",
   "Remarks": "备注",
   "ui.string:confirmMultipleFileOpen": "确认要打开 $1 个文件?",
-  "ui.string:objectNotSelected": "未选择对象"
+  "ui.string:objectNotSelected": "未选择对象",
+  "ui.string:filename": "名称",
+  "doNotAskAgain": "不再询问",
+  "ui.fo.confirm/move": "是否确定要将 \"$1\" 移动到 \"$2\"?",
+  "ui.fo.confirm/copy": "是否确定要将 \"$1\" 复制到 \"$2\"?",
+  "ui.fo.confirm/link": "是否确定要在 \"$2\" 创建 \"$1\" 的符号链接?",
+  "ui.fo.confirm/upload": "是否确定将 $1 个文件上传到以下目录?",
+  "ui.fo.error/cantLoadDataFromRemote": "无法从远程服务器加载数据",
+  "ui.fo.error/fileNotFound": "找不到文件",
+  "ui.fo.error/folderNotFound": "找不到文件夹",
+  "ui.fo.error/cantPutFileInFile": "不可以将文件放入另一个文件。"
 }

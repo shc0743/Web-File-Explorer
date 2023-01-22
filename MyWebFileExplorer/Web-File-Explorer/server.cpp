@@ -1,6 +1,7 @@
 #include "server.h"
 #include <string>
 #include "../../resource/tool.h"
+#include "../includes/ConvertUTF.h"
 
 using namespace std;
 
@@ -179,8 +180,9 @@ void server::FileServer::getFileList(const HttpRequestPtr& req, std::function<vo
 		resp->setBody(body);
 		return callback(resp);
 	};
+	const auto errcode = [] {return to_string(GetLastError()); };
 	auto fstat = IsFileOrDirectory(file);
-	if (fstat != -1) return err(fstat == 1 ? k400BadRequest : k404NotFound);
+	if (fstat != -1) return (fstat == 1 ? err(k400BadRequest) : err(k404NotFound, file + " not found"));
 
 	{
 		WIN32_FIND_DATA ffd{};
@@ -197,7 +199,7 @@ void server::FileServer::getFileList(const HttpRequestPtr& req, std::function<vo
 
 		if (INVALID_HANDLE_VALUE == hFind) {
 			return err(k500InternalServerError,
-				"Failed to FindFirstFile, error: " + LastErrorStrA());
+				"Failed to FindFirstFile, error: " + errcode());
 		}
 
 		do {
@@ -215,7 +217,7 @@ void server::FileServer::getFileList(const HttpRequestPtr& req, std::function<vo
 
 		dwError = GetLastError();
 		if (dwError != ERROR_NO_MORE_FILES) {
-			return err(k500InternalServerError, LastErrorStrA());
+			return err(k500InternalServerError, errcode());
 		}
 
 		FindClose(hFind);
@@ -237,12 +239,29 @@ void server::FileServer::getFileList(const HttpRequestPtr& req, std::function<vo
 
 	//DeleteFileW(szTemp.c_str());
 
+	//size_t len = (result.length() + 1) * sizeof(wchar_t);
+	//UTF8* utf8 = (UTF8*)calloc(1, len);
+	//UTF16* utf16 = (UTF16*)calloc(1, len);
+	//if (!utf8 || !utf16) {
+	//	if (utf8) free(utf8);
+	//	if (utf16) free(utf16);
+	//	return err(k500InternalServerError, "Cannot alloc memory");
+	//}
+	//memcpy_s(utf16, len, result.c_str(), len);
+	//if (ConvertUTF16toUTF8((const UTF16**)&utf16, (UTF16*)((char*)(utf16)+len),
+	//	&utf8, (UTF8*)((char*)(utf8)+len), strictConversion) != conversionOK) {
+	//	free(utf8); free(utf16);
+	//	return err(k500InternalServerError, "Cannot alloc memory");
+	//}
+	string utf8;
+	if (!llvm::convertWideToUTF8(result, utf8)) {
+		return err(k500InternalServerError, "Cannot convert wide to utf8");
+	}
 	HttpResponsePtr resp = HttpResponse::newHttpResponse();
-	resp->setContentTypeCode(CT_TEXT_PLAIN);
 	CORSadd(req, resp);
-	resp->setBody(ws2s(result));
+	resp->setContentTypeCode(CT_TEXT_PLAIN);
+	resp->setBody((utf8));
 	callback(resp);
-
 
 }
 
@@ -276,10 +295,24 @@ void server::FileServer::getVolumeList(const HttpRequestPtr& req, std::function<
 
 	FindVolumeClose(hFind);
 
+	string utf8; wstring result = result1 + L"\n" + result2;
+	if (!llvm::convertWideToUTF8(result, utf8)) {
+		return err(k500InternalServerError, "Cannot convert wide to utf8");
+	}
 	HttpResponsePtr resp = HttpResponse::newHttpResponse();
 	CORSadd(req, resp);
 	resp->setContentTypeCode(CT_TEXT_PLAIN);
-	resp->setBody(ws2s(result1 + L"\n" + result2));
+	resp->setBody(utf8);
+	callback(resp);
+}
+
+void server::FileServer::isFileOrDirectory(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& file) const
+{
+	string r = to_string(IsFileOrDirectory(file));
+	HttpResponsePtr resp = HttpResponse::newHttpResponse();
+	CORSadd(req, resp);
+	resp->setContentTypeCode(CT_TEXT_PLAIN);
+	resp->setBody(r);
 	callback(resp);
 }
 

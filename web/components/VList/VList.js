@@ -29,12 +29,14 @@ v-list-view {
 --v-list-row-focus-color: #000000;
 --v-list-row-focus-bg: #cce8ff;
 --v-list-row-focus-outline: 1px solid #99d1ff;
+--v-list-row-dragging-color: rgba(0, 0, 0, 0.5);
 --padding: 5px;
 }
 v-list-view {
 display: block;
 box-sizing: border-box;
 overflow: auto;
+background: var(--background);
 }
 v-list-view:focus {
 outline: none;
@@ -63,6 +65,12 @@ vListStyle.textContent = `
     padding: 0;
     border: none;
 }
+#header, v-list-row {
+    user-select: none;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
 v-list-row {
     position: relative;
     top: var(--offset);
@@ -72,11 +80,7 @@ v-list-row {
     padding: var(--padding);
     border-radius: 2px;
     cursor: default;
-    user-select: none;
     box-sizing: border-box;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
     box-sizing: content-box;
     color: var(--v-list-row-color);
     background: var(--v-list-row-bg);
@@ -95,10 +99,15 @@ v-list-row:hover {
     background: var(--v-list-row-hover-bg);
     outline: var(--v-list-row-hover-outline);
 }
-v-list-row.checked {
+v-list-row.checked, v-list-row.dragging, v-list-row.dropping {
     color: var(--v-list-row-focus-color);
     background: var(--v-list-row-focus-bg);
+}
+v-list-row.checked, v-list-row.dragging {
     outline: var(--v-list-row-focus-outline);
+}
+v-list-row.dragging, v-list-row.dropping {
+    color: var(--v-list-row-dragging-color);
 }
 `;
 
@@ -137,17 +146,7 @@ class HTMLVirtualListElement extends HTMLElement {
         });
         this.#mutationObserver = new MutationObserver(this.#mutationFn.bind(this));
 
-        this.on('contextmenu', this.#oncontextmenu);
-        this.on('focus', this.#onfocus);
-        this.on('keydown', this.#onkeydown, { capture: true });
-        this.on('scroll', this.#onscroll, { passive: true });
-        this.on('click', this.#onContainerClick);
-        this.on('dblclick', this.#ondblclick, { capture: true });
-        this.#divContainer.addEventListener('click', ev => {
-            if (ev.target !== this.#divContainer) return;
-            // clear selection
-            this.selection = null;
-        });
+        this.#registerEventHandlers();
 
         this.#selection._delete = this.#selection.delete;
         this.#selection.add = this.#addSelection.bind(this);
@@ -156,6 +155,30 @@ class HTMLVirtualListElement extends HTMLElement {
 
     }
 
+    on(ev, fn, opt = {}, target = null) {
+        (target || this).addEventListener(ev, fn.bind(target || this), opt);
+    }
+
+    #registerEventHandlers() {
+        this.on('contextmenu', this.#oncontextmenu);
+        this.on('focus', this.#onfocus);
+        this.on('keydown', this.#onkeydown, { capture: true });
+        this.on('scroll', this.#onscroll, { passive: true });
+        this.on('click', this.#onclick);
+        this.on('dblclick', this.#ondblclick, { capture: true });
+        this.on('dragstart', this.#ondragstart);
+        this.on('dragend', this.#ondragend);
+        this.on('dragenter', this.#ondragenter);
+        this.on('dragover', this.#ondragover);
+        this.on('dragleave', this.#ondragleave);
+        this.on('drop', this.#ondrop);
+        this.on('dragend', this.#handleDragEndAndDrop);
+        this.on('drop', this.#handleDragEndAndDrop);
+
+    }
+
+
+// data start
     #dataFunc = null;
     get data() {
         return this.#dataFunc || function () { return [] };
@@ -166,12 +189,13 @@ class HTMLVirtualListElement extends HTMLElement {
         globalThis.queueMicrotask(() => this.update());
         return true;
     }
-
-
-    on(ev, fn, opt = {}, target = null) {
-        (target || this).addEventListener(ev, fn.bind(target || this), opt);
+    get $data() {
+        return this.#data || this.data;
     }
+// data end
 
+
+// custom elements lifecycle start
     connectedCallback() {
         this.tabIndex = 0;
 
@@ -199,8 +223,10 @@ class HTMLVirtualListElement extends HTMLElement {
         this.#header.classList[(this.querySelector('[slot="header"]') ? 'remove' : 'add')]('empty');
 
     }
+// custom elements lifecycle end
 
 
+// common event handlers start
     #oncontextmenu(ev) {
         ev.preventDefault();
 
@@ -220,8 +246,10 @@ class HTMLVirtualListElement extends HTMLElement {
         if (ev.key === ' ') {
             ev.preventDefault();
             const el = this.#divContainer.querySelector('v-list-row.pfocus');
-            el?.classList.remove('pfocus');
-            el?.classList.add('checked');
+            if (el) {
+                el.classList.remove('pfocus');
+                this.selection = +el.dataset.n;
+            }
             return;
         }
         if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
@@ -243,8 +271,7 @@ class HTMLVirtualListElement extends HTMLElement {
 
             }
             else {
-                this.clearSelection(true);
-                elTarget.classList.add('checked');
+                this.selection = elTarget.dataset.n;
             }
             return;
         }
@@ -270,16 +297,30 @@ class HTMLVirtualListElement extends HTMLElement {
         globalThis.requestAnimationFrame(() => this.updateOnScroll());
     }
 
-    #onContainerClick(ev) {
-        const path = ev.composedPath();
-
-        if (ev.ctrlKey || ev.shiftKey) {
-
+    #onclick(ev) {
+        // handle selection
+        do {
+            const path = ev.composedPath();
+            if (!path.length) break;
+            const last = path[0];
+            if (last !== this && last !== this.#divContainer) break;
+            // clear selection
+            this.selection = null;
             return;
-        }
+        } while (0);
 
+
+        // handle selection
+        const path = ev.composedPath();
         for (const i of path) {
             if (i?.tagName?.toLowerCase() === 'v-list-row') {
+                if (ev.ctrlKey || ev.shiftKey) {
+                    if (ev.ctrlKey) {
+                        this.selection.add(i.dataset.n);
+                    }
+                    // TODO: handle shift-key item selection
+                    return;
+                }
                 this.selection = i.dataset.n;
                 break;
             }
@@ -296,9 +337,98 @@ class HTMLVirtualListElement extends HTMLElement {
             }
         }
     }
+// common event handlers end
 
 
+// drag&drop event handlers start
+    get allowDrag() { return (this.getAttribute('allow-drag') != null) }
+    set allowDrag(val) {
+        val ?
+            this.setAttribute('allow-drag', '') :
+            this.removeAttribute('allow-drag');
+        return true;
+    }
 
+    customDragData = function (i) {
+        return ['application/x-vlist-item-drag', JSON.stringify(this.#data[i])];
+    }
+    customCheckDrag = function (types) {
+        const typesarr = [
+            'application/x-vlist-item-drag',
+            'application/octet-stream',
+        ];
+        for (const i of types) {
+            if (typesarr.includes(i)) return true;
+            if (i === 'Files') return { dropEffect: 'copy' };
+        }
+        return false;
+    }
+    #ondragstart(ev) {
+        const el = this.#checkIfDragAllowed(ev, false);
+        if (!el) return;
+        el.classList.add('dragging');
+        const dd = this.customDragData(el.dataset.n);
+        if (dd) ev.dataTransfer.setData(dd[0], dd[1]);
+        ev.dataTransfer.setData('text/plain', el.innerText);
+
+    }
+    #ondragend(ev) {
+        // const el = this.#checkIfDragAllowed(ev, false);
+        // if (!el) return;
+        // el.classList.remove('dragging');
+
+    }
+    #ondragenter(ev) {
+        
+    }
+    #ondragover(ev) {
+        const el = this.#checkIfDragAllowed(ev, false);
+        if (!el) return;
+        const checkResult = this.customCheckDrag(ev.dataTransfer.types);
+        if (!checkResult) return;
+        // if (ev.dataTransfer.items?.[0]?.kind === 'file') return;
+        ev.preventDefault();
+        this.#divContainer.querySelectorAll('.dropping').forEach(el => {
+            el.classList.remove('dropping');
+        });
+        el.classList.add('dropping');
+        let dropEffect = "none";
+        if (checkResult.dropEffect) dropEffect = checkResult.dropEffect;
+        else if (ev.shiftKey) dropEffect = "move";
+        else if (ev.ctrlKey) dropEffect = "copy";
+        else if (ev.altKey) dropEffect = "link";
+        else dropEffect = "move";
+        ev.dataTransfer.dropEffect = dropEffect;
+        this.lastDropEffect = dropEffect;
+    }
+    #ondragleave(ev) {
+
+    }
+    #ondrop(ev) {
+        if (!this.#checkIfDragAllowed(ev)) return;
+        //console.log(ev.dataTransfer.getData('application/x-vlist-item-drag'));
+        // user custom event handlers will do something
+        // else this do no effect
+    }
+    #checkIfDragAllowed(ev, prevent = true) {
+        if (!this.allowDrag) return false;
+        for (const i of ev.composedPath()) {
+            if (i?.tagName?.toLowerCase() === 'v-list-row' || i?.tagName?.toLowerCase() === 'v-list-view') {
+                prevent && ev.preventDefault();
+                return i;
+            }
+        }
+        return false;
+    }
+    
+    #handleDragEndAndDrop(ev) {
+        for (let i of ['dragging', 'dropping'])
+            this.#divContainer.querySelectorAll('.' + i).forEach(el => el.classList.remove(i));
+    }
+// drag&drop event handlers end
+
+
+// selection manager start
     get selection() {
         return this.#selection;
     }
@@ -368,16 +498,27 @@ class HTMLVirtualListElement extends HTMLElement {
     #setPfocus() {
         this.#divContainer.querySelector('v-list-row')?.classList.add('pfocus');
     }
-
+// selection manager end
+    
+    
+// filter start
+    #filter = null;
+    getFilter() {
+        return this.#filter;
+    }
     async filter(fn) {
         await this.update();
-        if (!fn) return;
+        if (!fn || !fn.call) return;
+        this.#filter = fn;
         this.#data = this.#data.filter(fn);
         this.updateHeight();
         await this.#updateOnScroll(true);
         return this.#data.length;
     }
+// filter end
 
+    
+// painting start
     #computeHeight() {
         const row = document.createElement('v-list-row');
         row.innerHTML = 'test';
@@ -385,7 +526,7 @@ class HTMLVirtualListElement extends HTMLElement {
         const style = globalThis.getComputedStyle(row);
         const h = parseInt(style.height) + parseInt(style.paddingTop) + parseInt(style.paddingBottom);
         this.#line_height = h + rowMarginBottom;
-        this.#height = (this.#data.length * (this.#line_height)) - rowMarginBottom;
+        this.#height = Math.max(0, (this.#data.length * (this.#line_height)) - rowMarginBottom);
         row.remove();
     }
     updateHeight() {
@@ -399,6 +540,7 @@ class HTMLVirtualListElement extends HTMLElement {
 
         this.#updating = true;
         this.#divContainer.innerHTML = '';
+        this.#filter = null;
 
         this.#data = this.data();
         if (!(this.#data instanceof Array) && !(this.#data instanceof Promise)) {
@@ -518,6 +660,7 @@ class HTMLVirtualListElement extends HTMLElement {
 
         return el;
     }
+// painting end
 
 
 }
@@ -562,6 +705,7 @@ vScrollStyle.textContent = `
     width: var(--scrollbar-width);
     height: var(--scrollbar-height);
     overflow: hidden;
+    position: relative;
 
     --scrollbar-size: ${scrollbarSize}px;
 }
@@ -837,7 +981,7 @@ export {
 
 
 
-export function debounce(fn, delay, thisArg = globalThis) {
+function debounce(fn, delay, thisArg = globalThis) {
     let timeId = null;
     return function () {
         const outerThis = this;

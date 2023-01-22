@@ -1,7 +1,21 @@
 <header v-deep>
-
+    <div v-deep class="icon square" style="border: 1px solid; cursor: pointer" @dblclick="closeapp"></div>
+    <span v-deep class="sep" style="margin: 0 5px 0 10px"></span>
+    <ElButtonGroup>
+        <ElButton @click="reload" title="Reload" v-deep text><ElIcon><RefreshRight /></ElIcon></ElButton>
+        <ElButton @click="hist(-1)" title="Back" v-deep text><ElIcon><ArrowLeft /></ElIcon></ElButton>
+        <ElButton @click="hist(1)" title="Go" v-deep text><ElIcon><ArrowRight /></ElIcon></ElButton>
+    </ElButtonGroup>
+    <span v-deep class="sep" style="margin: 0 5px"></span>
+    <ElButton @click="pathUp" title="Up" v-deep text><ElIcon><Top /></ElIcon></ElButton>
+    <span v-deep class="sep" style="margin: 0 5px"></span>
+    <MainMenuBar v-deep />
+    <span v-deep class="sep" style="margin: 0 10px 0 5px"></span>
+    <div v-deep ref="current_directory" class="cd">&nbsp;</div>
+    <SysCtl />
 </header>
 
+<div data-deprecated>
 <!--header v-deep>
     <div class="icon square" style="border: 1px solid; cursor: pointer" @dblclick="closeapp"></div>
     <button type="button" title="back" @click="hist(-1)">&lt;</button>
@@ -13,22 +27,27 @@
     <span style="display: inline-block; width: 0.5em;"></span>
     <button type="button" @click="reload" style="display: inline-block; width: 1em; background: url(components/HeaderBar/reload.svg) no-repeat center;" title="Reload" aria-label="Reload the current remote directory"></button>
 </header-->
+</div>
 
 <style>
 header>>> {
     display: flex;
     flex-direction: row;
+    align-items: center;
 
-    padding: 5px;
+    padding: 5px 10px;
     border-bottom: 1px solid;
-    font-size: 1.2rem;
 }
-header>>> .square {
+>>>.sep {
+    height: calc(1em + 2px);
+    border-right: 1px solid;
+}
+>>>.square {
     display: inline-block;
-    width: 1em;
-    height: 1em;
+    min-width: 1em;
+    min-height: 1em;
 }
-header>>> .current_directory {
+>>>.current_directory {
     flex: 1 1 0%;
     height: calc(1em + 4px);
     font-family: Consolas;
@@ -37,15 +56,21 @@ header>>> .current_directory {
     overflow: hidden;
     white-space: nowrap;
 }
-header>>> button {
+>>>button {
     border: none;
     background-color: white;
     transition: all .2s;
 }
-header>>> button:not(:disabled):hover {
+>>>button:not(:disabled):hover {
     background-color: #e0e0e0;
 }
-header>>> button:disabled {
+>>>button:disabled {
     opacity: 0.5;;
+}
+>>>.cd {
+    flex: 1;
+}
+.el-button>>> {
+    padding: revert;
 }
 </style>
