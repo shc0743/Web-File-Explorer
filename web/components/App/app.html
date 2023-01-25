@@ -42,7 +42,7 @@ a, button {
 }
 }
 >>> [data-app] {
-    position: fixed;
+    position: absolute;
     left: 0; right: 0; top: 0; bottom: 0;
 
     display: flex;
@@ -51,11 +51,11 @@ a, button {
     transition: filter .2s;
 }
 @media (prefers-color-scheme: dark) {
->>>, >>> * {
-    /* filter: grayscale(1); */
+/* >>>, >>> * {
+    /|* filter: grayscale(1); *|/
     background: black;
     color: white;
-}
+} */
 }
 >>> [data-app] > .main {
     flex: 1;
@@ -65,12 +65,22 @@ a, button {
     flex-direction: row;
 }
 >>> [data-app] > .main > aside {
+    position: relative;
     display: block;
     border-right: 1px solid;
     min-width: 10%;
     max-width: 30%;
     padding: 10px;
     overflow: auto;
+}
+>>> [data-app] > .main > aside > .close {
+    position: absolute;
+    right: -1px; top: -1px;
+    color: black;
+    background-color: white;
+    border: 1px solid;
+    z-index: 9;
+    font-size: 0.5rem;
 }
 @media (max-width: 499px) {
 >>> [data-app] > .main > aside {
@@ -105,7 +115,8 @@ a, button {
         <HeaderBar @requestreload="reload_content" />
 
         <div class="main">
-            <aside v-on:pointermove.self.passive="aside_onPointerMove" v-on:pointerdown.self="aside_onPointerDown" v-on:pointerup="aside_onPointerUp" v-bind:style="asideStyle" v-bind:data-resizing="asideResizing" @contextmenu.prevent.stop>
+            <aside v-show="showAside" v-on:pointermove.self.passive="aside_onPointerMove" v-on:pointerdown.self="aside_onPointerDown" v-on:pointerup="aside_onPointerUp" v-bind:style="asideStyle" v-bind:data-resizing="asideResizing" @contextmenu.prevent.stop>
+                <button class="close" @click="closeAside" aria-label="Close the aside">x</button>
                 <AsideView :servers="servers" @toggle-server="toggleServer" />
             </aside>
 

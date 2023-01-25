@@ -44,5 +44,6 @@
   "ui.fo.error/folderNotFound": "Folder not found",
   "ui.fo.error/cantPutFileInFile": "You can't put a file into another file.",
   "ui.fo.confirm/crossOriginFileTransfer": "Cross-Origin File Transfer Confirm",
-  "ui.fo.confirm/crossOriginFileTransferText": "You are going to transfer files from $1 to $2. Are you sure?"
+  "ui.fo.confirm/crossOriginFileTransferText": "You are going to transfer files from $1 to $2. Are you sure?",
+  "ui.file.preview.fail.toolarge": "The file is too large to preview online now (Only online preview of files below 1M is supported now)"
 }

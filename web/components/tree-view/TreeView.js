@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 
 export const TreeNodeTemplate = document.createElement('template');
 TreeNodeTemplate.innerHTML = `
-<div id="title" style="white-space:nowrap">
+<div id="title" style="white-space: nowrap;">
     <tree-toggle-button></tree-toggle-button>
     <slot name="title"></slot>
 </div>
@@ -23,7 +23,7 @@ TreeNodeTemplate.innerHTML = `
 `;
 export const TreeToggleButtonTemplate = document.createElement('template');
 TreeToggleButtonTemplate.innerHTML = `
-<div style="display: inline-block; width: 1em; height: 1em; text-align: center; border: 1px solid; font-family: monospace; cursor: pointer; user-select: none;" tabindex=0>
+<div role="button" style="display: inline-block; width: 1em; height: 1em; text-align: center; border: 1px solid; font-family: monospace; cursor: pointer; user-select: none;" tabindex=0>
     <span id="extend">+</span>
     <span id="collapse">-</span>
 </div>
@@ -33,6 +33,11 @@ TreeToggleButtonTemplate.innerHTML = `
 class HTMLTreeViewElement extends HTMLElement {
     constructor() {
         super();
+
+    }
+
+    connectedCallback() {
+        this.role = 'tree';
 
     }
 
@@ -53,6 +58,7 @@ class HTMLTreeNodeElement extends HTMLElement {
     }
 
     connectedCallback() {
+        this.role = 'treeitem';
         this.querySelectorAll('tree-text,tree-icon').forEach(el => el.setAttribute('slot', 'title'));
         this.#update();
 

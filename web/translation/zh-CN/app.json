@@ -1,8 +1,10 @@
 {
-  "document.title": " - 文件管理器",
+  "document.title": " - Web File Explorer",
   "error": "错误",
   "dialog.ok": "确定",
   "dialog.cancel": "取消",
+  "Edit": "编辑", "Modify": "修改", "Open": "打开", "Delete": "删除",
+  "Remarks": "备注", "Download": "下载", "Information": "信息", "Preview": "预览",
   "doctitle$=main": "开始",
   "doctitle$=login": "登录",
   "doctitle$=server": "Server",
@@ -21,8 +23,6 @@
   "ui.string:myServer": "我的服务器",
   "ui.string:Help": "帮助",
   "ui.login.ui/httpsConfirmText": "确定不使用 HTTPS? 这不安全。",
-  "Edit": "编辑", "Modify": "修改", "Open": "打开", "Delete": "删除",
-  "Information": "信息",
   "No Server": "没有服务器",
   "ui.string:serverAddr": "服务器地址",
   "ui.string:allServers": "所有服务器",
@@ -33,7 +33,6 @@
   "ui.fs:mountpath": "装载点",
   "ui.fs:filesystem": "文件系统",
   "ui.string:clickTextToEdit": "点击文本以编辑",
-  "Remarks": "备注",
   "ui.string:confirmMultipleFileOpen": "确认要打开 $1 个文件?",
   "ui.string:objectNotSelected": "未选择对象",
   "ui.string:filename": "名称",
@@ -47,5 +46,6 @@
   "ui.fo.error/folderNotFound": "找不到文件夹",
   "ui.fo.error/cantPutFileInFile": "不可以将文件放入另一个文件。",
   "ui.fo.confirm/crossOriginFileTransfer": "跨域文件传输确认",
-  "ui.fo.confirm/crossOriginFileTransferText": "您想将文件从 $1 传输至 $2 ，确认继续？"
+  "ui.fo.confirm/crossOriginFileTransferText": "您想将文件从 $1 传输至 $2 ，确认继续？",
+  "ui.file.preview.fail.toolarge": "文件过大，暂时无法预览 (现阶段仅支持 1M 以下文件的在线预览)"
 }

@@ -1,4 +1,5 @@
 import { getHTML } from '@/assets/js/browser_side-compiler.js';
+import { computed } from 'vue';
 import { db_name } from '@/assets/app/userdata.js';
 import '../tree-view/TreeView.js';
 import '../VList/VList.js';
@@ -18,10 +19,12 @@ const data = {
     data() {
         return {
             current_page: 'unknown',
+            apptitle: '',
             servers: [],
             asideStyle: { width: '200px' },
             asideResizing: false,
             asideResizingYes: false,
+            showAside: true,
             recreateAsideView: true,
         };
     },
@@ -39,6 +42,13 @@ const data = {
         htmlEl() {
             return document.querySelector(`[data-v-${componentId}]`);
         },
+    },
+
+    provide() {
+        return {
+            apptitle: computed(() => this.apptitle),
+            
+        }
     },
 
     methods: {
@@ -73,6 +83,10 @@ const data = {
             if (!ev.isPrimary || !this.$data.asideResizingYes) return;
             this.$data.asideResizingYes = false;
         },
+        closeAside() {
+            this.showAside = false;
+            userdata.put('config', false, 'showAside')
+        },
 
         toggleServer(data) {
             location.hash = '#/s/' + btoa(data);
@@ -91,7 +105,7 @@ const data = {
 
         reload_content() {
             window.dispatchEvent(new HashChangeEvent('hashchange'));
-        }
+        },
 
 
     },
@@ -102,15 +116,20 @@ const data = {
     },
 
     mounted() {
-        
+        globalThis.userdata?.get('config', 'showAside').then(r => {
+            if (false === r) this.showAside = false;
+        });
     },
 
     watch: {
         current_page() {
-            document.title = globalThis.tr ?
+            this.apptitle = globalThis.tr ?
                 globalThis.tr('doctitle$=' + this.$data.current_page, '')
                 + globalThis.tr('document.title') :
-                document.title;
+                globalThis.document.title;
+        },
+        apptitle() {
+            globalThis.document.title = this.apptitle;
         },
 
     },

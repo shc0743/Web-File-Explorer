@@ -232,6 +232,11 @@ bool ConvertUTF8toWide(llvm::StringRef Source, std::wstring &Result);
 * \return true on success.
 */
 bool ConvertUTF8toWide(const char *Source, std::wstring &Result);
+// These lines are added:
+inline bool ConvertUTF8toWide(const std::string& i, std::wstring& o) {
+    return ConvertUTF8toWide(i.c_str(), o);
+}
+// end
 
 /**
 * Converts a std::wstring to a UTF-8 encoded std::string.

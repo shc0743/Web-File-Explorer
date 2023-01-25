@@ -199,6 +199,9 @@ class HTMLVirtualListElement extends HTMLElement {
     connectedCallback() {
         this.tabIndex = 0;
 
+        this.role = 'tree';
+        this.ariaMultiSelectable = true;
+
         this.#mutationObserver?.observe(this, {
             attributes: true,
             subtree: true,
@@ -676,6 +679,8 @@ class HTMLVirtualListRowElement extends HTMLElement {
     connectedCallback() {
         this.draggable = true;
 
+        this.role = 'treeitem';
+
     }
 
 }
@@ -792,6 +797,7 @@ class HTMLVirtualListScrollbarElement extends HTMLElement {
     set value(value) { this.#value = value; this.update(); return true }
 
     connectedCallback() {
+        this.role = 'scrollbar';
         globalThis.requestAnimationFrame(() => this.update());
         this.#resizeObserver?.observe(this);
     }

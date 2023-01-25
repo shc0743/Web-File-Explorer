@@ -25,6 +25,8 @@ const data = {
         FileExplorer, FileView,
     },
 
+    inject: ['apptitle'],
+
     methods: {
         update() {
 
@@ -46,12 +48,17 @@ const data = {
         
         updateVolumeView() {
             this.$data.indexTableData.length = 0;
+            let mountedDevices = [], result = [];
             this.$data.volumeData.forEach(el => {
                 if (el.isAdv && !(this.$data.advancedVolumeView)) return;
-                if (el.name && el.drive) el.text = `${el.name} (${el.drive})`;
+                if (el.name != null && el.drive != null) {
+                    el.text = `${el.name} (${el.drive})`;
+                    mountedDevices.push(el.guid);
+                }
                 else el.text = '';
-                this.$data.indexTableData.push(el);
+                result.push(el);
             });
+            this.$data.indexTableData = result.filter(el => (el.drive) || !mountedDevices.includes(el.guid));
         },
 
         handleIndexRowClick(row) {
@@ -75,14 +82,14 @@ const data = {
             },
             set(value) {
                 if (this.$data.loadingInstance) {
-                    this.$data.loadingInstance.close();
-                    // console.log('closed loading service in serverview');
+                   this.$data.loadingInstance.close();
+                //    console.log('closed loading service in serverview');
                 }
                 if (!!value) {
-                    this.$data.loadingInstance = ElLoading.service({ lock: true, fullscreen: false, target: this.$refs.view });
-                    // console.log('created loading service in serverview:', this.loadingInstance);
+                   this.$data.loadingInstance = ElLoading.service({ lock: false, fullscreen: false, target: this.$refs.view });
+                //    console.log('created loading service in serverview:', this.loadingInstance);
                 } else {
-                    this.$data.loadingInstance = false;
+                   this.$data.loadingInstance = false;
                 }
             },
         },
@@ -134,7 +141,6 @@ async function hashchangeHandler() {
             'globalThis.appInstance_.serverView.$data.errorText=\'\'">login</a> first';
     }
 
-    globalThis.appInstance_.serverView.isLoading = true;
     ExecuteHandler.call(globalThis.appInstance_.serverView, srv_data, srv_id, hash);
 
 }
@@ -146,19 +152,20 @@ window.addEventListener('hashchange', hashchangeHandler);
 async function ExecuteHandler(srv_data, srv_id, hash) {
     this.$data.currentSrv = srv_data;
     let srvid_prefix = '#/s/' + srv_id + '/';
-    document.title = srv_id;
+    globalThis.appInstance_.instance.apptitle = srv_id;
 
     if (hash === srvid_prefix) {
         this.$data.viewType = 'index';
         this.isLoading = true;
         this.$data.indexTableData.length = 0;
-        document.title = srv_data.name;
+        globalThis.appInstance_.instance.apptitle = srv_data.name;
 
         try {
             let vols = await fetch(srv_data.addr + '/volumes', {
                 method: 'post',
                 headers: { 'x-auth-token': srv_data.pswd }
             });
+
             if (vols.status === 401) {
                 this.reset();
                 this.$data.errorText = tr('ui.string:authFailed')
@@ -197,7 +204,7 @@ async function ExecuteHandler(srv_data, srv_id, hash) {
             }
             
             this.isLoading = false;
-
+            
             this.$nextTick(() => this.updateVolumeView());
 
         }
@@ -234,13 +241,22 @@ async function ExecuteHandler(srv_data, srv_id, hash) {
         this.$data.explorerPath = val;
         if ($is === 'file') {
             this.$data.viewType = 'fileview';
+            const upd = (() => {
+                this.$refs.fileViewInstance ?
+                this.$refs.fileViewInstance.update() :
+                setTimeout(upd);
+            }).bind(this);
+            setTimeout(upd);
         }
         else {
             this.$data.viewType = 'explore';
+            const upd = (() => {
+                this.$refs.fileExplorerInstance ?
+                this.$refs.fileExplorerInstance.update() :
+                setTimeout(upd);
+            }).bind(this);
+            setTimeout(upd);
         }
-        this.isLoading = false;
-        this.$refs.fileExplorerInstance?.update();
-        this.$refs.fileViewInstance?.update();
         return;
     }
 

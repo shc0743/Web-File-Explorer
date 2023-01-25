@@ -23,6 +23,8 @@ const data = {
 
     emits: ['requestreload'],
 
+    inject: ['apptitle'],
+
     methods: {
         closeapp() {
             let w = window.open('', '_self');
@@ -62,7 +64,8 @@ const data = {
         goHome() { location.hash = '#/' },
     },
 
-    mounted() {
+    computed: {
+        
 
     },
 

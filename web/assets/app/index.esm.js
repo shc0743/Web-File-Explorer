@@ -69,6 +69,7 @@ updateLoadStat('Creating Vue application');
 const app = createApp(Vue_App);
 updateLoadStat('Creating app instance');
 globalThis.appInstance_.app = app;
+app.config.unwrapInjectedRef = true;
 app.config.compilerOptions.isCustomElement = (tag) => tag.includes('-');
 app.config.compilerOptions.comments = true;
 

@@ -803,6 +803,190 @@ public:
 
 
 };
+class StringRef {
+public:
+    static constexpr size_t npos = ~size_t(0);
+
+    using iterator = const char*;
+    using const_iterator = const char*;
+    using size_type = size_t;
+
+private:
+    /// The start of the string, in an external buffer.
+    const char* Data = nullptr;
+
+    /// The length of the string.
+    size_t Length = 0;
+
+    // Workaround memcmp issue with null pointers (undefined behavior)
+    // by providing a specialized version
+    static int compareMemory(const char* Lhs, const char* Rhs, size_t Length) {
+        if (Length == 0) { return 0; }
+        return ::memcmp(Lhs, Rhs, Length);
+    }
+
+public:
+    /// @name Constructors
+    /// @{
+
+    /// Construct an empty string ref.
+    /*implicit*/ StringRef() = default;
+
+    /// Disable conversion from nullptr.  This prevents things like
+    /// if (S == nullptr)
+    StringRef(std::nullptr_t) = delete;
+
+    /// Construct a string ref from a cstring.
+    /*implicit*/ constexpr StringRef(const char* Str)
+        : Data(Str), Length(Str ?
+            // GCC 7 doesn't have constexpr char_traits. Fall back to __builtin_strlen.
+#if defined(_GLIBCXX_RELEASE) && _GLIBCXX_RELEASE < 8
+            __builtin_strlen(Str)
+#else
+            std::char_traits<char>::length(Str)
+#endif
+            : 0) {
+    }
+
+    /// Construct a string ref from a pointer and length.
+    /*implicit*/ constexpr StringRef(const char* data, size_t length)
+        : Data(data), Length(length) {}
+
+    /// Construct a string ref from an std::string.
+    /*implicit*/ StringRef(const std::string& Str)
+        : Data(Str.data()), Length(Str.length()) {}
+
+    /// Construct a string ref from an std::string_view.
+    /*implicit*/ constexpr StringRef(std::string_view Str)
+        : Data(Str.data()), Length(Str.size()) {}
+
+    /// @}
+    /// @name Iterators
+    /// @{
+
+    iterator begin() const { return Data; }
+
+    iterator end() const { return Data + Length; }
+
+    const unsigned char* bytes_begin() const {
+        return reinterpret_cast<const unsigned char*>(begin());
+    }
+    const unsigned char* bytes_end() const {
+        return reinterpret_cast<const unsigned char*>(end());
+    }
+
+    /// @}
+    /// @name String Operations
+    /// @{
+
+    /// data - Get a pointer to the start of the string (which may not be null
+    /// terminated).
+    [[nodiscard]] const char* data() const { return Data; }
+
+    /// empty - Check if the string is empty.
+    [[nodiscard]] constexpr bool empty() const { return Length == 0; }
+
+    /// size - Get the string size.
+    [[nodiscard]] constexpr size_t size() const { return Length; }
+
+    /// front - Get the first character in the string.
+    [[nodiscard]] char front() const {
+        assert(!empty());
+        return Data[0];
+    }
+
+    /// back - Get the last character in the string.
+    [[nodiscard]] char back() const {
+        assert(!empty());
+        return Data[Length - 1];
+    }
+
+    // copy - Allocate copy in Allocator and return StringRef to it.
+    template <typename Allocator>
+    [[nodiscard]] StringRef copy(Allocator& A) const {
+        // Don't request a length 0 copy from the allocator.
+        if (empty())
+            return StringRef();
+        char* S = A.template Allocate<char>(Length);
+        std::copy(begin(), end(), S);
+        return StringRef(S, Length);
+    }
+
+    /// equals - Check for string equality, this is more efficient than
+    /// compare() when the relative ordering of inequal strings isn't needed.
+    [[nodiscard]] bool equals(StringRef RHS) const {
+        return (Length == RHS.Length &&
+            compareMemory(Data, RHS.Data, RHS.Length) == 0);
+    }
+
+    /// compare - Compare two strings; the result is negative, zero, or positive
+    /// if this string is lexicographically less than, equal to, or greater than
+    /// the \p RHS.
+    [[nodiscard]] int compare(StringRef RHS) const {
+        // Check the prefix for a mismatch.
+        if (int Res = compareMemory(Data, RHS.Data, std::min(Length, RHS.Length)))
+            return Res < 0 ? -1 : 1;
+
+        // Otherwise the prefixes match, so we only need to check the lengths.
+        if (Length == RHS.Length)
+            return 0;
+        return Length < RHS.Length ? -1 : 1;
+    }
+
+    /// str - Get the contents as an std::string.
+    [[nodiscard]] std::string str() const {
+        if (!Data) return std::string();
+        return std::string(Data, Length);
+    }
+
+    /// @}
+    /// @name Operator Overloads
+    /// @{
+
+    [[nodiscard]] char operator[](size_t Index) const {
+        assert(Index < Length && "Invalid index!");
+        return Data[Index];
+    }
+
+    /// Disallow accidental assignment from a temporary std::string.
+    ///
+    /// The declaration here is extra complicated so that `stringRef = {}`
+    /// and `stringRef = "abc"` continue to select the move assignment operator.
+    template <typename T>
+    std::enable_if_t<std::is_same<T, std::string>::value, StringRef>&
+        operator=(T&& Str) = delete;
+
+    /// @}
+    /// @name Type Conversions
+    /// @{
+
+    operator std::string_view() const {
+        return std::string_view(data(), size());
+    }
+
+    /// @}
+    /// @name String Predicates
+    /// @{
+
+    /// Check if this string starts with the given \p Prefix.
+    [[nodiscard]] bool starts_with(StringRef Prefix) const {
+        return Length >= Prefix.Length &&
+            compareMemory(Data, Prefix.Data, Prefix.Length) == 0;
+    }
+    [[nodiscard]] bool startswith(StringRef Prefix) const {
+        return starts_with(Prefix);
+    }
+
+    /// Check if this string ends with the given \p Suffix.
+    [[nodiscard]] bool ends_with(StringRef Suffix) const {
+        return Length >= Suffix.Length &&
+            compareMemory(end() - Suffix.Length, Suffix.Data, Suffix.Length) ==
+            0;
+    }
+    [[nodiscard]] bool endswith(StringRef Suffix) const {
+        return ends_with(Suffix);
+    }
+};
 
 bool convertUTF16ToUTF8String(ArrayRef<char> SrcBytes, std::string& Out) {
     assert(Out.empty());
@@ -901,6 +1085,85 @@ bool convertWideToUTF8(const std::wstring& Source, std::string& Result) {
     }
 
 }
+
+bool ConvertUTF8toWide(const char* Source, std::wstring& Result) {
+    if (!Source) {
+        Result.clear();
+        return true;
+    }
+    return ConvertUTF8toWide(llvm::StringRef(Source), Result);
+}
+template <typename TResult>
+static inline bool ConvertUTF8toWideInternal(llvm::StringRef Source,
+    TResult& Result) {
+    // Even in the case of UTF-16, the number of bytes in a UTF-8 string is
+    // at least as large as the number of elements in the resulting wide
+    // string, because surrogate pairs take at least 4 bytes in UTF-8.
+    Result.resize(Source.size() + 1);
+    char* ResultPtr = reinterpret_cast<char*>(&Result[0]);
+    const UTF8* ErrorPtr;
+    if (!ConvertUTF8toWide(sizeof(wchar_t), Source, ResultPtr, ErrorPtr)) {
+        Result.clear();
+        return false;
+    }
+    Result.resize(reinterpret_cast<wchar_t*>(ResultPtr) - &Result[0]);
+    return true;
+}
+bool ConvertUTF8toWide(llvm::StringRef Source, std::wstring& Result) {
+    return ConvertUTF8toWideInternal(Source, Result);
+}
+bool ConvertUTF8toWide(unsigned WideCharWidth, llvm::StringRef Source,
+    char*& ResultPtr, const UTF8*& ErrorPtr) {
+    //assert(WideCharWidth == 1 || WideCharWidth == 2 || WideCharWidth == 4);
+    if (!(WideCharWidth == 1 || WideCharWidth == 2 || WideCharWidth == 4)) return false;
+
+    ConversionResult result = conversionOK;
+    // Copy the character span over.
+    if (WideCharWidth == 1) {
+        const UTF8* Pos = reinterpret_cast<const UTF8*>(Source.begin());
+        if (!isLegalUTF8String(&Pos, reinterpret_cast<const UTF8*>(Source.end()))) {
+            result = sourceIllegal;
+            ErrorPtr = Pos;
+        }
+        else {
+            memcpy(ResultPtr, Source.data(), Source.size());
+            ResultPtr += Source.size();
+        }
+    }
+    else if (WideCharWidth == 2) {
+        const UTF8* sourceStart = (const UTF8*)Source.data();
+        // FIXME: Make the type of the result buffer correct instead of
+        // using reinterpret_cast.
+        UTF16* targetStart = reinterpret_cast<UTF16*>(ResultPtr);
+        ConversionFlags flags = strictConversion;
+        result =
+            ConvertUTF8toUTF16(&sourceStart, sourceStart + Source.size(),
+                &targetStart, targetStart + Source.size(), flags);
+        if (result == conversionOK)
+            ResultPtr = reinterpret_cast<char*>(targetStart);
+        else
+            ErrorPtr = sourceStart;
+    }
+    else if (WideCharWidth == 4) {
+        const UTF8* sourceStart = (const UTF8*)Source.data();
+        // FIXME: Make the type of the result buffer correct instead of
+        // using reinterpret_cast.
+        UTF32* targetStart = reinterpret_cast<UTF32*>(ResultPtr);
+        ConversionFlags flags = strictConversion;
+        result =
+            ConvertUTF8toUTF32(&sourceStart, sourceStart + Source.size(),
+                &targetStart, targetStart + Source.size(), flags);
+        if (result == conversionOK)
+            ResultPtr = reinterpret_cast<char*>(targetStart);
+        else
+            ErrorPtr = sourceStart;
+    }
+    //assert((result != targetExhausted) &&
+    //       "ConvertUTF8toUTFXX exhausted target buffer");
+    return result == conversionOK;
+}
+
+
 // end
 
 /* ---------------------------------------------------------------------

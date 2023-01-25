@@ -72,9 +72,12 @@ bool __stdcall VerifyAuthToken(std::string tok) {
 		size_t len = (ws.length() + 1) * sizeof(WCHAR);
 		PVOID pAddr = VirtualAlloc(NULL, (sizeof(len) + len), MEM_COMMIT, PAGE_READWRITE);
 		if (!pAddr) return false;
-		memcpy(pAddr, &len, sizeof(len));
+#pragma warning(push)
+#pragma warning(disable: 6386)
+		memcpy(pAddr, &len, sizeof(len)); // 已经确认没有问题
 		size_t* szStartAddr = ((size_t*)pAddr) + 1;
 		memcpy(szStartAddr, p, len);
+#pragma warning(pop)
 
 		LRESULT result = SendMessage(AuthTokenList.hwnd, AuthTokenList.uMsgCheck,
 			(WPARAM)GetCurrentProcessId(), (LPARAM)(LONG_PTR)pAddr);
@@ -119,10 +122,27 @@ void server::FileServer::auth(const HttpRequestPtr& req, std::function<void(cons
 	callback(resp);
 }
 
-void server::FileServer::downloadFile(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& file, std::string&& tok) const
+void server::FileServer::downloadFile(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& file, std::string&& tok, std::string&& attachment) const
 {
-	// TODO
+	if (!VerifyAuthToken(tok)) {
+		HttpResponsePtr resp = HttpResponse::newHttpResponse();
+		resp->setStatusCode(k403Forbidden);
+		return callback(resp);
+	}
 
+	wstring wsfile; llvm::ConvertUTF8toWide(file, wsfile);
+
+	auto fstat = IsFileOrDirectory(wsfile);
+	if (fstat != 1) {
+		HttpResponsePtr resp = HttpResponse::newHttpResponse();
+		CORSadd(req, resp);
+		resp->setStatusCode(fstat == -1 ? k400BadRequest : k404NotFound);
+		return callback(resp);
+	}
+
+	HttpResponsePtr resp = HttpResponse::newFileResponse(file, attachment);
+	CORSadd(req, resp);
+	callback(resp);
 }
 
 void server::FileServer::getFile(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& file) const
@@ -138,7 +158,6 @@ void server::FileServer::getFile(const HttpRequestPtr& req, std::function<void(c
 	HttpResponsePtr resp = HttpResponse::newFileResponse(file);
 	CORSadd(req, resp);
 	callback(resp);
-
 }
 
 void server::FileServer::putFile(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& file) const
@@ -171,6 +190,8 @@ void server::FileServer::delFile(const HttpRequestPtr& req, std::function<void(c
 
 void server::FileServer::getFileList(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& file) const
 {
+	wstring wsfile;
+	llvm::ConvertUTF8toWide(file.c_str(), wsfile);
 	wstring result;
 	const auto err = [&req, &callback](HttpStatusCode status, string body = "") {
 		HttpResponsePtr resp = HttpResponse::newHttpResponse();
@@ -181,8 +202,10 @@ void server::FileServer::getFileList(const HttpRequestPtr& req, std::function<vo
 		return callback(resp);
 	};
 	const auto errcode = [] {return to_string(GetLastError()); };
-	auto fstat = IsFileOrDirectory(file);
-	if (fstat != -1) return (fstat == 1 ? err(k400BadRequest) : err(k404NotFound, file + " not found"));
+	auto fstat = IsFileOrDirectory(wsfile);
+	if (fstat != -1) return (fstat == 0 ? err(k404NotFound, file + " not found") : (
+		fstat == 1 ? err(k400BadRequest, "Cannot list files in a file") : err(k500InternalServerError)
+		));
 
 	{
 		WIN32_FIND_DATA ffd{};
@@ -191,8 +214,7 @@ void server::FileServer::getFileList(const HttpRequestPtr& req, std::function<vo
 		HANDLE hFind = INVALID_HANDLE_VALUE;
 		DWORD dwError = 0;
 
-		wstring wsFile = s2ws(file);
-		wcscpy_s(szDir, wsFile.c_str());
+		wcscpy_s(szDir, wsfile.c_str());
 		wcscat_s(szDir, L"\\*");
 
 		hFind = FindFirstFileW(szDir, &ffd);
@@ -308,11 +330,41 @@ void server::FileServer::getVolumeList(const HttpRequestPtr& req, std::function<
 
 void server::FileServer::isFileOrDirectory(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& file) const
 {
-	string r = to_string(IsFileOrDirectory(file));
+	wstring wsfile; llvm::ConvertUTF8toWide(file, wsfile);
+	string r = to_string(IsFileOrDirectory(wsfile));
 	HttpResponsePtr resp = HttpResponse::newHttpResponse();
 	CORSadd(req, resp);
 	resp->setContentTypeCode(CT_TEXT_PLAIN);
 	resp->setBody(r);
+	callback(resp);
+}
+
+void server::FileServer::getFileInfo(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& file) const
+{
+	const auto err = [&req, &callback](HttpStatusCode status, string body = "") {
+		HttpResponsePtr resp = HttpResponse::newHttpResponse();
+		CORSadd(req, resp);
+		resp->setStatusCode(status);
+		resp->setContentTypeCode(CT_TEXT_PLAIN);
+		resp->setBody(body);
+		return callback(resp);
+	};
+
+	Json::Value ret;
+	wstring wsfile; llvm::ConvertUTF8toWide(file, wsfile);
+	const auto fstat = IsFileOrDirectory(wsfile);
+	if (fstat != -1 && fstat != 1) {
+		return fstat == 0 ? err(k404NotFound, "Not Found") : err(k500InternalServerError);
+	}
+
+	string buf8; wstring buf16;
+
+	ret["type"] = to_string(fstat);
+	ret["size"] = to_string(MyGetFileSizeW(wsfile));
+
+	ret["success"] = true;
+	HttpResponsePtr resp = HttpResponse::newHttpJsonResponse(ret);
+	CORSadd(req, resp);
 	callback(resp);
 }
 

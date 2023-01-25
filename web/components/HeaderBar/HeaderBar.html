@@ -1,18 +1,21 @@
 <header v-deep>
-    <div v-deep class="icon square" style="border: 1px solid; cursor: pointer" @dblclick="closeapp"></div>
+    <div v-deep class="icon square" style="border: 1px solid; cursor: pointer"
+        @click="goHome" @dblclick="closeapp"></div>
     <span v-deep class="sep" style="margin: 0 5px 0 10px"></span>
-    <ElButtonGroup>
-        <ElButton @click="reload" title="Reload" v-deep text><ElIcon><RefreshRight /></ElIcon></ElButton>
-        <ElButton @click="hist(-1)" title="Back" v-deep text><ElIcon><ArrowLeft /></ElIcon></ElButton>
-        <ElButton @click="hist(1)" title="Go" v-deep text><ElIcon><ArrowRight /></ElIcon></ElButton>
+    <ElButtonGroup v-deep class="ws">
+        <ElButton @click="reload" aria-label="Reload the content" v-deep text><ElIcon><RefreshRight /></ElIcon></ElButton>
+        <ElButton @click="hist(-1)" aria-label="Back to last page" v-deep text><ElIcon><ArrowLeft /></ElIcon></ElButton>
+        <ElButton @click="hist(1)" aria-label="Go to next page" v-deep text><ElIcon><ArrowRight /></ElIcon></ElButton>
     </ElButtonGroup>
+    <span v-deep class="sep ws" style="margin: 0 5px"></span>
+    <ElButton class="ws" @click="pathUp" aria-label="Switch to parent directory" v-deep text><ElIcon><Top /></ElIcon></ElButton>
+    <span v-deep class="sep ws" style="margin: 0 5px"></span>
+    <MainMenuBar v-deep class="ws" />
+    <span v-deep class="sep ws" style="margin: 0 10px 0 5px"></span>
+    <!-- <div v-deep ref="current_directory" class="cd">&nbsp;</div> -->
+    <div v-deep role="" class="titlebar" :title="apptitle">{{apptitle}}</div>
     <span v-deep class="sep" style="margin: 0 5px"></span>
-    <ElButton @click="pathUp" title="Up" v-deep text><ElIcon><Top /></ElIcon></ElButton>
-    <span v-deep class="sep" style="margin: 0 5px"></span>
-    <MainMenuBar v-deep />
-    <span v-deep class="sep" style="margin: 0 10px 0 5px"></span>
-    <div v-deep ref="current_directory" class="cd">&nbsp;</div>
-    <SysCtl />
+    <SysCtl @closeapp="closeapp" class="window-controls-container" />
 </header>
 
 <div data-deprecated>
@@ -30,6 +33,11 @@
 </div>
 
 <style>
+@media screen and (max-width: 539px) {
+>>>.ws { /* wide screen */
+    display: none;
+}
+}
 header>>> {
     display: flex;
     flex-direction: row;
@@ -48,13 +56,23 @@ header>>> {
     min-height: 1em;
 }
 >>>.current_directory {
-    flex: 1 1 0%;
+    flex: 1;
     height: calc(1em + 4px);
     font-family: Consolas;
     /* overflow-x: auto; */
     /* overflow-y: hidden; */
     overflow: hidden;
     white-space: nowrap;
+}
+>>>.titlebar {
+    flex: 1;
+    text-align: center;
+    user-select: none;
+    touch-action: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -webkit-app-region: drag;
 }
 >>>button {
     border: none;

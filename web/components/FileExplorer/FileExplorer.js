@@ -17,6 +17,7 @@ const data = {
             selectedColumns: [
                 tr('ui.string:filename'),
             ],
+            m__updateLock: false,
             
         }
     },
@@ -30,31 +31,46 @@ const data = {
         path: String,
     },
 
-    methods: {
-        update() {
-            if (!this.loadingInstance)
-                this.loadingInstance = ElLoading.service({ lock: true, fullscreen: false, target: this.$refs.app });
-            // console.log('created loading service in FileExplorer:', this.loadingInstance);
-            this.$nextTick(async () => {
-                this.listdata = await this.loadList();
-                if (('ok' in this.listdata && (!this.listdata.ok)) || this.listdata instanceof Error) {
-                    if (this.loadingInstance) this.loadingInstance.close();
-                    // console.log('closed loading service in FileExplorer');
-                    if (this.listdata instanceof Error)
-                        ElMessage.error(`Failed to load data: ${this.listdata}`);
-                    else
-                        ElMessage.error(`Failed to load data: HTTP error ${this.listdata.status}, error text:\n`
-                            + await this.listdata.text());
-                    return history.back();
-                }
-                
-                this.objectCount = this.listdata.length;
-                this.$nextTick(() => this.$refs.lst.update());
-                document.title = this.path;
-                if (this.loadingInstance) this.loadingInstance.close();
-                // console.log('closed loading service in FileExplorer');
+    inject: ['apptitle'],
 
+    methods: {
+        async update() {
+            if (this.m__updateLock) return;
+            this.m__updateLock = true;
+            if (!this.loadingInstance) {
+                this.loadingInstance = ElLoading.service({ lock: false, fullscreen: false, target: this.$refs.app?.parentElement });
+            }
+            // console.log('created loading service in FileExplorer:', this.loadingInstance);
+            
+            this.listdata = await this.loadList();
+            if (('ok' in this.listdata && (!this.listdata.ok)) || this.listdata instanceof Error) {
+                // console.log('closed loading service by an error in FileExplorer');
+                if (this.loadingInstance) {
+                    this.loadingInstance.close();
+                    this.loadingInstance = null;
+                }
+                if (this.listdata instanceof Error)
+                    ElMessage.error(`Failed to load data: ${this.listdata}`);
+                else
+                    ElMessage.error(`Failed to load data: HTTP error ${this.listdata.status}, error text:\n`
+                        + await this.listdata.text());
+                this.m__updateLock = false;
+                return history.back();
+            }
+            
+            this.objectCount = this.listdata.length || 0;
+            globalThis.appInstance_.instance.apptitle = this.path;
+            this.$nextTick(() => {
+                if (this.loadingInstance) {
+                    this.loadingInstance.close();
+                    this.loadingInstance = null;
+                }
+                this.m__updateLock = false;
+                // console.log('closed loading service in FileExplorer');
+                this.$refs.lst.update();
             });
+
+        
         },
 
         async loadList() {
@@ -226,6 +242,8 @@ const data = {
             try { src = data[0]._path + data[1]; }
             catch { return console.warn('Failed to resolve application data') };
             
+            if (src === dist) return;
+
             const get = async (file, srv, pswd) => {
                 const url = new URL('/isFileOrDirectory', srv);
                 url.searchParams.set('name', file);

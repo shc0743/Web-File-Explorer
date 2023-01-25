@@ -1,3 +1,13 @@
-<div class="sysctl">
-    
+<div v-deep class="sysctl" v-bind="$attrs">
+    <ElButton text @click="closeapp" aria-label="Close the application."><ElIcon><Close /></ElIcon></ElButton>
 </div>
+
+<style>
+>>> {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+>>> > * { margin: 0!important; aspect-ratio: 1; }
+</style>
