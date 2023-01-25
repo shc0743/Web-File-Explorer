@@ -33,6 +33,9 @@
     <ClCompile Include="..\includes\ConvertUTF.cpp">
       <Filter>资源文件</Filter>
     </ClCompile>
+    <ClCompile Include="..\includes\RangeParser.cc">
+      <Filter>资源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\..\..\..\..\Program\source\VSProjects\resource\tool.h">
@@ -48,6 +51,9 @@
       <Filter>资源文件</Filter>
     </ClInclude>
     <ClInclude Include="..\includes\ConvertUTF.h">
+      <Filter>资源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\includes\RangeParser.h">
       <Filter>资源文件</Filter>
     </ClInclude>
   </ItemGroup>

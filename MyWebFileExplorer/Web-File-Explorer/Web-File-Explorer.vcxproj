@@ -22,6 +22,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\..\..\..\..\..\Program\source\VSProjects\resource\tool.cpp" />
     <ClCompile Include="..\includes\ConvertUTF.cpp" />
+    <ClCompile Include="..\includes\RangeParser.cc" />
     <ClCompile Include="libs.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="server.cpp" />
@@ -30,6 +31,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\..\..\..\..\..\Program\source\VSProjects\resource\tool.h" />
     <ClInclude Include="..\includes\ConvertUTF.h" />
+    <ClInclude Include="..\includes\RangeParser.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="server.h" />
     <ClInclude Include="ui.h" />

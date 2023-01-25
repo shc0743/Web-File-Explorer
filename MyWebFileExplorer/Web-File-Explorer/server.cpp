@@ -2,6 +2,7 @@
 #include <string>
 #include "../../resource/tool.h"
 #include "../includes/ConvertUTF.h"
+#include "../includes/RangeParser.h"
 
 using namespace std;
 
@@ -140,7 +141,49 @@ void server::FileServer::downloadFile(const HttpRequestPtr& req, std::function<v
 		return callback(resp);
 	}
 
-	HttpResponsePtr resp = HttpResponse::newFileResponse(file, attachment);
+	size_t offset = 0, length = 0;
+	const std::string& rangeStr = req->getHeader("range");
+	// these are copied and modified from
+	// https://github.com/drogonframework/drogon/blob/0b3147c15764820c2624a557b83b2b3343d9810a/lib/src/StaticFileRouter.cc#L352
+	if (!rangeStr.empty())
+	{
+		std::vector<FileRange> ranges;
+		switch (parseRangeHeader(rangeStr, (size_t)MyGetFileSizeW(wsfile), ranges))
+		{
+		case FileRangeParseResult::SinglePart:
+		case FileRangeParseResult::MultiPart:
+		{
+			auto& firstRange = ranges.front();
+			offset = firstRange.start;
+			length = firstRange.end - firstRange.start;
+		}
+		break;
+		case FileRangeParseResult::NotSatisfiable:
+		case FileRangeParseResult::InvalidRange:
+		{
+			auto resp = HttpResponse::newHttpResponse();
+			resp->setStatusCode(k416RequestedRangeNotSatisfiable);
+			return callback(resp);
+		}
+		break;
+		/** rfc7233 4.4.
+			* > Note: Because servers are free to ignore Range, many
+			* implementations will simply respond with the entire selected
+			* representation in a 200 (OK) response.  That is partly
+			* because most clients are prepared to receive a 200 (OK) to
+			* complete the task (albeit less efficiently) and partly
+			* because clients might not stop making an invalid partial
+			* request until they have received a complete representation.
+			* Thus, clients cannot depend on receiving a 416 (Range Not
+			* Satisfiable) response even when it is most appropriate.
+			*/
+		default:
+			break;
+		}
+	}
+
+	HttpResponsePtr resp = HttpResponse::newFileResponse(file, offset, length, true, attachment);
+	resp->addHeader("accept-ranges", "bytes");
 	CORSadd(req, resp);
 	callback(resp);
 }

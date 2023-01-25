@@ -62,6 +62,8 @@ const data = {
         },
 
         goHome() { location.hash = '#/' },
+
+        openBlank() { window.open(window.location.pathname, '_blank') },
     },
 
     computed: {
