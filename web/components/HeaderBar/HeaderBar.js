@@ -1,5 +1,4 @@
 import { getHTML } from '@/assets/js/browser_side-compiler.js';
-import { ElButton, ElButtonGroup, ElIcon } from 'element-plus';
 import { ArrowLeft, ArrowRight, RefreshRight, Top } from 'icons-vue';
 import MainMenuBar from './MainMenuBar.js';
 import SysCtl from './SysCtl.js';
@@ -16,12 +15,11 @@ const data = {
     },
 
     components: {
-        ElButton, ElButtonGroup, ElIcon,
         ArrowLeft, ArrowRight, RefreshRight, Top,
         MainMenuBar, SysCtl,
     },
 
-    emits: ['requestreload'],
+    emits: ['requestreload', 'openTransferPanel'],
 
     inject: ['apptitle'],
 
@@ -63,7 +61,12 @@ const data = {
 
         goHome() { location.hash = '#/' },
 
-        openBlank() { window.open(window.location.pathname, '_blank') },
+        openBlank() { window.open(window.location, '_blank') },
+
+        openTransPanel() {
+            this.$emit('openTransferPanel');
+        },
+
     },
 
     computed: {

@@ -1,7 +1,6 @@
 import { getHTML } from '@/assets/js/browser_side-compiler.js';
 import { createServerData } from '@/assets/app/userdata.js';
 
-import { ElDialog, ElButton, ElSwitch } from 'element-plus';
 
 
 const componentId = '432b03899b174d7485574e04c15c9f9b';
@@ -22,7 +21,7 @@ const data = {
     },
 
     components: {
-        ElDialog, ElButton, ElSwitch
+
     },
 
     emits: ['serverAdded'],

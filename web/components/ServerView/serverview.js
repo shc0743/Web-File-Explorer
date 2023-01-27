@@ -1,7 +1,8 @@
 import { getHTML } from '@/assets/js/browser_side-compiler.js';
-import { ElButton, ElTable, ElTableColumn, ElSwitch, ElLoading } from 'element-plus';
+import { ElLoading, ElMessage } from 'element-plus';
 import FileExplorer from '../FileExplorer/FileExplorer.js';
 import FileView from '../FileView/FileView.js';
+import UploadForm from '../UploadPage/form.js';
 
 
 const componentId = '6f396fb8f6bc431daeaa4a7fb2451c35';
@@ -17,12 +18,12 @@ const data = {
             volumeData: [],
             advancedVolumeView: false,
             explorerPath: '',
+            pathSrc: '', pathDest: '',
         }
     },
 
     components: {
-        ElButton, ElTable, ElTableColumn, ElSwitch,
-        FileExplorer, FileView,
+        FileExplorer, FileView, UploadForm,
     },
 
     inject: ['apptitle'],
@@ -110,7 +111,7 @@ export default data;
 
 
 async function hashchangeHandler() {
-    let hash = this.location.hash;
+    let hash = location.hash;
     if (!hash.startsWith('#/s/')) return;
     globalThis.appInstance_.serverView.$data.errorText = '';
 
@@ -217,6 +218,35 @@ async function ExecuteHandler(srv_data, srv_id, hash) {
         return;
     }
 
+    if (hash.startsWith(srvid_prefix + 'sys/')) {
+        try {
+            const url = new URL(hash.substring(2), window.location);
+            this.pathSrc = url.searchParams.get('src');
+            this.pathDest = url.searchParams.get('dest');
+        } catch { };
+        if (hash.startsWith(srvid_prefix + 'sys/upload')) {
+            this.viewType = 'sys/upload';
+            this.pathSrc = hash.substring((srvid_prefix + 'sys/upload').length);
+            // this.$forceUpdate();
+            // this.$nextTick(() => {
+            //     setTimeout(() => this.$refs.uploadForm.update());
+            // });
+        }
+        else if (hash.startsWith(srvid_prefix + 'sys/copy')) {
+            this.viewType = 'sys/copy';
+        }
+        else if (hash.startsWith(srvid_prefix + 'sys/move')) {
+            this.viewType = 'sys/move';
+        }
+        else if (hash.startsWith(srvid_prefix + 'sys/link')) {
+            this.viewType = 'sys/link';
+        }
+        else {
+            ElMessage.error('View not found');
+        }
+        return;
+    }
+
     if (hash.startsWith(srvid_prefix)) {
         hash = hash.substring((srvid_prefix).length);
         hash = hash.replaceAll('\\', '/');
@@ -241,21 +271,9 @@ async function ExecuteHandler(srv_data, srv_id, hash) {
         this.$data.explorerPath = val;
         if ($is === 'file') {
             this.$data.viewType = 'fileview';
-            const upd = (() => {
-                this.$refs.fileViewInstance ?
-                this.$refs.fileViewInstance.update() :
-                setTimeout(upd);
-            }).bind(this);
-            setTimeout(upd);
         }
         else {
             this.$data.viewType = 'explore';
-            const upd = (() => {
-                this.$refs.fileExplorerInstance ?
-                this.$refs.fileExplorerInstance.update() :
-                setTimeout(upd);
-            }).bind(this);
-            setTimeout(upd);
         }
         return;
     }

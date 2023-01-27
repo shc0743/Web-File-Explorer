@@ -13,11 +13,14 @@ let db_name = null;
 try {
     updateLoadStat('Loading userdata');
     db_name = (await import('./userdata.js')).db_name;
+
+    updateLoadStat('Loading menu helper');
+    await import('@/assets/js/winmenu-helper.js');
 }
 catch (error) {
     throw reportFatalError(error, 'main');
 }
-
+    
 updateLoadStat('Loading Vue.js');
 import { createApp } from 'vue';
 updateLoadStat('Loading Resource Loader');
@@ -67,6 +70,13 @@ const Vue_App = (await import('../../components/App/app.js')).default;
 
 updateLoadStat('Creating Vue application');
 const app = createApp(Vue_App);
+updateLoadStat('Loading Element-Plus');
+{
+    const element = await import('element-plus');
+    for (const i in element) {
+        if (i.startsWith('El')) app.component(i, element[i]);
+    }
+}
 updateLoadStat('Creating app instance');
 globalThis.appInstance_.app = app;
 app.config.unwrapInjectedRef = true;
@@ -113,11 +123,16 @@ import('./hashchange.js').then(function (data) {
         }
     
         // run the default handler
+        globalThis.appInstance_.instance.$data.current_page = '404';
     
     }
     globalThis.addEventListener('hashchange', hashchange_handler);
     setTimeout(hashchange_handler);
 }).catch(function (error) { console.error('[hashchange_handler]', error) });
+
+import('./cp.js').then(function ({ CommandPanel }) {
+    globalThis.commandPanel = new CommandPanel();
+}).catch(function (error) { console.error('[CommandPanel]', error) });
 
 
 
@@ -132,6 +147,15 @@ globalThis.addEventListener('keydown', function (ev) {
     if (ev.key === 'F5' && !(ev.ctrlKey || ev.shiftKey)) {
         ev.preventDefault();
         return window.dispatchEvent(new HashChangeEvent('hashchange'));
+    }
+    if (ev.key.toUpperCase() === 'P' && ev.ctrlKey && ev.shiftKey) {
+        ev.preventDefault();
+        return globalThis.commandPanel?.open();
+    }
+    if (ev.key.toUpperCase() === 'K' && ev.ctrlKey && !ev.shiftKey) {
+        ev.preventDefault();
+        return globalThis.appInstance_.instance.transferPanel_isOpen =
+            !globalThis.appInstance_.instance.transferPanel_isOpen;
     }
 });
 

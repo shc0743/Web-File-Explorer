@@ -9,6 +9,10 @@ export default {
 
     "#/servers/"(hash) {
         this.$data.current_page = 'serverList';
-    }
+    },
+
+    "#/upload/"(hash) {
+        this.$data.current_page = 'upload';
+    },
 
 };

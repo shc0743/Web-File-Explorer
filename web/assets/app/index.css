@@ -1,0 +1,11 @@
+:root {
+    --color: #000000;
+    --background: #ffffff;
+}
+@media screen and (prefers-color-scheme: dark) {
+:root {
+    --color: #ffffff;
+    --background: #000000;
+}
+}
+

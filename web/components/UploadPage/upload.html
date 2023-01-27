@@ -1,0 +1,45 @@
+<div data-component-root v-deep>
+    <div>
+        <h1>{{tr('ui.string:chooseServer')}}</h1>
+
+        <p><ElButton size="large" @click="addServer">{{ tr('ui.string:addServer') }}</ElButton></p>
+        
+        <ElCard v-for="item in servers" style="overflow: auto; margin-top: 30px;">
+            <template #header>
+                <div class="card-header" v-deep>
+                    <span>{{item.name}}</span>
+        
+                    <span>
+                        <ElButton type="primary" plain :data-addr="b2a(item.addr)" @click="choseSrv">{{ tr('Open') }}</ElButton>
+                    </span>
+                </div>
+            </template>
+        
+            <div>
+                <ElDescriptions :title="item.name" :column="1" border>
+                    <ElDescriptionsItem>
+                        <template #label>{{tr('ui.string:serverAddr')}}</template>
+                        <span>{{item.addr}}</span>
+                    </ElDescriptionsItem>
+                </ElDescriptions>
+            </div>
+        </ElCard>
+    </div>
+</div>
+
+<style>
+[data-component-root]>>> {
+    display: block;
+    width: 100%;
+    min-height: 100%;
+}
+[data-component-root][v-deep] > * {
+    padding: 20px;
+}
+.card-header>>> {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+</style>

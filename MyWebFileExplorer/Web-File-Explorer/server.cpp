@@ -125,7 +125,7 @@ void server::FileServer::auth(const HttpRequestPtr& req, std::function<void(cons
 
 void server::FileServer::downloadFile(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& file, std::string&& tok, std::string&& attachment) const
 {
-	if (!VerifyAuthToken(tok)) {
+	if ((req->method() != Options) && !VerifyAuthToken(tok)) {
 		HttpResponsePtr resp = HttpResponse::newHttpResponse();
 		resp->setStatusCode(k403Forbidden);
 		return callback(resp);
@@ -190,7 +190,8 @@ void server::FileServer::downloadFile(const HttpRequestPtr& req, std::function<v
 
 void server::FileServer::getFile(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& file) const
 {
-	auto fstat = IsFileOrDirectory(file);
+	wstring wsfile; llvm::ConvertUTF8toWide(file, wsfile);
+	auto fstat = IsFileOrDirectory(wsfile);
 	if (fstat != 1) {
 		HttpResponsePtr resp = HttpResponse::newHttpResponse();
 		CORSadd(req, resp);
@@ -205,29 +206,90 @@ void server::FileServer::getFile(const HttpRequestPtr& req, std::function<void(c
 
 void server::FileServer::putFile(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& file) const
 {
+	wstring wsfile; llvm::ConvertUTF8toWide(file, wsfile);
 	HttpResponsePtr resp = HttpResponse::newHttpResponse();
 	CORSadd(req, resp);
-	resp->setBody("");
-	callback(resp);
 
+	HANDLE hFile = CreateFileW(wsfile.c_str(), GENERIC_WRITE, 0, 
+		NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (!hFile) {
+		if (file_exists(wsfile)) {
+			resp->setStatusCode(k400BadRequest);
+			resp->setBody("File already exists; if you want to override, use PATCH method.");
+		}
+		else {
+			resp->setStatusCode(k500InternalServerError);
+			resp->setBody("Failed to CreateFileW, error code " + to_string(GetLastError()));
+		}
+		return callback(resp);
+	}
+	const string_view& body = req->getBody();
+	DWORD dw1 = 0, dw2 = 0;
+	const char* pos = (const char*)body.data();
+	bool hasSuccess = true;
+	size_t size = body.length() * sizeof(string_view::value_type), written = 0;
+	constexpr size_t max_chunk_size = 65536;
+	size_t chunk_size = (std::min)((size_t)size, (size_t)max_chunk_size);
+	while (written < size) {
+		dw1 = (DWORD)chunk_size;
+		if (!WriteFile(hFile, pos, dw1, &dw2, NULL)) break;
+		written += dw2;
+		chunk_size = (std::min)((size_t)(size - written), (size_t)max_chunk_size);
+	}
+	CloseHandle(hFile);
+
+	if (hasSuccess) resp->setStatusCode(k201Created);
+	else resp->setStatusCode(k500InternalServerError);
+	callback(resp);
 }
 
 void server::FileServer::patchFile(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& file) const
 {
 	HttpResponsePtr resp = HttpResponse::newHttpResponse();
 	CORSadd(req, resp);
-	resp->setBody("");
+	resp->setStatusCode(k501NotImplemented); // TODO
 	callback(resp);
-
 }
 
 void server::FileServer::delFile(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& file) const
 {
+	wstring wsfile; llvm::ConvertUTF8toWide(file, wsfile);
+	auto ftype = (IsFileOrDirectory(wsfile));
 	HttpResponsePtr resp = HttpResponse::newHttpResponse();
 	CORSadd(req, resp);
-	resp->setBody("");
-	callback(resp);
-
+	if (ftype != 1 && ftype != -1) {
+		resp->setStatusCode(ftype == 0 ? k404NotFound : k500InternalServerError);
+		return callback(resp);
+	}
+	else if (ftype == 1) {
+		if (DeleteFileW(wsfile.c_str())) {
+			resp->setStatusCode(k204NoContent);
+			return callback(resp);
+		}
+		else {
+			resp->setBody("Failed to DeleteFileW, error code " + to_string(GetLastError()));
+			resp->setStatusCode(k500InternalServerError);
+			return callback(resp);
+		}
+	}
+	else {
+		auto r = FileDeleteTreeW(wsfile);
+		if (r == 0) {
+			resp->setStatusCode(k200OK);
+			resp->setBody("Directory deleted successfully");
+			return callback(resp);
+		}
+		else if (r == 1) {
+			resp->setStatusCode(k500InternalServerError);
+			resp->setBody("tried to delete the directory, but something went wrong");
+			return callback(resp);
+		}
+		else {
+			resp->setStatusCode(k500InternalServerError);
+			resp->setBody("failed");
+			return callback(resp);
+		}
+	}
 }
 
 

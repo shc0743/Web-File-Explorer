@@ -1,6 +1,6 @@
 import { getHTML } from '@/assets/js/browser_side-compiler.js';
 import { db_name } from '@/assets/app/userdata.js';
-import { ElCard, ElButton, ElDialog, ElDescriptions, ElDescriptionsItem, ElMessage } from 'element-plus';
+import { ElMessage } from 'element-plus';
 import TextEdit from '../TextEdit/TextEdit.js';
 
 
@@ -16,7 +16,6 @@ const data = {
     },
 
     components: {
-        ElCard, ElButton, ElDialog, ElDescriptions, ElDescriptionsItem,
         TextEdit,
     },
 

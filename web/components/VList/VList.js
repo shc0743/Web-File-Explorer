@@ -151,6 +151,11 @@ class HTMLVirtualListElement extends HTMLElement {
         this.#selection._delete = this.#selection.delete;
         this.#selection.add = this.#addSelection.bind(this);
         this.#selection.delete = this.#deleteSelection.bind(this);
+        this.#selection.toArray = function () {
+            const r = [];
+            for (const i of this) r.push(i[0]);
+            return r;
+        };
 
 
     }
@@ -431,7 +436,7 @@ class HTMLVirtualListElement extends HTMLElement {
 // drag&drop event handlers end
 
 
-// selection manager start
+// selection managing start
     get selection() {
         return this.#selection;
     }
@@ -487,6 +492,7 @@ class HTMLVirtualListElement extends HTMLElement {
     }
     #addSelection(i) {
         if (isNaN(i)) return false;
+        if (this.noMultiple) this.clearSelection(true);
         this.#selection.set(Number(i), Number(i));
         this.#updateSelectionElement();
         return true;
@@ -501,7 +507,19 @@ class HTMLVirtualListElement extends HTMLElement {
     #setPfocus() {
         this.#divContainer.querySelector('v-list-row')?.classList.add('pfocus');
     }
-// selection manager end
+
+
+// multiple handling start
+    get noMultiple() { return (this.getAttribute('no-multiple') != null) }
+    set noMultiple(val) {
+        val ?
+            this.setAttribute('no-multiple', '') :
+            this.removeAttribute('no-multiple');
+        return true;
+    }
+// multiple handling end
+    
+// selection managing end
     
     
 // filter start
@@ -522,19 +540,29 @@ class HTMLVirtualListElement extends HTMLElement {
 
     
 // painting start
+    #m_lineheight_computed = false;
     #computeHeight() {
-        const row = document.createElement('v-list-row');
-        row.innerHTML = 'test';
-        this.#divContainer.append(row);
-        const style = globalThis.getComputedStyle(row);
-        const h = parseInt(style.height) + parseInt(style.paddingTop) + parseInt(style.paddingBottom);
-        this.#line_height = h + rowMarginBottom;
+        if (!this.#m_lineheight_computed) {
+            const row = document.createElement('v-list-row');
+            row.innerHTML = 'test';
+            this.#divContainer.append(row);
+            const style = globalThis.getComputedStyle(row);
+            const h = parseInt(style.height) + parseInt(style.paddingTop) + parseInt(style.paddingBottom);
+            this.#line_height = h + rowMarginBottom;
+            this.#m_lineheight_computed = true;
+            row.remove();
+        }
         this.#height = Math.max(0, (this.#data.length * (this.#line_height)) - rowMarginBottom);
-        row.remove();
     }
     updateHeight() {
         this.#computeHeight();
         this.#divContainer.style.height = this.#height.toString() + 'px';
+    }
+    setLineHeight(px, shouldAutoFix = true) {
+        if (isNaN(px)) throw new TypeError('Cannot set line height to NaN');
+        if (px <= 0) throw new TypeError('Cannot set line height smaller than 0');
+        this.#m_lineheight_computed = true;
+        this.#line_height = px + (shouldAutoFix ? 13 : 0);
     }
 
     #updating = false;

@@ -1,10 +1,10 @@
 import { getHTML } from '@/assets/js/browser_side-compiler.js';
-import { ElButton, ElIcon, ElLoading, ElMessage, ElMessageBox, ElDialog, ElInput, ElTooltip } from 'element-plus';
+import { ElMessage, ElMessageBox, ElLoading } from 'element-plus';
 import { Download, Edit, MoreFilled } from 'icons-vue';
 import TextEdit from '../TextEdit/TextEdit.js';
 
 import { fileinfo } from '../../modules/util/fileinfo.js';
-import { editable, previewable } from './types/f.js';
+import { editable } from './types/f.js';
 import previews from './types/p.js';
 
 
@@ -22,12 +22,15 @@ const data = {
             filename: '',
             serverSideFileInfo: {},
             isPreview: false,
+            preview__data: null,
+            moreOptionValue: null,
+            moreOptionList: [],
+            openWithDialog: false,
 
         }
     },
 
     components: {
-        ElButton, ElIcon, ElDialog, ElInput, ElTooltip,
         Download, Edit, MoreFilled,
         TextEdit,
     },
@@ -48,6 +51,8 @@ const data = {
             this.filename = '';
             this.serverSideFileInfo = {};
             this.isPreview = false;
+            this.moreOptionValue = null;
+            this.openWithDialog = false;
         },
 
         update() {
@@ -62,6 +67,11 @@ const data = {
             globalThis.appInstance_.instance.apptitle = '⏳ Loading…';
 
             (async function () {
+                if (this.preview__data && globalThis.flvjs) {
+                    if (this.preview__data.TAG === "FlvPlayer") {
+                        this.preview__data.destroy();
+                    }
+                }
 
                 const infourl = new URL('/fileinfo', this.server.addr);
                 infourl.searchParams.set('name', this.path);
@@ -75,7 +85,7 @@ const data = {
                 this.fileinfo = fileinfo(this.path);
                 this.filename = this.fileinfo.name;
 
-                if (previewable.includes(this.fileinfo.ext)) {
+                if (previews[(this.fileinfo.ext)]) {
                     this.type = 'preview';
                 } else {
                     this.type = 'binary';
@@ -110,7 +120,51 @@ const data = {
 
         preview() {
             this.isPreview = true;
-            previews[this.fileinfo.ext]?.call(this, this.$refs.previewArea);
+            this.$nextTick(() => {
+                for (const el of this.$refs.previewArea.children)
+                    el.remove();
+                previews[this.fileinfo.ext]?.call(this, this.$refs.previewArea);
+            })
+        },
+
+        async openWithData() {
+            const result = [];
+            const el = document.createElement('div');
+            el.setAttribute('style', 'display: flex; flex-direction: column;');
+            let lineHeight = 0;
+            for (const i in previews) {
+                el.innerHTML = `
+                <div></div>
+                <div style="font-size: smaller; color: gray;"></div>
+                `;
+                el.children[0].innerText = previews[i].data_description;
+                el.children[1].innerText = `*.${i}`;
+                if (!lineHeight) {
+                    (document.body || document.documentElement).append(el);
+                    lineHeight = el.clientHeight;
+                    el.remove();
+                }
+                result.push([
+                    { 'html': el.outerHTML }
+                ]);
+            }
+            this.$refs.openWithList.setLineHeight(lineHeight);
+            return result;
+        },
+
+        doOpenWith() {
+            const selection = this.$refs.openWithList.selection;
+            if (!selection.size) return;
+            const p = previews[Reflect.ownKeys(previews)[selection.toArray()[0]]];
+            if (!p) return;
+            this.openWithDialog = false;
+            this.type = 'preview';
+            this.isPreview = true;
+            this.$nextTick(() => {
+                for (const el of this.$refs.previewArea.children)
+                    el.remove();
+                p.call(this, this.$refs.previewArea);
+            });
         },
         
     },
@@ -131,6 +185,20 @@ const data = {
             //     this.loadingInstance = null;
             // }
         },
+
+        async moreOptionValue() {
+            if (null == this.moreOptionValue) return;
+            const op = this.moreOptionValue;
+            this.$nextTick(() => { this.moreOptionValue = null });
+
+            this.opts[op]?.cb?.call?.(this);
+        },
+    },
+
+    async mounted() {
+        const { opts } = await import('./opts.js');
+        this.opts = opts;
+        for (const i in opts) this.moreOptionList[i] = opts[i];
     },
 
     template: await getHTML(import.meta.url, componentId),

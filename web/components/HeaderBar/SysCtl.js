@@ -1,5 +1,4 @@
 import { getHTML } from '@/assets/js/browser_side-compiler.js';
-import { ElButton, ElIcon } from 'element-plus';
 import { Close } from 'icons-vue';
 
 
@@ -13,8 +12,7 @@ const data = {
     },
 
     components: {
-        ElButton,
-        ElIcon, Close,
+        Close,
 
     },
 

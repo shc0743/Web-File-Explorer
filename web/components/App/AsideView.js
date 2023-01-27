@@ -1,5 +1,4 @@
 import { getHTML } from '@/assets/js/browser_side-compiler.js';
-import { ElButton, ElTree, ElTreeV2 } from 'element-plus';
 
 
 const componentId = '6cf07045496c46aa8725ea7975635f84';
@@ -24,7 +23,6 @@ const data = {
     ],
 
     components: {
-        ElButton, ElTree, ElTreeV2,
 
     },
 

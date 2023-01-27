@@ -1,0 +1,39 @@
+<div class="component-root" v-deep>
+    <h1>{{tr('doctitle$=upload')}}</h1>
+    <ElForm v-deep ref="form" :model="uploadForm" @submit.prevent>
+        <ElFormItem :label="tr('ui.string:serverAddr')" prop="remoteSrv">
+            <ElInput v-model="uploadForm.remoteSrv" readonly></ElInput>
+        </ElFormItem>
+
+        <ElFormItem :label="tr('ui.file.upload.remote')" prop="remotePath">
+            <ElInput v-model="uploadForm.remotePath" style="flex:1"></ElInput>
+            <ElButton style="margin-left: 10px">{{tr('ui.file.choosedir')}}</ElButton>
+        </ElFormItem>
+
+        <ElFormItem :label="tr('ui.file.upload.local')" prop="localFile">
+            <input type="file" ref="localFile">
+        </ElFormItem>
+
+        <ElFormItem style="margin-bottom: 0">
+            <ElButton size="large" type="primary">{{tr('ui.file.upload.do')}}</ElButton>
+            <ElButton size="large">{{tr('dialog.cancel')}}</ElButton>
+        </ElFormItem>
+    </ElForm>
+</div>
+
+<style>
+.component-root>>> {
+    display: block;
+    width: calc(100% - (2 * var(--padding)));
+    height: calc(100% - (2 * var(--padding)));
+    overflow: auto;
+    padding: var(--padding);
+    --padding: 10px;
+}
+form>>> {
+    border: 1px solid #ccc;
+    padding: 20px;
+    border-radius: 4px;
+    box-shadow: 0 0 5px 0 #ddd;
+}
+</style>

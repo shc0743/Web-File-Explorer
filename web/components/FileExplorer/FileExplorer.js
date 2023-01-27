@@ -1,7 +1,7 @@
 import { h } from 'vue';
 import { getHTML } from '@/assets/js/browser_side-compiler.js';
-import { ElButton, ElSelect, ElOption, ElLoading, ElMessage, ElMessageBox, ElDialog, ElInput } from 'element-plus';
 import { LoadCSS } from '../../assets/js/ResourceLoader.js';
+import { ElMessage, ElMessageBox, ElLoading } from 'element-plus';
 
 
 const componentId = '71fe886e983243d6b23a880127be76f1';
@@ -23,7 +23,7 @@ const data = {
     },
 
     components: {
-        ElButton, ElSelect, ElOption, ElDialog, ElInput,
+
     },
 
     props: {
@@ -295,6 +295,7 @@ const data = {
                 for (let i of files)
                     console.log(i)
 
+                ElMessage.error('Not Supported') // TODO
             }).catch(() => { });
         }
 

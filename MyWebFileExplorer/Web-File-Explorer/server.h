@@ -29,7 +29,7 @@ namespace server {
 		METHOD_LIST_BEGIN
 			ADD_METHOD_TO(server::FileServer::auth, "/auth", Post, Options, "server::AuthFilter");
 
-			ADD_METHOD_TO(server::FileServer::downloadFile, "/dl?f={}&t={}&a={}", Get);
+			ADD_METHOD_TO(server::FileServer::downloadFile, "/dl?f={}&t={}&a={}", Get, Options);
 
 			ADD_METHOD_TO(server::FileServer::getFile, "/file?name={}", Options, Get, "server::AuthFilter");
 			ADD_METHOD_TO(server::FileServer::putFile, "/file?name={}", Options, Put, "server::AuthFilter");

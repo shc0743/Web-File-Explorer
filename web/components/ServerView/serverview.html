@@ -18,8 +18,10 @@
         </ElTable>
     </div>
 
-    <FileExplorer v-if="viewType === 'explore'" ref="fileExplorerInstance" :server="currentSrv" :path="explorerPath" />
-    <FileView v-if="viewType === 'fileview'" ref="fileViewInstance" :server="currentSrv" :path="explorerPath" />
+    <FileExplorer v-if="viewType === 'explore'" :ref="el => el?.update?.()" :server="currentSrv" :path="explorerPath" />
+    <FileView v-if="viewType === 'fileview'" :ref="el => el?.update?.()" :server="currentSrv" :path="explorerPath" />
+
+    <UploadForm v-if="viewType === 'sys/upload'" :ref="el => el?.update?.()" :server="currentSrv" :path="pathSrc" />
 </my-container>
 
 <style>

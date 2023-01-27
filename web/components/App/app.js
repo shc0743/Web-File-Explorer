@@ -9,6 +9,8 @@ import LoginComponent from '../Login/login.js';
 import HeaderBar from '../HeaderBar/HeaderBar.js';
 import ServerView from '../ServerView/serverview.js';
 import ServerList from '../ServerList/ServerList.js';
+import UploadPage from '../UploadPage/upload.js'
+import TransferPanel from '../TransferPanel/TransferPanel.js';
 
 
 const componentId = '65ea71a404e947c0b8d52896ca5837eb';
@@ -26,6 +28,16 @@ const data = {
             asideResizingYes: false,
             showAside: true,
             recreateAsideView: true,
+            transferPanel_isOpen: false,
+            transferList: [
+                {
+                    type: 'upload',
+                    src: 'C:',
+                    dest: 'D:',
+                    prog: '1%',
+                }
+            ],
+
         };
     },
 
@@ -36,6 +48,8 @@ const data = {
         HeaderBar,
         ServerView,
         ServerList,
+        UploadPage,
+        TransferPanel,
     },
 
     computed: {

@@ -31,16 +31,6 @@ a, button {
 </style>
 
 <style>
->>> {
-    --color: #000000;
-    --background: #FFFFFF;
-}
-@media (prefers-color-scheme: dark) {
->>> {
-    --color: #FFFFFF;
-    --background: #000000;
-}
-}
 >>> [data-app] {
     position: absolute;
     left: 0; right: 0; top: 0; bottom: 0;
@@ -112,7 +102,7 @@ a, button {
     <a href="#/servers/" class="skip-to-content" tabindex="1" @click.prevent.stop="skipToServerList">Skip to server list</a>
 
     <div data-app>
-        <HeaderBar @requestreload="reload_content" />
+        <HeaderBar @requestreload="reload_content" @openTransferPanel="transferPanel_isOpen = true" />
 
         <div class="main">
             <aside v-show="showAside" v-on:pointermove.self.passive="aside_onPointerMove" v-on:pointerdown.self="aside_onPointerDown" v-on:pointerup="aside_onPointerUp" v-bind:style="asideStyle" v-bind:data-resizing="asideResizing" @contextmenu.prevent.stop>
@@ -122,11 +112,15 @@ a, button {
 
             <main>
                 <MainView v-if="current_page === 'main'" />
-                <LoginComponent v-if="current_page === 'login'" @server-added="updateServerDataFromLogin" />
+                <div v-if="current_page === '404'"><h1>404 - Not Found</h1><a href="#/">Homepage.</a></div>
                 <ServerView />
+                <LoginComponent v-if="current_page === 'login'" @server-added="updateServerDataFromLogin" />
                 <ServerList v-if="current_page === 'serverList'" :servers="servers" @toggle-server="toggleServer" />
+                <UploadPage v-if="current_page === 'upload'" :servers="servers" />
             </main>
         </div>
+
+        <TransferPanel :isOpen="transferPanel_isOpen" :transferList="transferList" @closePanel="transferPanel_isOpen = false" />
     </div>
 </div>
 
