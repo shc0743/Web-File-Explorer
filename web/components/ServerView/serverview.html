@@ -18,10 +18,10 @@
         </ElTable>
     </div>
 
-    <FileExplorer v-if="viewType === 'explore'" :ref="el => el?.update?.()" :server="currentSrv" :path="explorerPath" />
-    <FileView v-if="viewType === 'fileview'" :ref="el => el?.update?.()" :server="currentSrv" :path="explorerPath" />
+    <FileExplorer v-if="viewType === 'explore'" :ref="el => $nextTick(()=>el?.update?.())" :server="currentSrv" :path="explorerPath" />
+    <FileView v-if="viewType === 'fileview'" :ref="el => $nextTick(()=>el?.update?.())" :server="currentSrv" :path="explorerPath" />
 
-    <UploadForm v-if="viewType === 'sys/upload'" :ref="el => el?.update?.()" :server="currentSrv" :path="pathSrc" />
+    <UploadForm v-if="viewType === 'sys/upload'" :ref="el => $nextTick(()=>el?.update?.())" :server="currentSrv" :path="pathSrc" />
 </my-container>
 
 <style>
