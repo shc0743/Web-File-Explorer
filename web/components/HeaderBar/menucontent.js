@@ -1,7 +1,32 @@
+import { h } from 'vue';
+import { ElMessageBox, ElMessage } from 'element-plus';
+
 const data = [
     {
         text: "File", cb(m) {
-            AppendMenu(m, String, {}, r['New...']);
+            AppendMenu(m, String, {}, r['New...'], () => {
+                const m = CreatePopupMenu();
+
+                const creator = type => {
+                    if (!appInstance_.explorer) return ElMessage.error(tr('ui.fo.new.err.noexpl'));
+                    const path = appInstance_.explorer.path, srv = appInstance_.explorer.server.addr, pw = appInstance_.explorer.server.pswd;
+                    ElMessageBox.prompt(
+                        h('div', { style: 'white-space:pre-line;word-break:break-all' },
+                            tr('ui.fo.new.' + type + '.text').replaceAll('$1', path)), 'File Operation', {
+                        confirmButtonText: tr('dialog.ok'),
+                        cancelButtonText: tr('dialog.ok'),
+                        inputValidator: v => !!v,
+                    }).then(name => {
+                        if (name.action !== 'confirm') return;
+                        this['new' + type](srv, pw, path, name.value);
+                    }).catch(() => { });
+                };
+
+                AppendMenu(m, String, {}, r['File'], creator.bind(this, 'file'));
+                AppendMenu(m, String, {}, r['Folder'], creator.bind(this, 'dir'));
+
+                TrackPopupMenu(m, 0, 0);
+            });
             AppendMenu(m, 'separator');
             AppendMenu(m, String, {}, r['Upload File'], function () {
                 let hash = location.hash;

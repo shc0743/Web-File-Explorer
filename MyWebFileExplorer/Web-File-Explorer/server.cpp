@@ -564,6 +564,64 @@ void server::FileServer::getFileInfo(const HttpRequestPtr& req, std::function<vo
 	callback(resp);
 }
 
+bool static sys_copy_or_move(std::wstring& src, std::wstring& dest, int type) {
+	if (type == 1) return CopyFileW(src.c_str(), dest.c_str(), true);
+	if (type == 2) return MoveFileW(src.c_str(), dest.c_str());
+	if (type == 3) return CreateSymbolicLinkW(dest.c_str(), src.c_str(), 0x0);
+	return false;
+}
+HttpResponsePtr static sys_func(const HttpRequestPtr& req, const string& src, const string& dest, int type) {
+	wstring wsrc, wdest;
+	llvm::ConvertUTF8toWide(src, wsrc); llvm::ConvertUTF8toWide(dest, wdest);
+
+	string r = ""; auto code = k200OK;
+	if (!sys_copy_or_move(wsrc, wdest, type)) {
+		auto err = GetLastError();
+		if (err == ERROR_FILE_NOT_FOUND) {
+			r = "File not found"; code = k404NotFound;
+		}
+		else {
+			r = "Failed, code=" + to_string(err); code = k500InternalServerError;
+		}
+	}
+
+	HttpResponsePtr resp = HttpResponse::newHttpResponse();
+	CORSadd(req, resp);
+	resp->setStatusCode(code);
+	resp->setContentTypeCode(CT_TEXT_PLAIN);
+	resp->setBody(r);
+	return(resp);
+}
+void server::FileServer::sys_copy(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& src, std::string&& dest) const
+{
+	callback(sys_func(req, src, dest, 1));
+}
+void server::FileServer::sys_move(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& src, std::string&& dest) const
+{
+	callback(sys_func(req, src, dest, 2));
+}
+void server::FileServer::sys_link(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& src, std::string&& dest) const
+{
+	callback(sys_func(req, src, dest, 3));
+}
+
+
+void server::FileServer::newDir(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback) const
+{
+	string_view body = req->getBody();
+	wstring wsname;
+	llvm::ConvertUTF8toWide(body.data(), wsname);
+
+	HttpResponsePtr resp = HttpResponse::newHttpResponse();
+	CORSadd(req, resp);
+	resp->setContentTypeCode(CT_TEXT_PLAIN);
+	if (!CreateDirectoryW(wsname.c_str(), NULL)) {
+		resp->setStatusCode(k500InternalServerError);
+		resp->setBody("Failed, code=" + to_string(GetLastError()));
+	}
+	callback(resp);
+}
+
 
 
 

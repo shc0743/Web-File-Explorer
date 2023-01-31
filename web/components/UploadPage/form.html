@@ -13,7 +13,7 @@
 
         <ElFormItem :label="tr('ui.file.upload.remote')" prop="remotePath">
             <ElInput :disabled="isLoading" v-model="uploadForm.remotePath" style="flex:1"></ElInput>
-            <ElButton :disabled="isLoading" style="margin-left: 10px" disabled>{{tr('ui.file.choosedir')}}</ElButton>
+            <ElButton disabled style="margin-left: 10px">{{tr('ui.file.choosedir')}}</ElButton>
         </ElFormItem>
 
         <ElFormItem :label="tr('ui.file.upload.override')" prop="override">

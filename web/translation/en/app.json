@@ -82,6 +82,9 @@
   "ui.favlist.delete.success": "Successfully removed from favlist",
   "ui.favlist.readd.success": "Successfully readded to favlist",
   "ui.favlist.noitem": "Your favlist is empty.\nPress \"Add to favlist\" button in the file explorer to add something to your favlist.",
-  "ui.fo.confirm/delete": "Are you sure you want to delete $1 file(s)?",
-  "ui.fo.confirm/deleteForever": "Please confirm that you want to delete $1 file(s) forever. This operation cannot be undo."
+  "ui.fo.confirm/delete": "Are you sure you want to delete $1?",
+  "ui.fo.confirm/deleteForever": "Please confirm that you want to delete $1 forever. This operation cannot be undo.",
+  "ui.fo.new.file.text": "Creating new file under $1\nPlease type the name of the file:",
+  "ui.fo.new.dir.text": "Creating new folder under $1\nPlease type the name:",
+  "ui.fo.new.err.noexpl": "This command needs to be executed in the file explorer."
 }

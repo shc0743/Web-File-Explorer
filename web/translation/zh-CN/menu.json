@@ -2,5 +2,9 @@
   "New...": "新建...",
   "Upload File": "上传文件",
   "Delete Selected File": "删除选中的文件",
-  "Delete Selected File FOREVER": "**永久**删除选中的文件"
+  "Delete Selected File FOREVER": "**永久**删除选中的文件",
+  "File": "文件", "Directory": "目录", "Folder": "文件夹",
+  "Edit": "编辑", "View": "查看", "Window": "窗口", "Help": "帮助",
+  "FullScreen (Esc to cancel)": "进入全屏 (按 Esc 以退出)",
+  "Get Help": "获取帮助"
 }

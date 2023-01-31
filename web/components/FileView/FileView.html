@@ -11,7 +11,7 @@
                 <template #content>
                     <div style="max-width: 100%; word-break: break-all;">{{path}}</div>
                 </template>
-                <TextEdit v-deep class="path" v-model="filename"></TextEdit>
+                <TextEdit v-deep class="path" v-model="filename" @changed="rename"></TextEdit>
             </ElTooltip>
         </div>
 
@@ -46,7 +46,7 @@
                 <template #content>
                     <div style="max-width: 100%; word-break: break-all;">{{path}}</div>
                 </template>
-                <TextEdit v-deep class="path" style="flex: 1; margin-right: 10px;" v-model="filename"></TextEdit>
+                <TextEdit v-deep class="path" style="flex: 1; margin-right: 10px;" v-model="filename" @changed="rename"></TextEdit>
             </ElTooltip>
             <ElPopover placement="bottom" trigger="click">
                 <template #reference>

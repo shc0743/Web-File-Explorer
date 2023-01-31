@@ -4,6 +4,9 @@ export async function uploadFile(server, pw, path, name, override, blob, cb) {
     const size = blob.size, chunkSize = 131072;
     let pos = 0;
     let lastStep = 0, step = 0;
+    if (size === 0) {
+        await send(server, pw, composedPath, blob, 0, override);
+    }
     while (pos < size) {
         const len = pos + Math.min(blob.size - pos, chunkSize);
         const newBlob = blob.slice(pos, len);

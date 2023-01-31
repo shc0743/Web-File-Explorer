@@ -1,4 +1,5 @@
-const t = globalThis.tr || function (v) { return(v); };
+import { ElMessageBox } from 'element-plus';
+const t = globalThis.tr || function (v) { return (v); };
 export const opts = [
     {
         id: 0,
@@ -33,5 +34,19 @@ export const opts = [
         id: 5,
         disabled: true,
         text: '--------',
+    },
+    {
+        id: 6,
+        text: t('Delete'),
+        cb() {
+            ElMessageBox.confirm(t('ui.fo.confirm/delete').replaceAll('$1', ''), 'Delete File', {
+                confirmButtonText: tr('dialog.ok'),
+                cancelButtonText: tr('dialog.cancel'),
+                type: 'warning'
+            })
+            .then(() => {
+                this.deleteSelf();
+            }).catch(() => { });
+        },
     },
 ];

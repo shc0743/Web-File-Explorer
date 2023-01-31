@@ -87,6 +87,9 @@
   "ui.favlist.delete.success": "已取消收藏",
   "ui.favlist.readd.success": "已重新收藏",
   "ui.favlist.noitem": "收藏夹为空。\n在文件浏览器中按“收藏”按钮以收藏。",
-  "ui.fo.confirm/delete": "确认删除 $1 个文件?",
-  "ui.fo.confirm/deleteForever": "请确认您要永久删除 $1 个文件。此操作无法撤销。"
+  "ui.fo.confirm/delete": "确认删除 $1?",
+  "ui.fo.confirm/deleteForever": "请确认您要永久删除 $1。此操作无法撤销。",
+  "ui.fo.new.file.text": "在 $1 下新建文件\n请输入文件名：",
+  "ui.fo.new.dir.text": "在 $1 下新建文件夹\n请输入名称：",
+  "ui.fo.new.err.noexpl": "需要在文件浏览器中执行此命令。"
 }

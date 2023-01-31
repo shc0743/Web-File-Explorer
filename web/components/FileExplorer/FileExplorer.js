@@ -378,8 +378,10 @@ const data = {
                 return ElMessage.error(tr("ui.string:objectNotSelected"));
             }
             try {
-                await ElMessageBox.confirm(tr('ui.fo.confirm/delete' + (ev.shiftKey ? 'Forever' : ''))
-                    .replace('$1', selection.size), 'Delete File', {
+                await ElMessageBox.confirm(
+                    tr('ui.fo.confirm/delete' + (ev.shiftKey ? 'Forever' : ''))
+                    .replace('$1', tr("ui.fo.confirm/count").replace('$1', selection.size)),
+                    'Delete File', {
                     confirmButtonText: tr('dialog.ok'),
                     cancelButtonText: tr('dialog.cancel'),
                     type: 'warning'

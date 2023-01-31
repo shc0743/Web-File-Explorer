@@ -105,6 +105,7 @@ updateLoadStat('Register shared worker');
 // }
 if (globalThis.SharedWorker) {
     let hasTask = false;
+    const tasksInQueue = new Map();
     const worker = new SharedWorker(import.meta.resolve('./transfer_worker.js'), { type: 'module' });
     globalThis.appInstance_.worker = worker;
     worker.port.onmessage = (function (ev) {
@@ -121,14 +122,38 @@ if (globalThis.SharedWorker) {
                 if (globalThis.appInstance_.serverView.$data.viewType === 'explore')
                     window.dispatchEvent(new HashChangeEvent('hashchange'));
                 break;
+            
+            case 'taskDone': {
+                const k = JSON.stringify(ev.data.task);
+                if (tasksInQueue.has(k)) {
+                    tasksInQueue.get(k).resolve?.(ev.data);
+                    tasksInQueue.delete(k);
+                }
+            }
+                break;
+            case 'taskFail': {
+                const k = JSON.stringify(ev.data.task);
+                if (tasksInQueue.has(k)) {
+                    tasksInQueue.get(k).reject?.(ev.data);
+                    tasksInQueue.delete(k);
+                }
+            }
+                break;
         
             default:
                 break;
         }
     });
     console.debug('[main] worker started:', worker);
-    globalThis.appInstance_.addTask = function (data) {
-        worker.port.postMessage({ type: 'addTask', task: data });
+    globalThis.appInstance_.addTask = function (data, arg = { wait: false }) {
+        const { wait } = arg;
+        if (wait) {
+            return new Promise((resolve, reject) => {
+                tasksInQueue.set(JSON.stringify(data), { resolve, reject });
+                worker.port.postMessage({ type: 'addTask', task: data, notify: true });
+            })
+        }
+        else worker.port.postMessage({ type: 'addTask', task: data });
     };
     globalThis.appInstance_.deleteTask = function (uid) {
         worker.port.postMessage({ type: 'deleteTask', uid: uid });

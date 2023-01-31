@@ -210,6 +210,51 @@ const data = {
             }
             catch (error) { ElMessage.error(error) };
         },
+
+        async rename() {
+            const loading = ElLoading.service({ lock: false, fullscreen: false, target: this.$refs.root });
+            try {
+                const dest = this.fileinfo.path + '/' + this.filename;
+                const task = {
+                    type: 'move',
+                    files: [{
+                        server: this.server.addr, pswd: this.server.pswd,
+                        src: this.path, dest: dest,
+                    }]
+                };
+                await globalThis.appInstance_.addTask(task, { wait: true });
+
+                let newLoc = '#/s/' + btoa(this.server.addr) + '/' + dest;
+                history.replaceState({}, '', newLoc);
+                queueMicrotask(() => window.dispatchEvent(new HashChangeEvent('hashchange')));
+            }
+            catch (error) {
+                ElMessage.error(String(error));
+                this.filename = this.fileinfo.name;
+            }
+            finally {
+                loading.close();
+            }
+        },
+
+        async deleteSelf() {
+            globalThis.appInstance_.instance.transferPanel_isOpen = true;
+            globalThis.appInstance_.addTask({
+                type: 'delete',
+                files: [{
+                    server: this.server.addr,
+                    pswd: this.server.pswd,
+                    path: this.path,
+                }],
+            }, { wait: true })
+            .then(function () {
+                let hash = location.hash.replaceAll('\\', '/').split('/');
+                hash.pop();
+                hash = hash.join('/') + '/';
+                history.replaceState({}, '', hash);
+                queueMicrotask(() => window.dispatchEvent(new HashChangeEvent('hashchange')));
+            }).catch(error => ElMessage.error(String(error)));
+        },
         
     },
 

@@ -42,6 +42,12 @@ namespace server {
 			ADD_METHOD_TO(server::FileServer::isFileOrDirectory, "/isFileOrDirectory?name={}", Options, Get, "server::AuthFilter");
 
 			ADD_METHOD_TO(server::FileServer::getFileInfo, "/fileinfo?name={}", Options, Get, "server::AuthFilter");
+
+			ADD_METHOD_TO(server::FileServer::sys_copy, "/file/copy?src={}&dest={}", Options, Post, "server::AuthFilter");
+			ADD_METHOD_TO(server::FileServer::sys_move, "/file/move?src={}&dest={}", Options, Post, "server::AuthFilter");
+			ADD_METHOD_TO(server::FileServer::sys_link, "/file/link?src={}&dest={}", Options, Post, "server::AuthFilter");
+
+			ADD_METHOD_TO(server::FileServer::newDir, "/file/new/dir", Options, Post, "server::AuthFilter");
 		METHOD_LIST_END
 
 
@@ -61,6 +67,12 @@ namespace server {
 		void isFileOrDirectory(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& file) const;
 
 		void getFileInfo(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& file) const;
+		
+		void sys_copy(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& src, std::string&& dest) const;
+		void sys_move(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& src, std::string&& dest) const;
+		void sys_link(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& src, std::string&& dest) const;
+
+		void newDir(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback) const;
 
 	public:
 		FileServer() {

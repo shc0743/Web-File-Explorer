@@ -1,4 +1,8 @@
 {
     "task/upload": "Upload",
-    "task/delete": "Delete"
+    "task/delete": "Delete",
+    "task/copy": "复制",
+    "task/move": "移动",
+    "task/link": "链接",
+    "task/newdir": "Create directory"
 }
