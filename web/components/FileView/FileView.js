@@ -1,11 +1,12 @@
 import { getHTML } from '@/assets/js/browser_side-compiler.js';
 import { ElMessage, ElMessageBox, ElLoading } from 'element-plus';
-import { Download, Edit, MoreFilled } from 'icons-vue';
+import { Download, Edit, MoreFilled, Star, StarFilled } from 'icons-vue';
 import TextEdit from '../TextEdit/TextEdit.js';
 
 import { fileinfo } from '../../modules/util/fileinfo.js';
 import { editable } from './types/f.js';
 import previews from './types/p.js';
+import { mimeTypes } from './types/p.js';
 
 
 const componentId = 'e189a9d5f3384a2cb35f248a04a693ab';
@@ -26,12 +27,13 @@ const data = {
             moreOptionValue: null,
             moreOptionList: [],
             openWithDialog: false,
+            isFav: false,
 
         }
     },
 
     components: {
-        Download, Edit, MoreFilled,
+        Download, Edit, MoreFilled, Star, StarFilled,
         TextEdit,
     },
 
@@ -67,11 +69,11 @@ const data = {
             globalThis.appInstance_.instance.apptitle = '⏳ Loading…';
 
             (async function () {
-                if (this.preview__data && globalThis.flvjs) {
-                    if (this.preview__data.TAG === "FlvPlayer") {
-                        this.preview__data.destroy();
-                    }
-                }
+                // if (this.preview__data && globalThis.flvjs) {
+                //     if (this.preview__data.TAG === "FlvPlayer") {
+                //         this.preview__data.destroy();
+                //     }
+                // }
 
                 const infourl = new URL('/fileinfo', this.server.addr);
                 infourl.searchParams.set('name', this.path);
@@ -91,6 +93,14 @@ const data = {
                     this.type = 'binary';
                 }
 
+                this.isFav = false;
+                let srv_and_path = this.server.addr + '|' + this.path;
+                srv_and_path = srv_and_path.replaceAll('\\', '/');
+                const favindex = await userdata.get('favlist', srv_and_path);
+                if (favindex != null) {
+                    this.isFav = true;
+                }
+
                 globalThis.appInstance_.instance.apptitle = this.path;
                 if (this.loadingInstance) {
                     this.loadingInstance.close();
@@ -100,7 +110,8 @@ const data = {
                 
             }).call(this)
             .catch(error => {
-                globalThis.appInstance_.instance.apptitle = '[Error]';
+                console.error(error);
+                globalThis.appInstance_.instance.apptitle = '[Error] ' + error;
                 this.errorText = String(error);
                 if (this.loadingInstance) {
                     this.loadingInstance.close();
@@ -165,6 +176,39 @@ const data = {
                     el.remove();
                 p.call(this, this.$refs.previewArea);
             });
+        },
+
+        openDirectly() {
+            const mime = mimeTypes[this.fileinfo.ext] || mimeTypes.default;
+            const url = new URL('/dl', this.server.addr);
+            url.searchParams.set('t', this.server.pswd);
+            url.searchParams.set('f', this.path);
+            url.searchParams.set('m', mime);
+            window.open(url);
+        },
+
+        async modifyFav() {
+            try {
+                let srv_and_path = this.server.addr + '|' + this.path;
+                srv_and_path = srv_and_path.replaceAll('\\', '/');
+                if (this.isFav) {
+                    await userdata.delete('favlist', srv_and_path);
+                    ElMessage.success(tr('ui.favlist.delete.success'));
+                } else {
+                    let name = srv_and_path.substring(srv_and_path.lastIndexOf('/') + 1);
+                    const obj = {
+                        fullpathname: srv_and_path,
+                        srv: this.server.addr,
+                        pathname: this.path,
+                        name: name,
+                        type: 'file',
+                    };
+                    await userdata.put('favlist', obj);
+                    ElMessage.success(tr('ui.favlist.add.success'));
+                }
+                this.isFav = !this.isFav;
+            }
+            catch (error) { ElMessage.error(error) };
         },
         
     },

@@ -1,22 +1,68 @@
-<div class="component-root" v-deep>
+<div
+    class="component-root"
+    @dragenter.capture="isDragging=true"
+    @dragend.capture="isDragging=false"
+    @drop.capture="isDragging=false"
+    @keydown.capture.esc="isDragging=false"
+    v-deep>
     <h1>{{tr('doctitle$=upload')}}</h1>
     <ElForm v-deep ref="form" :model="uploadForm" @submit.prevent>
         <ElFormItem :label="tr('ui.string:serverAddr')" prop="remoteSrv">
-            <ElInput v-model="uploadForm.remoteSrv" readonly></ElInput>
+            <ElInput :disabled="isLoading" v-model="uploadForm.remoteSrv" readonly></ElInput>
         </ElFormItem>
 
         <ElFormItem :label="tr('ui.file.upload.remote')" prop="remotePath">
-            <ElInput v-model="uploadForm.remotePath" style="flex:1"></ElInput>
-            <ElButton style="margin-left: 10px">{{tr('ui.file.choosedir')}}</ElButton>
+            <ElInput :disabled="isLoading" v-model="uploadForm.remotePath" style="flex:1"></ElInput>
+            <ElButton :disabled="isLoading" style="margin-left: 10px" disabled>{{tr('ui.file.choosedir')}}</ElButton>
         </ElFormItem>
 
-        <ElFormItem :label="tr('ui.file.upload.local')" prop="localFile">
-            <input type="file" ref="localFile">
+        <ElFormItem :label="tr('ui.file.upload.override')" prop="override">
+            <ElSwitch :disabled="isLoading" v-model="uploadForm.override" :activeText="tr('ui.file.upload.override')" />
         </ElFormItem>
+
+        <ElFormItem :label="tr('ui.file.upload.useNew')">
+            <ElSwitch :disabled="isLoading" v-model="useNewUploader" />
+            <span style="border:1px solid #ccc;border-radius:5px;margin-left:10px;line-height:1em;padding:2px">Beta</span>
+        </ElFormItem>
+
+        <ElFormItem v-if="!useNewUploader" :label="tr('ui.file.upload.local')" prop="localFile">
+            <ElButton v-show="!isDragging" style="flex: 1" @click="$refs.localFile.click()">{{tr('ui.file.choose')}}</ElButton>
+            <input v-deep type="file" ref="localFile" :disabled="isLoading"
+                @dragleave.self="isDragging=false"
+                @change="updateFileList"
+                :hidden="!isDragging"
+                style="flex: 1" multiple />
+        </ElFormItem>
+
+        <ElFormItem v-if="useNewUploader" :label="tr('ui.file.upload.local')" prop="localFile"></ElFormItem>
+        <div v-if="useNewUploader" v-show="!isLoading" class="upload-area" v-deep tabindex="0" role="button"
+        @dragover.prevent="isDropping=true"
+        @dragleave="isDropping=false"
+        @drop.prevent="nu_drop"
+        @click="nu_click"
+        @keydown.enter="nu_click"
+        :data-dropping="isDropping">
+            <div v-if="fsapiNotSupported" style="color:red">Sorry, but FileSystem APIs are not supported in the browser.</div>
+            <span v-else-if="isDropping">Drop here to upload</span>
+            <span v-else>Drag or click to upload</span>
+        </div>
+
+        <div style="border: 1px solid #ccc; border-radius: 10px; margin-bottom: 18px; padding: 10px;">
+            <div v-deep class="chosen-header">
+                <span>{{tr('ui.file.upload.chosen')}} ({{selected.size}})</span>
+                <span style="padding-bottom:10px"><ElButton plain type="danger" :disabled="isLoading" @click="useNewUploader ? removeHandle(true) : removeItem(true)"><ElIcon><Delete /></ElIcon></ElButton></span>
+            </div>
+            <div v-if="selected.size" v-for="item in (useNewUploader ? selectedHandlesInfo : selectedFilesInfo)" class="file-item" v-deep>
+                <span>{{item}}</span>
+                <span><ElButton plain type="danger" :disabled="isLoading" @click="useNewUploader ? removeHandle(item) : removeItem(item)"><ElIcon><Delete /></ElIcon></ElButton></span>
+            </div>
+            <div v-else>Nothing</div>
+        </div>
 
         <ElFormItem style="margin-bottom: 0">
-            <ElButton size="large" type="primary">{{tr('ui.file.upload.do')}}</ElButton>
-            <ElButton size="large">{{tr('dialog.cancel')}}</ElButton>
+            <ElButton size="large" type="primary" :disabled="isLoading" :loading="isLoading" @click="useNewUploader ? doNewUpload() : doUpload()">{{tr('ui.file.upload.do')}}</ElButton>
+            <ElButton v-if="useNewUploader" size="large" type="primary" :disabled="isLoading" :loading="isLoading" @click="dirUpload">{{tr('ui.file.upload.dir')}}</ElButton>
+            <ElButton size="large" @click="confirmCancel">{{tr('dialog.cancel')}}</ElButton>
         </ElFormItem>
     </ElForm>
 </div>
@@ -35,5 +81,49 @@ form>>> {
     padding: 20px;
     border-radius: 4px;
     box-shadow: 0 0 5px 0 #ddd;
+}
+.file-item>>> {
+    display: flex;
+    overflow: hidden;
+    align-items: center;
+    border: 1px solid #f0f0f0;
+    padding: 5px;
+    border-radius: 5px;
+}
+.file-item>>> :nth-child(1) {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.file-item>>>+.file-item>>> {
+    margin-top: 8px;
+}
+input[type=file]>>> {
+    position: fixed;
+    left: 0; right: 0; top: 0; bottom: 0;
+    background-color: var(--background);
+    z-index: 101;
+}
+.chosen-header>>> {
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 10px;
+    display: flex; 
+    justify-content: space-between;
+}
+.upload-area>>> {
+    border: 2px dashed #ccc;
+    display: grid;
+    place-items: center;
+    height: 200px;
+    margin-bottom: 18px;
+    cursor: pointer;
+    transition: .1s;
+}
+.upload-area>>>:hover,.upload-area>>>[data-dropping="true"] {
+    background-color: #f0f0f0;
+}
+.upload-area>>> span {
+    pointer-events: none;
 }
 </style>

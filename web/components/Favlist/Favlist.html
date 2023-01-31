@@ -1,0 +1,48 @@
+<div v-bind="$attrs" class="component-root" v-deep>
+    <ElCard>
+        <template #header>
+            <span>{{ tr('ui.favlist.title') }}</span>
+        </template>
+
+        <div v-for="item in items" :key="item.id" v-deep class="item" :title="item.fullpathname">
+            <ElButton text @click="toggleItem(item)" style="padding:5px 8px 5px 0 !important" aria-label="Toggle this item in your favlist">
+                <ElIcon style="font-size:1.2em">
+                    <Star style="color:silver" v-if="item.cancelled" />
+                    <StarFilled style="color:gold" v-else />
+                </ElIcon>
+            </ElButton>
+            <TextEdit class="textbox" v-model="item.name" @changed="updateItemName(item)"></TextEdit>
+            <ElButton type="primary" plain
+                draggable="true"
+                @dragstart="setItemDragData(item, $event)"
+                @click="openItem(item)" 
+                @mousedown.middle="openItem(item, true)">{{tr('Open')}}</ElButton>
+        </div>
+
+        <div v-if="!items.length" style="margin: 15px auto; text-align: center; color: gray;">
+            {{ tr('ui.favlist.noitem') }}
+        </div>
+    </ElCard>
+</div>
+
+<style>
+.component-root>>> {
+    display: flex;
+    flex-direction: column;
+}
+.item>>> {
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.item>>>+.item>>> {
+    margin-top: 10px;
+}
+.item>>> >.textbox {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-right: 10px;
+}
+</style>

@@ -10,6 +10,7 @@ import HeaderBar from '../HeaderBar/HeaderBar.js';
 import ServerView from '../ServerView/serverview.js';
 import ServerList from '../ServerList/ServerList.js';
 import UploadPage from '../UploadPage/upload.js'
+import MobileNavTool from './MobileNavTool.js';
 import TransferPanel from '../TransferPanel/TransferPanel.js';
 
 
@@ -29,14 +30,7 @@ const data = {
             showAside: true,
             recreateAsideView: true,
             transferPanel_isOpen: false,
-            transferList: [
-                {
-                    type: 'upload',
-                    src: 'C:',
-                    dest: 'D:',
-                    prog: '1%',
-                }
-            ],
+            transferList: [],
 
         };
     },
@@ -49,6 +43,7 @@ const data = {
         ServerView,
         ServerList,
         UploadPage,
+        MobileNavTool,
         TransferPanel,
     },
 

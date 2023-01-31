@@ -1,0 +1,21 @@
+<div v-deep>
+    <ElButtonGroup>
+        <ElButton text @click="a" aria-label="Back to last page in your browse history"><ElIcon><ArrowLeft /></ElIcon></ElButton>
+        <ElButton text @click="b" aria-label="Reload the page"><ElIcon><RefreshRight /></ElIcon></ElButton>
+        <ElButton text @click="c" aria-label="Go to next page in your browse history"><ElIcon><ArrowRight /></ElIcon></ElButton>
+    </ElButtonGroup>
+</div>
+
+<style>
+div>>> {
+    display: none;
+    padding: 5px;
+    border-top: 1px solid;
+    place-content: center;
+}
+@media screen and (max-width: 400px) {
+div>>> {
+    display: flex;
+}
+}
+</style>

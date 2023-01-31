@@ -47,8 +47,13 @@ const data = {
 
         },
 
-        pathUp() {
-
+        pathUp(blank = false) {
+            let hash = location.hash.replaceAll('\\', '/').split('/');
+            if (hash[hash.length - 1] === '') hash.pop();
+            hash.pop();
+            hash = hash.join('/') + '/';
+            if (blank) window.open(hash);
+            else location.hash = hash;
         },
 
         hist(n) {

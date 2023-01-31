@@ -7,14 +7,13 @@ let translation_table = null;
 // Load translation file in order
 for (let i of lang) {
     try {
-        const resp = await fetch(`translation/${i}/app.json`, { method: 'HEAD' });
+        const resp = await fetch(`translation/${i}/app.json`);
         if (!resp.ok) continue;
-        const real_resp = await fetch(`translation/${i}/app.json`);
-        translation_table = await real_resp.json();
+        translation_table = await resp.json();
     }
     catch { continue }
 
-    document.documentElement.lang = i;
+    lang = document.documentElement.lang = i;
     break;
 }
 
@@ -62,6 +61,6 @@ if (!translation_table) {
 
 
 
-export { translation_table };
+export { lang, translation_table };
 
 

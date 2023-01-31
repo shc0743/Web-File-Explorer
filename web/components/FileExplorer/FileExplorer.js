@@ -1,7 +1,7 @@
-import { h } from 'vue';
+import { h, ref } from 'vue';
 import { getHTML } from '@/assets/js/browser_side-compiler.js';
 import { LoadCSS } from '../../assets/js/ResourceLoader.js';
-import { ElMessage, ElMessageBox, ElLoading } from 'element-plus';
+import { ElMessage, ElMessageBox, ElLoading, ElSwitch } from 'element-plus';
 
 
 const componentId = '71fe886e983243d6b23a880127be76f1';
@@ -18,6 +18,7 @@ const data = {
                 tr('ui.string:filename'),
             ],
             m__updateLock: false,
+            isFav: false,
             
         }
     },
@@ -57,6 +58,15 @@ const data = {
                 this.m__updateLock = false;
                 return history.back();
             }
+
+            this.isFav = false;
+            let srv_and_path = this.server.addr + '|' + this.path;
+            srv_and_path = srv_and_path.replaceAll('\\', '/');
+            if (!srv_and_path.endsWith('/')) srv_and_path += '/';
+            const favindex = await userdata.get('favlist', srv_and_path);
+            if (favindex != null) {
+                this.isFav = true;
+            }
             
             this.objectCount = this.listdata.length || 0;
             globalThis.appInstance_.instance.apptitle = this.path;
@@ -67,10 +77,8 @@ const data = {
                 }
                 this.m__updateLock = false;
                 // console.log('closed loading service in FileExplorer');
-                this.$refs.lst.update();
+                this.$refs.lst?.update();
             });
-
-        
         },
 
         async loadList() {
@@ -129,7 +137,7 @@ const data = {
         async openFile() {
             const selection = this.$refs.lst.selection;
             if (selection.size < 1) {
-                ElMessage.error(tr("ui.string:objectNotSelected"));
+                return ElMessage.error(tr("ui.string:objectNotSelected"));
             }
             if (selection.size > 5) try {
                 await ElMessageBox.confirm(tr('ui.string:confirmMultipleFileOpen')
@@ -175,15 +183,42 @@ const data = {
             }
         },
 
+        async modifyFav() {
+            try {
+                let srv_and_path = this.server.addr + '|' + this.path;
+                srv_and_path = srv_and_path.replaceAll('\\', '/');
+                if (!srv_and_path.endsWith('/')) srv_and_path += '/';
+                if (this.isFav) {
+                    await userdata.delete('favlist', srv_and_path);
+                    ElMessage.success(tr('ui.favlist.delete.success'));
+                } else {
+                    let name = srv_and_path.substring(0, srv_and_path.length - 1);
+                    name = name.substring(name.lastIndexOf('/') + 1);
+                    // console.log(name);
+                    const obj = {
+                        fullpathname: srv_and_path,
+                        srv: this.server.addr,
+                        pathname: this.path,
+                        name: name,
+                        type: 'directory',
+                    };
+                    await userdata.put('favlist', obj);
+                    ElMessage.success(tr('ui.favlist.add.success'));
+                }
+                this.isFav = !this.isFav;
+            }
+            catch (error) { ElMessage.error(error) };
+        },
+
         customDragData(i) {
-            return ['application/x-web-file-explorer-item', JSON.stringify(this.$refs.lst.$data[i])];
+            return this.$refs.lst.$data[i];
         },
         customCheckDrag(types) {
             for (let i of types) {
                 if (i === 'application/x-web-file-explorer-item') return true;
                 if (i === 'Files') return { dropEffect: 'copy' };
             }
-            return false;
+            return !false;
         },
 
         async handleObjectDropping(ev) {
@@ -210,39 +245,8 @@ const data = {
                 if (!(targetdir?.endsWith?.('/') || targetdir?.endsWith?.('\\'))) targetdir += '/';
                 targetdir += target[1];
             }
-            console.log(target, dataTransfer);
-            if (dataTransfer.files?.length) {
-                const files = dataTransfer.files;
-                // 文件上传
-                if (!targetdir) return;
-                ElMessageBox({
-                    title: 'File Operation',
-                    message: h('div', null, [
-                        h('span', null, tr('ui.fo.confirm/upload').replaceAll('$1', dataTransfer.files.length)),
-                        h('textarea', { rows: 3, readonly: true, style: 'width:100%;box-sizing:border-box;' }, targetdir),
-                    ]),
-                    showCancelButton: true,
-                    confirmButtonText: tr('dialog.ok'),
-                    cancelButtonText: tr('dialog.cancel'),
-
-                }).then(() => {
-                    for (let i of files)
-                    console.log(i)
-
-                }).catch(() => { });
-                return;
-            }
-
-            // 处理内部文件操作
-            let lastDropEffect = this.$refs.lst.lastDropEffect;
             let data = dataTransfer.getData('application/x-web-file-explorer-item');
-            try { data = JSON.parse(data) } catch { return console.warn('Failed to parse application data') };
-            console.log(lastDropEffect, data);
-            let src, dist = targetdir;
-            try { src = data[0]._path + data[1]; }
-            catch { return console.warn('Failed to resolve application data') };
-            
-            if (src === dist) return;
+            const dfiles = dataTransfer.files;
 
             const get = async (file, srv, pswd) => {
                 const url = new URL('/isFileOrDirectory', srv);
@@ -252,52 +256,156 @@ const data = {
                 const text = await result.text();
                 return text;
             }
+
             try {
-                const r1 = await get(dist, this.server.addr, this.server.pswd);
+                const r1 = await get(targetdir, this.server.addr, this.server.pswd);
                 if (r1 !== '-1') {
                     return ElMessage.error(tr((r1 === '0') ? 'ui.fo.error/folderNotFound' : 'ui.fo.error/cantPutFileInFile'));
                 }
-                const r2 = await get(src, data[0]._srv, data[0]._pswd);
-                if (r2 === '0') {
-                    return ElMessage.error(tr('ui.fo.error/fileNotFound'));
-                }
-            }
-            catch {
+            } catch {
                 return ElMessage.error(tr('ui.fo.error/cantLoadDataFromRemote'));
             }
 
-            if (data[0]._srv !== this.server.addr) try {
-                // 确认跨域文件传输
-                await ElMessageBox({
-                    title: tr("ui.fo.confirm/crossOriginFileTransfer"),
+            if (dfiles.length) {
+                // 文件上传
+                if (!targetdir) return;
+
+                ElMessageBox({
+                    title: 'File Operation',
                     message: h('div', null, [
-                        h('span', { style: 'word-break:break-word' }, tr("ui.fo.confirm/crossOriginFileTransferText")
-                            .replaceAll('$1', data[0]._srv).replaceAll('$2', this.server.addr)),
+                        h('span', null, tr('ui.fo.confirm/upload').replaceAll('$1', dfiles.length)),
+                        h('textarea', { rows: 3, readonly: true, style: 'width:100%;box-sizing:border-box;resize:vertical' }, targetdir),
                     ]),
                     showCancelButton: true,
                     confirmButtonText: tr('dialog.ok'),
                     cancelButtonText: tr('dialog.cancel'),
+                }).then(async () => {
+                    const key = String(new Date().getTime()) + String(Math.floor(Math.random() * 1e8));
+                    await userdata.put('uploadCache', dfiles, key);
+                    const arr = location.hash.split('/');
+                    arr.splice(3, Infinity, 'sys/upload/k=' + key);
+                    arr.push(targetdir);
+                    location.hash = arr.join('/');
+                }).catch(err => {
+                    if (err instanceof DOMException) {
+                        ElMessage.error(err.stack);
+                } });
+                return;
+            }
 
-                });
-            } catch { return; }
+            // 处理内部文件操作
+            let lastDropEffect = this.$refs.lst.lastDropEffect;
+            try { data = JSON.parse(data) } catch { return console.warn('Failed to parse application data') };
+            console.log(lastDropEffect, data);
 
-            ElMessageBox({
-                title: 'File Operation',
-                message: h('div', null, [
-                    h('span', { style: 'word-break:break-word' }, tr('ui.fo.confirm/' + lastDropEffect)
-                        .replaceAll('$1', src).replaceAll('$2', dist)),
-                ]),
-                showCancelButton: true,
-                confirmButtonText: tr('dialog.ok'),
-                cancelButtonText: tr('dialog.cancel'),
+            const files = [];
+            let isCORS = false;
+            let corsConfirmed = false;
 
-            }).then(() => {
+            for (const i of data) {
+                let src, dist = targetdir;
+                try { src = i[0]._path + i[1]; }
+                catch { return console.warn('Failed to resolve application data') };
+            
+                if (src === dist) return;
+                try {
+                    const r2 = await get(src, i[0]._srv, i[0]._pswd);
+                    if (r2 === '0') {
+                        return ElMessage.error(tr('ui.fo.error/fileNotFound'));
+                    }
+                }
+                catch {
+                    return ElMessage.error(tr('ui.fo.error/cantLoadDataFromRemote'));
+                }
+
+                if (i[0]._srv !== this.server.addr) {
+                    isCORS = true;
+                    if (!corsConfirmed) try {
+                        // 确认跨域文件传输
+                        await ElMessageBox({
+                            title: tr("ui.fo.confirm/crossOriginFileTransfer"),
+                            message: h('div', null, [
+                                h('span', { style: 'word-break:break-word' }, tr("ui.fo.confirm/crossOriginFileTransferText")
+                                    .replaceAll('$1', i[0]._srv).replaceAll('$2', this.server.addr)),
+                            ]),
+                            showCancelButton: true,
+                            confirmButtonText: tr('dialog.ok'),
+                            cancelButtonText: tr('dialog.cancel'),
+                        });
+                        corsConfirmed = true;
+                    } catch { return; }
+                }
+
+                files.push(i);
+            }
+            if (isCORS) lastDropEffect = 'copy';
+
+            let srcText = files.length < 2 ?
+                (data[0][0]._path + data[0][1]) :
+                tr('ui.fo.confirm/count').replace('$1', files.length);
+            let nsa = h('input', { type: 'checkbox' });
+
+            const executer = async () => {
+                if (nsa.el?.checked) {
+                    await userdata.put('config', true, 'noAskBeforeFileOps')
+                }
                 for (let i of files)
                     console.log(i)
 
                 ElMessage.error('Not Supported') // TODO
-            }).catch(() => { });
-        }
+            };
+            if (await userdata.get('config', 'noAskBeforeFileOps')) {
+                executer();
+            } else
+            ElMessageBox({
+                title: 'File Operation',
+                message: h('div', null, [
+                    h('div', { style: 'word-break:break-word' }, tr('ui.fo.confirm/' + lastDropEffect)
+                        .replaceAll('$1', srcText).replaceAll('$2', targetdir)),
+                    h('label', { style: 'display:block;margin-top:5px' }, [
+                        nsa, h('span', tr('doNotAskAgain')),
+                    ])
+                ]),
+                showCancelButton: true,
+                confirmButtonText: tr('dialog.ok'),
+                cancelButtonText: tr('dialog.cancel'),
+            }).then(executer).catch(() => { });
+        },
+
+        async deleteSelected(ev) {
+            const selection = this.$refs.lst.selection;
+            if (selection.size < 1) {
+                return ElMessage.error(tr("ui.string:objectNotSelected"));
+            }
+            try {
+                await ElMessageBox.confirm(tr('ui.fo.confirm/delete' + (ev.shiftKey ? 'Forever' : ''))
+                    .replace('$1', selection.size), 'Delete File', {
+                    confirmButtonText: tr('dialog.ok'),
+                    cancelButtonText: tr('dialog.cancel'),
+                    type: 'warning'
+                });
+            } catch { return; }
+
+            const files = new Array;
+            let el_data = this.listdata;
+            if (!el_data) return;
+            if (this.$refs.lst.getFilter())
+                el_data = this.listdata.filter(this.$refs.lst.getFilter());
+            const p = this.path.endsWith('/') ? this.path : this.path + '/';
+            for (const i of selection) {
+                files.push({
+                    server: this.server.addr,
+                    pswd: this.server.pswd,
+                    path: p + el_data[i].substring(2),
+                })
+            }
+            // console.log(files);
+
+            globalThis.appInstance_.addTask({
+                type: 'delete',
+                files: files,
+            });
+        },
 
 
     },
@@ -310,6 +418,7 @@ const data = {
 
     mounted() {
         this.update();
+        globalThis.appInstance_.explorer = this;
 
         this.$nextTick(() => {
             LoadCSS(`
@@ -330,6 +439,10 @@ const data = {
             }
             `, this.$refs.lst.shadowRoot);
         });
+    },
+    beforeUnmount() {
+        delete globalThis.appInstance_.explorer;
+        
     },
     
     watch: {

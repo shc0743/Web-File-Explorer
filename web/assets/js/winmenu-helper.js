@@ -242,7 +242,7 @@
     }
     .${menu_class} > * > * {
         display: block;
-        padding: 2px;
+        padding: 4px;
         cursor: pointer;
     }
     .${menu_class} > * > *:not(:nth-child(1)) {

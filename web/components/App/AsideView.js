@@ -31,6 +31,10 @@ const data = {
             this.$emit('toggleServer', ev.target.dataset.addr)
         },
 
+        computeLinkHref(addr) {
+            return '#/s/' + btoa(addr);
+        },
+
         goServerList() {
             location.hash = '#/servers/';
         },

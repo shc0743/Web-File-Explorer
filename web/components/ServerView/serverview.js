@@ -5,6 +5,11 @@ import FileView from '../FileView/FileView.js';
 import UploadForm from '../UploadPage/form.js';
 
 
+/*
+[WARNING] 此文件为bug高发地，60%以上的bug都集中在这一块
+*/
+
+
 const componentId = '6f396fb8f6bc431daeaa4a7fb2451c35';
 
 const data = {
@@ -65,7 +70,11 @@ const data = {
         handleIndexRowClick(row) {
             if (!row.guid) return;
             location.hash += row.guid.replaceAll('\\', '/');
-        }
+        },
+
+        updateView(el) {
+            if (el) this.$nextTick(() => el.update?.());
+        },
 
     },
 
@@ -114,6 +123,7 @@ async function hashchangeHandler() {
     let hash = location.hash;
     if (!hash.startsWith('#/s/')) return;
     globalThis.appInstance_.serverView.$data.errorText = '';
+    globalThis.appInstance_.serverView.$data.viewType = 'unset';
 
     let srv_id = hash.substring(4);
     do {
@@ -145,17 +155,22 @@ async function hashchangeHandler() {
     ExecuteHandler.call(globalThis.appInstance_.serverView, srv_data, srv_id, hash);
 
 }
-window.addEventListener('hashchange', hashchangeHandler);
+window.addEventListener('hashchange', hashchangeHandler, { capture: true });
 //setTimeout(hashchangeHandler);
 
     
+let uploadCacheCleared_ = false;    
+    
     
 async function ExecuteHandler(srv_data, srv_id, hash) {
-    this.$data.currentSrv = srv_data;
+    // this.$data.currentSrv = srv_data;
+    //不能在这里更新，否则会导致子组件被更新，然后updateView被调用，updateLock被设为true
+    //于是接下来对path的更新就无法生效（因为那时候更新已经被lock了）
     let srvid_prefix = '#/s/' + srv_id + '/';
     globalThis.appInstance_.instance.apptitle = srv_id;
 
     if (hash === srvid_prefix) {
+        this.$data.currentSrv = srv_data;
         this.$data.viewType = 'index';
         this.isLoading = true;
         this.$data.indexTableData.length = 0;
@@ -224,21 +239,18 @@ async function ExecuteHandler(srv_data, srv_id, hash) {
             this.pathSrc = url.searchParams.get('src');
             this.pathDest = url.searchParams.get('dest');
         } catch { };
-        if (hash.startsWith(srvid_prefix + 'sys/upload')) {
+        this.$data.currentSrv = srv_data;
+        if (hash.startsWith(srvid_prefix + 'sys/upload/')) {
             this.viewType = 'sys/upload';
-            this.pathSrc = hash.substring((srvid_prefix + 'sys/upload').length);
-            // this.$forceUpdate();
-            // this.$nextTick(() => {
-            //     setTimeout(() => this.$refs.uploadForm.update());
-            // });
+            this.pathSrc = hash.substring((srvid_prefix + 'sys/upload/').length);
         }
-        else if (hash.startsWith(srvid_prefix + 'sys/copy')) {
+        else if (hash.startsWith(srvid_prefix + 'sys/copy/')) {
             this.viewType = 'sys/copy';
         }
-        else if (hash.startsWith(srvid_prefix + 'sys/move')) {
+        else if (hash.startsWith(srvid_prefix + 'sys/move/')) {
             this.viewType = 'sys/move';
         }
-        else if (hash.startsWith(srvid_prefix + 'sys/link')) {
+        else if (hash.startsWith(srvid_prefix + 'sys/link/')) {
             this.viewType = 'sys/link';
         }
         else {
@@ -246,6 +258,15 @@ async function ExecuteHandler(srv_data, srv_id, hash) {
         }
         return;
     }
+
+    // clear upload cache
+    if (!uploadCacheCleared_) (async function () {
+        const keys = await userdata.getAllKeys('uploadCache');
+        for (const key of keys) {
+            await userdata.delete('uploadCache', key);
+        }
+        uploadCacheCleared_ = true;   
+    })();
 
     if (hash.startsWith(srvid_prefix)) {
         hash = hash.substring((srvid_prefix).length);
@@ -268,13 +289,17 @@ async function ExecuteHandler(srv_data, srv_id, hash) {
             if (text !== '1') $is = 'dir';
         } catch {}
 
-        this.$data.explorerPath = val;
-        if ($is === 'file') {
-            this.$data.viewType = 'fileview';
-        }
-        else {
-            this.$data.viewType = 'explore';
-        }
+        queueMicrotask(() => {
+            if ($is === 'file') {
+                this.$data.viewType = 'fileview';
+            }
+            else {
+                this.$data.viewType = 'explore';
+            }
+            this.$data.explorerPath = val;
+            this.$data.currentSrv = srv_data;
+        })
+
         return;
     }
 

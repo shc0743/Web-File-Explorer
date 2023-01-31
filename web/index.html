@@ -9,13 +9,14 @@
     <meta name="description" content="Web-File-Explorer: Explore your file in a web browser, add/edit/delete them online; HTTP RESTful API supported" />
     <meta name="theme-color" content="#FFFFFF">
     <script src="./assets/importmap/importmap.loader.current.js"></script>
-    <link rel="stylesheet" href="assets/app/index.css" type="text/css" />
+    <link rel="stylesheet" href="./assets/app/index.css" type="text/css" />
+    <link rel="apple-touch-icon" href="./public/favicon-192x192.png">
     <script src="webmanifest.js"></script>
 </head>
 <body>
 
     <div id="app"></div>
-    <div id="myApp"></div>
+    <div id="myApp" role="application"></div>
 
     <script src="assets/app/noie.js" type="text/javascript" lang="javascript"></script>
     
@@ -26,11 +27,12 @@
         <h3>If you are using a extension to block JavaScript...</h3>
         <p>Please try to disable it temporarily or add this website to whitelist.</p>
     </div>
-    <script src="assets/app/loading.js"></script>
+    <script src="./assets/app/loading.js"></script>
 
-    <script async type="module" src="assets/sw/sw.setup.js"></script>
+    <script async src="./assets/sw/sw.setup.js"></script>
 
-    <script type="module" src="assets/app/index.esm.js"></script>
+    <script src="./modules/es-module-shims/es-module-shims.js"></script>
+    <script src="./assets/app/index.js"></script>
 
 </body>
 </html>

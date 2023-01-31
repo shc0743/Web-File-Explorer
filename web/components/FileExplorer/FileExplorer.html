@@ -1,8 +1,9 @@
-<div v-deep ref="app">
+<div v-deep ref="app" @keydown.delete="deleteSelected">
     <v-list-view
         ref="lst"
         :data="renderList"
         allow-drag
+        customDragMimeType="application/x-web-file-explorer-item"
         :customDragData="customDragData"
         :customCheckDrag="customCheckDrag"
         @open="openFile"
@@ -10,6 +11,7 @@
     >
         <div class="header" slot="header">
             <span v-for="item in selectedColumns">{{item}}</span>
+            <button @click="modifyFav" style="float:right">{{isFav?tr('ui.favlist.cancel'):tr('ui.favlist.add')}}</button>
         </div>
     </v-list-view>
     <div class="ctls">
@@ -52,10 +54,10 @@
 >>> .ctls * {
     white-space: nowrap;
 }
->>> .header {
+/* >>> .header {
     display: table-header-group;
 }
 >>> .header > span {
     display: table-cell;
-}
+} */
 </style>

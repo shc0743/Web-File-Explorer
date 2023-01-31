@@ -2,13 +2,13 @@
     <div v-deep class="icon square" style="border: 1px solid; cursor: pointer"
         @click="goHome" @dblclick="closeapp" @mousedown.middle="openBlank"></div>
     <span v-deep class="sep" style="margin: 0 5px 0 10px"></span>
-    <ElButtonGroup v-deep class="ws">
+    <ElButtonGroup v-deep>
         <ElButton @click="reload" aria-label="Reload the content" v-deep text><ElIcon><RefreshRight /></ElIcon></ElButton>
         <ElButton @click="hist(-1)" aria-label="Back to last page" v-deep text><ElIcon><ArrowLeft /></ElIcon></ElButton>
         <ElButton @click="hist(1)" aria-label="Go to next page" v-deep text><ElIcon><ArrowRight /></ElIcon></ElButton>
     </ElButtonGroup>
-    <span v-deep class="sep ws" style="margin: 0 5px"></span>
-    <ElButton class="ws" @click="pathUp" aria-label="Switch to parent directory" v-deep text><ElIcon><Top /></ElIcon></ElButton>
+    <span v-deep class="sep" style="margin: 0 5px"></span>
+    <ElButton class="ws" @click="pathUp(false)" @mousedown.middle="pathUp(true)" aria-label="Switch to parent directory" v-deep text><ElIcon><Top /></ElIcon></ElButton>
     <span v-deep class="sep ws" style="margin: 0 5px"></span>
     <ElButton style="color:#000" @click="openTransPanel" aria-label="Open transfer tasks list" v-deep text>T</ElButton>
     <span v-deep class="sep" style="margin: 0 5px"></span>
@@ -47,6 +47,8 @@ header>>> {
 
     padding: 5px 10px;
     border-bottom: 1px solid;
+
+    --color: black;
 }
 >>>.sep {
     height: calc(1em + 2px);

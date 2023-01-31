@@ -2,14 +2,15 @@
 
 // config
 export const db_name = 'Web-File-Explorer_web-data_' + globalThis.location.pathname.replace(/(\/|\\|\:|\;|\"|\'|\+|\=|\[|\]|\(|\)|\,|\.)/g, '_');
-export const version = 5;
+export const version = 8;
 
 
-import { openDB } from 'idb';
+import { openDB } from '../../modules/idb/idb.esm.js';
 
 
-const el_dbExpired = document.createElement('dialog');
-el_dbExpired.innerHTML = `
+const el_dbExpired = globalThis.document?.createElement('dialog');
+if (globalThis.document) {
+    el_dbExpired.innerHTML = `
 <div style="font-weight: bold; font-size: large;">The database has expired.</div>
 <div style="font-size: smaller; color: gray; font-family: monospace;" data-content></div>
 <div>
@@ -18,25 +19,29 @@ el_dbExpired.innerHTML = `
     <span>to continue.</span>
 </div>
 `;
-el_dbExpired.oncancel = () => false;
-(document.body || document.documentElement).append(el_dbExpired);
+    el_dbExpired.oncancel = () => false;
+    (document.body || document.documentElement).append(el_dbExpired);
+}
 
 
 
 
 const dbUpgrade = {
-    0: function (db, transaction) { },
-    1: function (db, transaction) {
+    0(db, t, old) { },
+    1(db, t, old) {
         db.createObjectStore('config', { autoIncrement: true });
     },
-    2: function (db, transaction) {
+    2(db, t, old) {
         db.createObjectStore('servers', { keyPath: 'addr' });
     },
-    3: function (db, transaction) {
-
+    5(db, t, old) { db.createObjectStore('uploadCache'); },
+    6(db, t, old) {
+        db.createObjectStore('transferCache');
+        if (old >= 4) db.deleteObjectStore('remoteFileEditCache');
     },
-    4: function (db, transaction) {
-        db.createObjectStore('remoteFileEditCache', { keyPath: 'id' });
+    7(db, t, old) {
+        db.createObjectStore('favlist', { keyPath: 'fullpathname' });
+        db.createObjectStore('recents', { autoIncrement: true });
     },
 };
 
@@ -47,7 +52,7 @@ await new Promise(function (resolve, reject) {
         upgrade(db, oldVersion, newVersion, transaction, event) {
             for (let version = oldVersion; version < newVersion; ++version) {
                 if (dbUpgrade[version]) {
-                    const _ = dbUpgrade[version].call(db, db, transaction);
+                    const _ = dbUpgrade[version].call(db, db, transaction, oldVersion);
                 }
             }
         },

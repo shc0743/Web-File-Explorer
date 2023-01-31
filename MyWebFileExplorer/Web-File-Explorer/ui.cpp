@@ -414,6 +414,7 @@ LRESULT WndProc_Main(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 		}
 
 		VirtualFree(pBuffer, 0, MEM_RELEASE);
+		CloseHandle(hProcess); // 一定要记得关句柄啊... (-- 来自句柄泄露导致卡死的作者)
 		// 验证成功
 		if (bSuccess) return 0x1006F0AC/*随便乱打的数(meaningless)*/;
 		// 验证失败，返回默认值(0)

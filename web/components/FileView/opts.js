@@ -3,20 +3,17 @@ export const opts = [
     {
         id: 0,
         text: t('Open directly'),
-        cb() {
-            this.downloadFile();
-        },
+        cb() { this.openDirectly(); },
     },
     {
         id: 1,
+        disabled: true,
         text: '--------',
     },
     {
         id: 2,
         text: t('Open with...'),
-        cb() {
-            this.openWithDialog = true;
-        },
+        cb() { this.openWithDialog = true; },
     },
     {
         id: 3,
@@ -34,6 +31,7 @@ export const opts = [
     },
     {
         id: 5,
+        disabled: true,
         text: '--------',
     },
 ];

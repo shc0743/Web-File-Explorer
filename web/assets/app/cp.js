@@ -4,20 +4,26 @@ import { LoadCSS } from "@/assets/js/ResourceLoader.js";
 
 const cpTemplate = document.createElement('template');
 cpTemplate.innerHTML = `
-<div class="cp-editor" contenteditable />
+<div class="cp-editor" autofocus contenteditable />
 `;
 
 
 export class CommandPanel {
 
+    #wrapper = null;
     #el = null;
 
     constructor() {
+        this.#wrapper = document.createElement('dialog');
+        this.#wrapper.classList.add('cp');
+        this.#wrapper.classList.add('cp-wrapper');
+        (document.body || document.documentElement).append(this.#wrapper);
+
         this.#el = document.createElement('div');
         this.#el.classList.add('cp');
         this.#el.classList.add('CommandPanel');
         this.#el.append(cpTemplate.content.cloneNode(true));
-        (document.body || document.documentElement).append(this.#el);
+        this.#wrapper.append(this.#el);
 
         this.#el.querySelector('.cp-editor')?.addEventListener('blur', this.#onblur.bind(this));
         this.#el.querySelector('.cp-editor')?.addEventListener('keydown', this.#onkeydown.bind(this));
@@ -26,13 +32,12 @@ export class CommandPanel {
     }
         
     open() {
-        this.#el.classList.add('active');
+        this.#wrapper.showModal();
         this.#el.querySelector('.cp-editor').innerText = '';
-        this.#el.querySelector('.cp-editor').focus();
     }
 
     close() {
-        this.#el.classList.remove('active');
+        this.#wrapper.close();
         
     }
 
@@ -71,6 +76,10 @@ export class CommandPanel {
 
 
 LoadCSS(`
+.cp.cp-wrapper {
+    border: 0; padding: 0;
+    width: 0; height: 0;
+}
 .cp.CommandPanel {
     position: fixed;
     top: 10px;
@@ -83,10 +92,7 @@ LoadCSS(`
     background: var(--color-scheme-background, var(--background));
     box-shadow: #cccccc 0px 0px 4px 2px;
 
-    display: none;
-}
-.cp.CommandPanel.active {
-    display: block;
+    --color: black;
 }
 .cp.CommandPanel .cp-editor {
     box-sizing: border-box;

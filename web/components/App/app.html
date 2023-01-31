@@ -39,6 +39,9 @@ a, button {
     flex-direction: column;
 
     transition: filter .2s;
+
+    color: var(--text-color);
+    background: var(--background);
 }
 @media (prefers-color-scheme: dark) {
 /* >>>, >>> * {
@@ -107,7 +110,7 @@ a, button {
         <div class="main">
             <aside v-show="showAside" v-on:pointermove.self.passive="aside_onPointerMove" v-on:pointerdown.self="aside_onPointerDown" v-on:pointerup="aside_onPointerUp" v-bind:style="asideStyle" v-bind:data-resizing="asideResizing" @contextmenu.prevent.stop>
                 <button class="close" @click="closeAside" aria-label="Close the aside">x</button>
-                <AsideView :servers="servers" @toggle-server="toggleServer" />
+                <AsideView :servers="servers" />
             </aside>
 
             <main>
@@ -119,6 +122,8 @@ a, button {
                 <UploadPage v-if="current_page === 'upload'" :servers="servers" />
             </main>
         </div>
+
+        <MobileNavTool />
 
         <TransferPanel :isOpen="transferPanel_isOpen" :transferList="transferList" @closePanel="transferPanel_isOpen = false" />
     </div>

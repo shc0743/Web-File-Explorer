@@ -3,9 +3,10 @@ import 'flv.js';
 const data = {};
 assoc(data, 'txt,log,c,cpp,cxx,cc,h,hpp,asm,htm,html,js,css,py,pyw,java,go,sh,bat,cmd,vbs,ini,inf,ps1,xml,xaml,scss', PlainTextPreview, "Plain Text Viewer");
 assoc(data, 'bmp,jpg,jpeg,png,tiff,webp', PicturePreview, "Picture Viewer");
-assoc(data, 'mp4,webm', VideoPreviewNative, "Video Player (native)");
+assoc(data, 'mp3', AudioPreview, "Audio Player");
+assoc(data, 'mp4,webm,ogg', VideoPreviewNative, "Video Player (native)");
 assoc(data, 'flv,mkv', VideoPreviewFlv, "Video Player (flv.js)");
-assoc(data, 'mp3,wmv', AudioPreview, "Audio Player");
+assoc(data, 'pdf', PdfPreview, "PDF Viewer (native)");
 export default data;
 
 
@@ -14,6 +15,21 @@ export function assoc(data, types, handler, d = handler.name) {
     types.split(',').forEach(el => ( handler.data_description = d, data[el] = handler ));
 }
 
+
+export const mimeTypes = {
+    default: 'application/octet-stream',
+    'mp4': 'video/mp4',
+    'ogg': 'video/ogg',
+    'webm': 'video/webm',
+    'mp3': 'audio/mpeg',
+    'png': 'image/png',
+    'jpg': 'image/jpeg',
+    'jpeg': 'image/jpeg',
+    'bmp': 'image/bmp',
+    'webp': 'image/webp',
+    'tiff': 'image/tiff',
+    'pdf': 'application/pdf',
+};
 
 export async function PlainTextPreview(el) {
     const area = document.createElement('textarea');
@@ -40,6 +56,8 @@ export function PicturePreview(el) {
     const url = new URL('/dl', this.server.addr);
     url.searchParams.set('t', this.server.pswd);
     url.searchParams.set('f', this.path);
+    const mime = mimeTypes[this.fileinfo.ext];
+    mime && url.searchParams.set('m', mime);
     const area = document.createElement('img');
     area.setAttribute('style', 'width: 100%; height: 100%; box-sizing: border-box;');
     area.src = url.href;
@@ -50,6 +68,8 @@ export function AudioPreview(el) {
     const url = new URL('/dl', this.server.addr);
     url.searchParams.set('t', this.server.pswd);
     url.searchParams.set('f', this.path);
+    const mime = mimeTypes[this.fileinfo.ext];
+    mime && url.searchParams.set('m', mime);
     const area = document.createElement('audio');
     area.setAttribute('style', 'width: 100%; height: 100%;');
     area.src = url.href;
@@ -61,6 +81,8 @@ export async function VideoPreviewFlv(el) {
     const url = new URL('/dl', this.server.addr);
     url.searchParams.set('t', this.server.pswd);
     url.searchParams.set('f', this.path);
+    const mime = mimeTypes[this.fileinfo.ext];
+    mime && url.searchParams.set('m', mime);
     const area = document.createElement('video');
     area.setAttribute('style', 'width: 100%; height: 100%;');
     area.controls = true;
@@ -95,10 +117,26 @@ export function VideoPreviewNative(el) {
     const url = new URL('/dl', this.server.addr);
     url.searchParams.set('t', this.server.pswd);
     url.searchParams.set('f', this.path);
+    const mime = mimeTypes[this.fileinfo.ext];
+    mime && url.searchParams.set('m', mime);
     const area = document.createElement('video');
     area.setAttribute('style', 'width: 100%; height: 100%;');
     area.controls = true;
     area.src = url.href;
+    el.append(area);
+}
+export function PdfPreview(el) {
+    const url = new URL('/dl', this.server.addr);
+    url.searchParams.set('t', this.server.pswd);
+    url.searchParams.set('f', this.path);
+    url.searchParams.set('m', mimeTypes.pdf);
+    const area = document.createElement('iframe');
+    area.setAttribute('style', 'width: 100%; height: 100%;');
+    if (navigator.pdfViewerEnabled) {
+        area.src = url.href;
+    } else {
+        area.srcdoc = `<h1>Not supported. Please download the PDF.</h1>`;
+    }
     el.append(area);
 }
 

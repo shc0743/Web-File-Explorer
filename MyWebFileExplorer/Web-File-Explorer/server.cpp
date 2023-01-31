@@ -3,6 +3,7 @@
 #include "../../resource/tool.h"
 #include "../includes/ConvertUTF.h"
 #include "../includes/RangeParser.h"
+using namespace drogon;
 
 using namespace std;
 
@@ -123,7 +124,7 @@ void server::FileServer::auth(const HttpRequestPtr& req, std::function<void(cons
 	callback(resp);
 }
 
-void server::FileServer::downloadFile(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& file, std::string&& tok, std::string&& attachment) const
+void server::FileServer::downloadFile(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& file, std::string&& tok, std::string&& attachment, std::string&& mimeType) const
 {
 	if ((req->method() != Options) && !VerifyAuthToken(tok)) {
 		HttpResponsePtr resp = HttpResponse::newHttpResponse();
@@ -141,12 +142,30 @@ void server::FileServer::downloadFile(const HttpRequestPtr& req, std::function<v
 		return callback(resp);
 	}
 
+	HANDLE hFile = CreateFileW(wsfile.c_str(), GENERIC_READ, FILE_SHARE_READ,
+		0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+	if (!hFile || hFile == INVALID_HANDLE_VALUE) {
+		auto resp = HttpResponse::newHttpResponse();
+		CORSadd(req, resp);
+		resp->setStatusCode(k500InternalServerError);
+		return callback(resp);
+	}
+	FILETIME ft{};
+	GetFileTime(hFile, NULL, NULL, &ft);
+	CloseHandle(hFile);
+	string ftstr = "\"a" + to_string(ft.dwLowDateTime) + "b" + to_string(ft.dwHighDateTime) + "\"";
+
 	size_t offset = 0, length = 0;
 	const std::string& rangeStr = req->getHeader("range");
 	// these are copied and modified from
 	// https://github.com/drogonframework/drogon/blob/0b3147c15764820c2624a557b83b2b3343d9810a/lib/src/StaticFileRouter.cc#L352
 	if (!rangeStr.empty())
-	{
+	do {
+        // Check If-Range precondition
+        const std::string &ifRange = req->getHeader("if-range");
+		if (!ifRange.empty()) {
+			if (ifRange != ftstr) break;
+		}
 		std::vector<FileRange> ranges;
 		switch (parseRangeHeader(rangeStr, (size_t)MyGetFileSizeW(wsfile), ranges))
 		{
@@ -162,6 +181,7 @@ void server::FileServer::downloadFile(const HttpRequestPtr& req, std::function<v
 		case FileRangeParseResult::InvalidRange:
 		{
 			auto resp = HttpResponse::newHttpResponse();
+			CORSadd(req, resp);
 			resp->setStatusCode(k416RequestedRangeNotSatisfiable);
 			return callback(resp);
 		}
@@ -180,11 +200,17 @@ void server::FileServer::downloadFile(const HttpRequestPtr& req, std::function<v
 		default:
 			break;
 		}
-	}
+	} while (0);
 
 	HttpResponsePtr resp = HttpResponse::newFileResponse(file, offset, length, true, attachment);
-	resp->addHeader("accept-ranges", "bytes");
 	CORSadd(req, resp);
+	if (!mimeType.empty()) {
+		resp->setContentTypeString(mimeType);
+		resp->addHeader("x-content-type-options", "nosniff");
+	}
+	resp->addHeader("accept-ranges", "bytes");
+	resp->addHeader("cache-control", "no-cache");
+	resp->addHeader("etag", ftstr);
 	callback(resp);
 }
 
@@ -204,15 +230,41 @@ void server::FileServer::getFile(const HttpRequestPtr& req, std::function<void(c
 	callback(resp);
 }
 
-void server::FileServer::putFile(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& file) const
-{
-	wstring wsfile; llvm::ConvertUTF8toWide(file, wsfile);
+enum class FilePutType {
+	NoOverride = 0,
+	Override = 1,
+	Append = 2,
+	Truncate = 3,
+	Insert = 4,
+};
+
+static HttpResponsePtr PutFile(const HttpRequestPtr& req, wstring wsfile,
+	FilePutType type = FilePutType::NoOverride, ULONGLONG offset = 0
+) {
 	HttpResponsePtr resp = HttpResponse::newHttpResponse();
 	CORSadd(req, resp);
 
-	HANDLE hFile = CreateFileW(wsfile.c_str(), GENERIC_WRITE, 0, 
-		NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (!hFile) {
+	HANDLE hFile = NULL;
+	switch (type) {
+	case FilePutType::NoOverride:
+		hFile = CreateFileW(wsfile.c_str(), GENERIC_WRITE, 0,
+			NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+		break;
+	case FilePutType::Override:
+		hFile = CreateFileW(wsfile.c_str(), GENERIC_WRITE, 0,
+			NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+		break;
+	case FilePutType::Append:
+	case FilePutType::Insert:
+		hFile = CreateFileW(wsfile.c_str(), GENERIC_WRITE, 0,
+			NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+		break;
+	case FilePutType::Truncate:
+		hFile = CreateFileW(wsfile.c_str(), GENERIC_WRITE, 0,
+			NULL, TRUNCATE_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+		break;
+	}
+	if (!hFile || INVALID_HANDLE_VALUE == hFile) {
 		if (file_exists(wsfile)) {
 			resp->setStatusCode(k400BadRequest);
 			resp->setBody("File already exists; if you want to override, use PATCH method.");
@@ -221,13 +273,25 @@ void server::FileServer::putFile(const HttpRequestPtr& req, std::function<void(c
 			resp->setStatusCode(k500InternalServerError);
 			resp->setBody("Failed to CreateFileW, error code " + to_string(GetLastError()));
 		}
-		return callback(resp);
+		return resp;
 	}
+
+	if (type == FilePutType::Append) {
+		LARGE_INTEGER i{};
+		i.QuadPart = 0;
+		SetFilePointerEx(hFile, i, NULL, FILE_END);
+	}
+	if (type == FilePutType::Insert) {
+		LARGE_INTEGER i{};
+		i.QuadPart = offset;
+		SetFilePointerEx(hFile, i, NULL, FILE_BEGIN);
+	}
+
 	const string_view& body = req->getBody();
 	DWORD dw1 = 0, dw2 = 0;
-	const char* pos = (const char*)body.data();
+	const char* pos = (const char*)(void*)body.data();
 	bool hasSuccess = true;
-	size_t size = body.length() * sizeof(string_view::value_type), written = 0;
+	volatile size_t size = body.length() * sizeof(string_view::value_type), written = 0;
 	constexpr size_t max_chunk_size = 65536;
 	size_t chunk_size = (std::min)((size_t)size, (size_t)max_chunk_size);
 	while (written < size) {
@@ -235,19 +299,46 @@ void server::FileServer::putFile(const HttpRequestPtr& req, std::function<void(c
 		if (!WriteFile(hFile, pos, dw1, &dw2, NULL)) break;
 		written += dw2;
 		chunk_size = (std::min)((size_t)(size - written), (size_t)max_chunk_size);
+		pos += written;
 	}
 	CloseHandle(hFile);
 
-	if (hasSuccess) resp->setStatusCode(k201Created);
+	if (hasSuccess) resp->setStatusCode(type == FilePutType::NoOverride ? k201Created : k204NoContent);
 	else resp->setStatusCode(k500InternalServerError);
-	callback(resp);
+	return resp;
+}
+
+void server::FileServer::putFile(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& file) const
+{
+	wstring wsfile; llvm::ConvertUTF8toWide(file, wsfile);
+	return callback(PutFile(req, wsfile));
 }
 
 void server::FileServer::patchFile(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& file) const
 {
+	wstring wsfile; llvm::ConvertUTF8toWide(file, wsfile);
 	HttpResponsePtr resp = HttpResponse::newHttpResponse();
 	CORSadd(req, resp);
-	resp->setStatusCode(k501NotImplemented); // TODO
+
+	string mode = req->getHeader("x-patch-mode");
+	if (mode == "no-override") {
+		return callback(PutFile(req, wsfile, FilePutType::NoOverride));
+	}
+	else if (mode == "override") {
+		return callback(PutFile(req, wsfile, FilePutType::Override));
+	}
+	else if (mode == "append") {
+		return callback(PutFile(req, wsfile, FilePutType::Append));
+	}
+	else if (mode == "trunc") {
+		return callback(PutFile(req, wsfile, FilePutType::Truncate));
+	}
+	else if (mode == "insert") {
+		ULONGLONG ull = (ULONGLONG)atoll(req->getHeader("x-patch-offset").c_str());
+		if (ull) return callback(PutFile(req, wsfile, FilePutType::Insert, ull));
+	}
+
+	resp->setStatusCode(k400BadRequest); // TODO
 	callback(resp);
 }
 

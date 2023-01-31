@@ -118,7 +118,7 @@ class HTMLVirtualListElement extends HTMLElement {
     #header = null;
     #data = null;
     #el = new Map();
-    #selection = new Map();
+    #selection = new Set();
     #height = 0;
     #line_height = 0;
     #mutationObserver = null;
@@ -148,12 +148,16 @@ class HTMLVirtualListElement extends HTMLElement {
 
         this.#registerEventHandlers();
 
+        this.#selection._add = this.#selection.add;
         this.#selection._delete = this.#selection.delete;
+        this.#selection._has = this.#selection.has;
         this.#selection.add = this.#addSelection.bind(this);
         this.#selection.delete = this.#deleteSelection.bind(this);
+        this.#selection.has = this.#hasSelection.bind(this);
+        this.#selection.addRange = this.#selectionAddRange.bind(this);
         this.#selection.toArray = function () {
             const r = [];
-            for (const i of this) r.push(i[0]);
+            for (const i of this) r.push(i);
             return r;
         };
 
@@ -305,6 +309,7 @@ class HTMLVirtualListElement extends HTMLElement {
         globalThis.requestAnimationFrame(() => this.updateOnScroll());
     }
 
+    #lastSelection = null;
     #onclick(ev) {
         // handle selection
         do {
@@ -312,6 +317,7 @@ class HTMLVirtualListElement extends HTMLElement {
             if (!path.length) break;
             const last = path[0];
             if (last !== this && last !== this.#divContainer) break;
+            if (ev.ctrlKey) return;
             // clear selection
             this.selection = null;
             return;
@@ -324,12 +330,20 @@ class HTMLVirtualListElement extends HTMLElement {
             if (i?.tagName?.toLowerCase() === 'v-list-row') {
                 if (ev.ctrlKey || ev.shiftKey) {
                     if (ev.ctrlKey) {
-                        this.selection.add(i.dataset.n);
+                        this.selection[
+                            this.selection.has(i.dataset.n) ? 'delete' : 'add'
+                        ](i.dataset.n);
+                        if (this.selection.has(i.dataset.n)) this.#lastSelection = i.dataset.n;
+                        else this.#lastSelection = null;
+                    }
+                    else if (ev.shiftKey && this.#lastSelection != null) {
+                        const rangeStart = this.#lastSelection, rangeEnd = i.dataset.n;
+                        this.selection.addRange(rangeStart, rangeEnd);
                     }
                     // TODO: handle shift-key item selection
                     return;
                 }
-                this.selection = i.dataset.n;
+                this.#lastSelection = this.selection = i.dataset.n;
                 break;
             }
         }
@@ -357,8 +371,9 @@ class HTMLVirtualListElement extends HTMLElement {
         return true;
     }
 
+    customDragMimeType = 'application/x-vlist-item-drag';
     customDragData = function (i) {
-        return ['application/x-vlist-item-drag', JSON.stringify(this.#data[i])];
+        return this.#data[i];
     }
     customCheckDrag = function (types) {
         const typesarr = [
@@ -375,10 +390,26 @@ class HTMLVirtualListElement extends HTMLElement {
         const el = this.#checkIfDragAllowed(ev, false);
         if (!el) return;
         el.classList.add('dragging');
-        const dd = this.customDragData(el.dataset.n);
-        if (dd) ev.dataTransfer.setData(dd[0], dd[1]);
-        ev.dataTransfer.setData('text/plain', el.innerText);
-
+        const n = el.dataset.n;
+        const result = [];
+        let mimeType = this.customDragMimeType;
+        if (this.selection.has(n)) {
+            // 拖动一个已经选中的文件，相当于用户想要对所有选中对象进行操作
+            for (const i of this.selection.keys()) {
+                result.push(this.customDragData(i));
+            }
+        } else {
+            // 拖动一个未选中的文件，相当于只对这个文件进行操作
+            result.push(this.customDragData(n));
+        }
+        if (!mimeType) mimeType = 'application/octet-stream';
+        try {
+            ev.dataTransfer.setData(mimeType, JSON.stringify(result));
+            ev.dataTransfer.setData('text/plain', el.innerText);
+        } catch (error) {
+            console.warn('[VList]', 'Error during stringify drag data:', error,
+                '\nPlease note that customDragData function must return a stringifyable object.');
+        }
     }
     #ondragend(ev) {
         // const el = this.#checkIfDragAllowed(ev, false);
@@ -456,7 +487,7 @@ class HTMLVirtualListElement extends HTMLElement {
 
         if (newSelection instanceof Array || newSelection instanceof Set) {
             for (let i of newSelection) {
-                this.#selection.add(i, i);
+                this.#selection.add(i);
             }
             this.#updateSelectionElement();
             return true;
@@ -470,7 +501,7 @@ class HTMLVirtualListElement extends HTMLElement {
 
         if (newSelection === 'all') {
             let datalen = this.#data.length;
-            for (let i = 0; i < datalen; ++i) this.#selection.set(i, i);
+            for (let i = 0; i < datalen; ++i) this.#selection.add(i);
             this.#updateSelectionElement();
             return true;
         }
@@ -481,6 +512,8 @@ class HTMLVirtualListElement extends HTMLElement {
         for (const el of this.#divContainer.querySelectorAll('v-list-row')) {
             if (this.#selection.has(parseInt(el.dataset.n))) {
                 el.classList.add('checked');
+            } else {
+                el.classList.remove('checked');
             }
         }
     }
@@ -489,17 +522,36 @@ class HTMLVirtualListElement extends HTMLElement {
         this.#divContainer.querySelectorAll('v-list-row.checked').forEach(el => el.classList.remove('checked'));
         this.#divContainer.querySelectorAll('v-list-row.pfocus').forEach(el => el.classList.remove('pfocus'));
         if (!clearPfocus) this.#setPfocus();
+        this.#lastSelection = null;
     }
     #addSelection(i) {
         if (isNaN(i)) return false;
         if (this.noMultiple) this.clearSelection(true);
-        this.#selection.set(Number(i), Number(i));
+        this.#selection._add.call(this.#selection, Number(i));
         this.#updateSelectionElement();
         return true;
     }
     #deleteSelection(i) {
         if (isNaN(i)) return false;
-        if (!this.#selection._delete.call(this.#selection, Number(i), Number(i))) return false;
+        if (!this.#selection._delete.call(this.#selection, Number(i))) return false;
+        this.#updateSelectionElement();
+        return true;
+    }
+    #hasSelection(i) {
+        if (isNaN(i)) return false;
+        return this.#selection._has.call(this.#selection, Number(i));
+    }
+    #selectionAddRange(start, end) {
+        if (isNaN(start) || isNaN(end)) return false;
+        start = Number(start), end = Number(end);
+        if (start > end) [start, end] = [end, start];
+        if (this.noMultiple) {
+            if (end - start > 0) return false;
+            this.clearSelection(true);
+        }
+        for (let i = start, j = end + 1; i < j; ++i){
+            this.#selection._add.call(this.#selection, Number(i));
+        }
         this.#updateSelectionElement();
         return true;
     }

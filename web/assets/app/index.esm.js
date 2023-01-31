@@ -96,6 +96,50 @@ app.config.globalProperties.tr = globalThis.tr;
 updateLoadStat('Mounting application to document');
 app.mount(myApp);
 
+updateLoadStat('Waiting');
+await new Promise(resolve => setTimeout(resolve));
+
+updateLoadStat('Register shared worker');
+// if (!globalThis.SharedWorker) {
+//     throw reportFatalError("Your browser doesn't support SharedWorker");
+// }
+if (globalThis.SharedWorker) {
+    let hasTask = false;
+    const worker = new SharedWorker(import.meta.resolve('./transfer_worker.js'), { type: 'module' });
+    globalThis.appInstance_.worker = worker;
+    worker.port.onmessage = (function (ev) {
+        if (!ev.data) return;
+        switch (ev.data.type) {
+            case 'taskUpdated':
+                globalThis.appInstance_.instance.transferList.length = 0;
+                for (const i of ev.data.task) {
+                    globalThis.appInstance_.instance.transferList.push(i);
+                }
+                break;
+            
+            case 'dataUpdated':
+                if (globalThis.appInstance_.serverView.$data.viewType === 'explore')
+                    window.dispatchEvent(new HashChangeEvent('hashchange'));
+                break;
+        
+            default:
+                break;
+        }
+    });
+    console.debug('[main] worker started:', worker);
+    globalThis.appInstance_.addTask = function (data) {
+        worker.port.postMessage({ type: 'addTask', task: data });
+    };
+    globalThis.appInstance_.deleteTask = function (uid) {
+        worker.port.postMessage({ type: 'deleteTask', uid: uid });
+    };
+    window.addEventListener('beforeunload', function () {
+        if (hasTask) return false;
+        worker.port.postMessage({ type: 'disconnect' });
+        worker.port.close();
+    });
+}
+
 updateLoadStat('Finishing');
 globalThis.FinishLoad?.call(globalThis);
 
@@ -145,6 +189,7 @@ globalThis.addEventListener('storage', function (ev) {
 
 globalThis.addEventListener('keydown', function (ev) {
     if (ev.key === 'F5' && !(ev.ctrlKey || ev.shiftKey)) {
+        if (!globalThis.location.hash.startsWith('#/s/')) return;
         ev.preventDefault();
         return window.dispatchEvent(new HashChangeEvent('hashchange'));
     }
@@ -158,6 +203,9 @@ globalThis.addEventListener('keydown', function (ev) {
             !globalThis.appInstance_.instance.transferPanel_isOpen;
     }
 });
+
+
+
 
 
 

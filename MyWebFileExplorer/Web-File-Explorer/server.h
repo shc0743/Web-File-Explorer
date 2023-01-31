@@ -29,7 +29,7 @@ namespace server {
 		METHOD_LIST_BEGIN
 			ADD_METHOD_TO(server::FileServer::auth, "/auth", Post, Options, "server::AuthFilter");
 
-			ADD_METHOD_TO(server::FileServer::downloadFile, "/dl?f={}&t={}&a={}", Get, Options);
+			ADD_METHOD_TO(server::FileServer::downloadFile, "/dl?f={}&t={}&a={}&m={}", Get, Options);
 
 			ADD_METHOD_TO(server::FileServer::getFile, "/file?name={}", Options, Get, "server::AuthFilter");
 			ADD_METHOD_TO(server::FileServer::putFile, "/file?name={}", Options, Put, "server::AuthFilter");
@@ -48,7 +48,7 @@ namespace server {
 
 		void auth(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback) const;
 
-		void downloadFile(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& file, std::string&& tok, std::string&& attachment) const;
+		void downloadFile(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& file, std::string&& tok, std::string&& attachment, std::string&& mimeType) const;
 
 		void getFile(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& file) const;
 		void putFile(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& file) const;

@@ -20,6 +20,12 @@
                 <ElIcon style="color:white"><Download /></ElIcon>
                 <span>{{tr('Download')}}</span>
             </ElButton>
+            <ElButton size="large" @click="modifyFav">
+                <ElIcon style="font-size:1.5em">
+                    <StarFilled style="color:gold" v-if="isFav" />
+                    <Star style="color:silver" v-else />
+                </ElIcon>
+            </ElButton>
             <ElPopover placement="bottom" trigger="click">
                 <template #reference>
                     <ElButton size="large">
@@ -27,8 +33,8 @@
                     </ElButton>
                 </template>
 
-                <ElSelect v-model="moreOptionValue" placeholder="Choose a option..." size="small">
-                    <ElOption v-for="item in moreOptionList" :key="item.id" :label="item.text" :value="item.id" />
+                <ElSelect v-model="moreOptionValue" :teleported="false" placeholder="Choose a option..." size="small">
+                    <ElOption v-for="item in moreOptionList" :key="item.id" :label="item.text" :value="item.id" :disabled="item.disabled" />
                 </ElSelect>
             </ElPopover>
         </div>
@@ -51,10 +57,16 @@
                     </ElButton>
                 </template>
             
-                <ElSelect v-model="moreOptionValue" placeholder="Choose a option..." size="small">
-                    <ElOption v-for="item in moreOptionList" :key="item.id" :label="item.text" :value="item.id" />
+                <ElSelect v-model="moreOptionValue" :teleported="false" placeholder="Choose a option..." size="small">
+                    <ElOption v-for="item in moreOptionList" :key="item.id" :label="item.text" :value="item.id" :disabled="item.disabled" />
                 </ElSelect>
             </ElPopover>
+            <ElButton @click="modifyFav">
+                <ElIcon style="font-size:1.2em">
+                    <StarFilled style="color:gold" v-if="isFav" />
+                    <Star style="color:silver" v-else />
+                </ElIcon>
+            </ElButton>
             <ElButton @click="downloadFile">
                 <ElIcon><Download /></ElIcon>
                 <span>{{tr('Download')}}</span>
@@ -68,7 +80,7 @@
     <ElDialog v-deep v-model="openWithDialog" align-center draggable>
         <style>
             .el-dialog>>> {
-                display: flex; flex-direction: column; overflow: hidden; max-height: 100%;
+                display: flex; flex-direction: column; overflow: hidden; min-width: 375px; max-height: 100%;
             }
             .el-dialog>>> .el-dialog__body { flex: 1; overflow: hidden; display: flex; }
         </style>

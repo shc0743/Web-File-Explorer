@@ -9,6 +9,9 @@ export default {
 
     "#/servers/"(hash) {
         this.$data.current_page = 'serverList';
+        queueMicrotask(() => {
+            window.dispatchEvent(new HashChangeEvent('hashchange'));
+        });
     },
 
     "#/upload/"(hash) {

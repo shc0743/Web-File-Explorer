@@ -1,9 +1,11 @@
 (function () {
   const currentScript = document.currentScript
-  const p = location.origin + location.pathname
+  const h = location.pathname
+  const p = location.origin + h
   fetch('./index.webmanifest')
   .then(v => v.json())
   .then(v => {
+    v.id = h;
     v.start_url = p;
     for (let i of v.icons) {
       i.src = p + i.src;

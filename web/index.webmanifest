@@ -5,11 +5,25 @@
   "icons": [
     {
       "src": "public/favicon.png",
+      "sizes": "64x64",
+      "type": "image/png"
+    },
+    {
+      "src": "public/favicon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "public/favicon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "public/favicon-1x1.png",
       "sizes": "1x1",
       "type": "image/png"
     }
   ],
-  "start_url": "${PLACEHOLDER.STARTURL}",
   "display": "standalone",
   "theme_color": "#FFFFFF",
   "background_color": "#FFFFFF"

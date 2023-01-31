@@ -1,15 +1,18 @@
 <dialog ref="dlg" v-deep @cancel.prevent="$emit('closePanel')">
     <div style="text-align:center;margin-bottom:35px;font-weight:bold;">{{tr('ui.transfer.dlg.title')}}</div>
 
-    <ElTable :data="transferList" border style="width:100%;flex:1;">
+    <ElTable :data="transferListWithPager" border style="width:100%;flex:1;margin-bottom:10px">
         <ElTableColumn type="selection" width="40" />
         <ElTableColumn prop="type" :label="tr('ui.transfer.type')" width="100" />
         <ElTableColumn prop="src" :label="tr('ui.transfer.src')" />
         <ElTableColumn prop="dest" :label="tr('ui.transfer.dest')" />
-        <ElTableColumn prop="progress" :label="tr('ui.transfer.prog')" width="180" />
-        <ElTableColumn fixed="right" :label="tr('ui.transfer.operations')">
-            <template #default>
-                <ElButton type="danger" style="float: right">{{tr('ui.transfer.cancel')}}</ElButton>
+        <ElTableColumn prop="status" :label="tr('ui.transfer.stat')" width="180" />
+        <ElTableColumn fixed="right" :label="tr('ui.transfer.operations')" width="200">
+            <template #default="scope">
+                <span style="float: rght">
+                    <ElButton type="danger" plain @click="deleteTask(scope.$index)"><ElIcon><Delete /></ElIcon></ElButton>
+                    <ElButton type="danger" plain>{{tr('ui.transfer.cancel')}}</ElButton>
+                </span>
             </template>
         </ElTableColumn>
         <template #empty>
@@ -17,12 +20,21 @@
         </template>
     </ElTable>
 
-    <div style="margin-top:25px">
-        <ElButton>{{tr('ui.transfer.newTask')}}</ElButton>
-        <ElButton>{{tr('ui.transfer.cancelSelected')}}</ElButton>
-        <ElButton type="danger">{{tr('ui.transfer.cancelAll')}}</ElButton>
+    <ElPagination small
+        layout="total, prev, pager, next, jumper"
+        v-model:current-page="currentPage"
+        :total="transferList.length"
+        :page-size="pageSize"
+        @current-change="onCurrentChange"
+        style="place-content:center" />
+
+    <div style="margin-top:15px">
+        <ElButton @click="clearFinished">{{tr('ui.transfer.clearFinished')}}</ElButton>
+        <!-- <ElButton>{{tr('ui.transfer.cancelSelected')}}</ElButton>
+        <ElButton type="danger">{{tr('ui.transfer.cancelAll')}}</ElButton> -->
+        <ElButton type="danger" @click="clearAll">{{tr('ui.transfer.clearAll')}}</ElButton>
         
-        <ElButton type="primary" style="float:right" @click="$emit('closePanel')">{{tr('dialog.close')}}</ElButton>
+        <ElButton type="primary" style="float:right" autofocus @click="$emit('closePanel')">{{tr('dialog.close')}}</ElButton>
     </div>
 </dialog>
 
