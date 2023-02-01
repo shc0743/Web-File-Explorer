@@ -56,6 +56,11 @@ const data = {
             else location.hash = hash;
         },
 
+        appIcon_dragstart(ev) {
+            ev.dataTransfer.setData('text/uri-list', window.location.href);
+            ev.dataTransfer.setData('text/plain', window.document.title);
+        },
+
         hist(n) {
             history.go(n);
         },

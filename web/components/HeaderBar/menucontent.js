@@ -3,13 +3,15 @@ import { ElMessageBox, ElMessage } from 'element-plus';
 
 const data = [
     {
-        text: "File", cb(m) {
+        text: "File", cb(m, x, y) {
             AppendMenu(m, String, {}, r['New...'], () => {
                 const m = CreatePopupMenu();
 
                 const creator = type => {
                     if (!appInstance_.explorer) return ElMessage.error(tr('ui.fo.new.err.noexpl'));
-                    const path = appInstance_.explorer.path, srv = appInstance_.explorer.server.addr, pw = appInstance_.explorer.server.pswd;
+                    const path = globalThis.appInstance_.explorer.path,
+                        srv = globalThis.appInstance_.explorer.server.addr,
+                        pw = globalThis.appInstance_.explorer.server.pswd;
                     ElMessageBox.prompt(
                         h('div', { style: 'white-space:pre-line;word-break:break-all' },
                             tr('ui.fo.new.' + type + '.text').replaceAll('$1', path)), 'File Operation', {
@@ -25,7 +27,7 @@ const data = [
                 AppendMenu(m, String, {}, r['File'], creator.bind(this, 'file'));
                 AppendMenu(m, String, {}, r['Folder'], creator.bind(this, 'dir'));
 
-                TrackPopupMenu(m, 0, 0);
+                TrackPopupMenu(m, x, y);
             });
             AppendMenu(m, 'separator');
             AppendMenu(m, String, {}, r['Upload File'], function () {
@@ -48,6 +50,15 @@ const data = [
             AppendMenu(m, String, {}, r['Delete Selected File FOREVER'], function () {
                 globalThis.appInstance_.explorer?.deleteSelected({ shiftKey: true });
             });
+            AppendMenu(m, 'separator');
+            function fileops() {
+                location.href = '#/sys/fo/';
+            }
+            AppendMenu(m, String, {}, r['Copy File'], fileops);
+            AppendMenu(m, String, {}, r['Move File'], fileops);
+            AppendMenu(m, String, {}, r['Link File'], fileops);
+            AppendMenu(m, 'separator');
+            AppendMenu(m, String, {}, r['Close'], function () { close() });
 
             return m;
         }

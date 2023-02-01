@@ -8,35 +8,30 @@ export const opts = [
     },
     {
         id: 1,
-        disabled: true,
-        text: '--------',
-    },
-    {
-        id: 2,
         text: t('Open with...'),
         cb() { this.openWithDialog = true; },
     },
     {
-        id: 3,
+        id: 2,
         text: t('Edit (plain text)'),
         cb() {
             
         },
     },
     {
-        id: 4,
+        id: 3,
         text: t('Edit (binary hex-editor)'),
         cb() {
             
         },
     },
     {
-        id: 5,
+        id: 4,
         disabled: true,
         text: '--------',
     },
     {
-        id: 6,
+        id: 5,
         text: t('Delete'),
         cb() {
             ElMessageBox.confirm(t('ui.fo.confirm/delete').replaceAll('$1', ''), 'Delete File', {
@@ -47,6 +42,18 @@ export const opts = [
             .then(() => {
                 this.deleteSelf();
             }).catch(() => { });
+        },
+    },
+    {
+        id: 6,
+        disabled: true,
+        text: '--------',
+    },
+    {
+        id: 7,
+        text: t('Properties'),
+        cb() {
+            this.$refs.fileprop.showModal();
         },
     },
 ];

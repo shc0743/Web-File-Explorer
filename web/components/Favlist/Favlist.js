@@ -53,6 +53,7 @@ const data = {
             const hash = '#/s/' + btoa(item.srv) + '/' + item.pathname;
             const url = new URL(hash, location);
             ev.dataTransfer.setData('text/uri-list', url.href);
+            ev.dataTransfer.setData('text/plain', item.name);
         }
         
     },

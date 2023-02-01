@@ -93,6 +93,45 @@
             </div>
         </template>
     </ElDialog>
+
+    <dialog ref="fileprop" style="border: 1px solid">
+        <div>{{filename}}</div><hr>
+
+        <ElDescriptions :column="1" border>
+            <ElDescriptionsItem>
+                <template #label>{{ tr('ui.file.name') }}</template>
+                <span>{{filename}}</span>
+            </ElDescriptionsItem>
+            <ElDescriptionsItem>
+                <template #label>{{ tr('ui.file.size') }}</template>
+                <span>{{serverSideFileInfo.size}}</span>
+            </ElDescriptionsItem>
+            <ElDescriptionsItem>
+                <template #label>{{ tr('ui.file.attr') }}</template>
+                <span>{{serverSideFileInfo.attrs}}</span>
+            </ElDescriptionsItem>
+            <ElDescriptionsItem>
+                <template #label>{{ tr('ui.file.fullpath') }}</template>
+                <span>{{fileinfo.fullpath}}</span>
+            </ElDescriptionsItem>
+
+            <ElDescriptionsItem>
+                <template #label>{{ tr('ui.file.time.create') }}</template>
+                <span>{{serverSideFileInfo.time?.creation}}</span>
+            </ElDescriptionsItem>
+            <ElDescriptionsItem>
+                <template #label>{{ tr('ui.file.time.access') }}</template>
+                <span>{{serverSideFileInfo.time?.access}}</span>
+            </ElDescriptionsItem>
+            <ElDescriptionsItem>
+                <template #label>{{ tr('ui.file.time.write') }}</template>
+                <span>{{serverSideFileInfo.time?.write}}</span>
+            </ElDescriptionsItem>
+
+        </ElDescriptions>
+
+        <br><div style="text-align:right"><ElButton @click="$refs.fileprop.close()" type="primary" plain>{{tr('dialog.close')}}</ElButton></div>
+    </dialog>
 </div>
 
 <style>

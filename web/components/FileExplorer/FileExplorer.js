@@ -218,7 +218,7 @@ const data = {
                 if (i === 'application/x-web-file-explorer-item') return true;
                 if (i === 'Files') return { dropEffect: 'copy' };
             }
-            return !false;
+            return false;
         },
 
         async handleObjectDropping(ev) {
@@ -296,7 +296,7 @@ const data = {
             // 处理内部文件操作
             let lastDropEffect = this.$refs.lst.lastDropEffect;
             try { data = JSON.parse(data) } catch { return console.warn('Failed to parse application data') };
-            console.log(lastDropEffect, data);
+            // console.log(lastDropEffect, data);
 
             const files = [];
             let isCORS = false;
@@ -304,7 +304,10 @@ const data = {
 
             for (const i of data) {
                 let src, dist = targetdir;
-                try { src = i[0]._path + i[1]; }
+                try {
+                    if (!i[0]._path.endsWith('/')) i[0]._path += '/';
+                    src = i[0]._path + i[1];
+                }
                 catch { return console.warn('Failed to resolve application data') };
             
                 if (src === dist) return;
@@ -349,10 +352,26 @@ const data = {
                 if (nsa.el?.checked) {
                     await userdata.put('config', true, 'noAskBeforeFileOps')
                 }
-                for (let i of files)
-                    console.log(i)
-
-                ElMessage.error('Not Supported') // TODO
+                
+                if (isCORS) return ElMessage.error('Cross-Origin Not Supported yet') // TODO
+                
+                const arr = [];
+                for (let i of files) try {
+                    const path = i[0]._path + i[1];
+                    let dest = targetdir;
+                    if (!dest.endsWith('/')) dest += '/';
+                    dest += i[1];
+                    // console.log(path, ' => ', dest);
+                    arr.push({
+                        server: this.server.addr, pswd: this.server.pswd,
+                        src: path, dest: dest,
+                    });
+                } catch { }
+                globalThis.appInstance_.addTask({
+                    type: lastDropEffect,
+                    files: arr
+                });
+                globalThis.appInstance_.instance.transferPanel_isOpen = true;
             };
             if (await userdata.get('config', 'noAskBeforeFileOps')) {
                 executer();

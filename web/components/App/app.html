@@ -120,6 +120,7 @@ a, button {
                 <LoginComponent v-if="current_page === 'login'" @server-added="updateServerDataFromLogin" />
                 <ServerList v-if="current_page === 'serverList'" :servers="servers" @toggle-server="toggleServer" />
                 <UploadPage v-if="current_page === 'upload'" :servers="servers" />
+                <FileOps v-if="current_page === 'fileOps'" :servers="servers" />
             </main>
         </div>
 

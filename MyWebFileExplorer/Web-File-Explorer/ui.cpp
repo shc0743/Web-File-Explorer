@@ -171,6 +171,9 @@ struct WndData_Main
 		Split2,
 		bApp,
 		Split3,
+		tSSL, eSSL, bSSL,
+		tSSLK, eSSLK, bSSLK, bSSLGen,
+		Split4,
 		wCreditEdit;
 };
 struct WndData_CreditEdit
@@ -197,6 +200,10 @@ DWORD Thread_CoreWorker(PVOID dd) {
 		EnableWindow(data->cAllowGlobAccess, bEnable);
 		EnableWindow(data->eServerPort, bEnable);
 		EnableWindow(data->bApp, bEnable);
+		EnableWindow(data->eSSL, bEnable);
+		EnableWindow(data->bSSL, bEnable);
+		EnableWindow(data->eSSLK, bEnable);
+		EnableWindow(data->bSSLK, bEnable);
 	};
 
 	srand(unsigned int(time(0) % rand()));
@@ -251,6 +258,13 @@ DWORD Thread_CoreWorker(PVOID dd) {
 				}
 				cl += L"--token=Window;" + std::to_wstring((LONG_PTR)hwnd) +
 					L";" + std::to_wstring((int)WM_CHECKAUTHTOKEN) + L" ";
+
+				WCHAR sslOpt[1024]{};
+				GetWindowTextW(data->eSSL, sslOpt, 1024);
+				cl += L"--ssl-cert=\"" + std::wstring(sslOpt) + L"\" --ssl-key=\"";
+				GetWindowTextW(data->eSSLK, sslOpt, 1024);
+				cl += std::wstring(sslOpt) + L"\" ";
+
 				auto pi = Process.Start_Suspended(cl);
 				if (!pi.hProcess) {
 					MessageBoxW(hwnd, LastErrorStrW().c_str(), NULL, MB_ICONERROR);
@@ -328,6 +342,8 @@ LRESULT WndProc_Main(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 #define MYCTLS_VAR_HFONT hFontDefault
 #include "ctls.h"
 
+		data->wCreditEdit = custom(L"", gwClassCredit, 0, 0, 1, 1, WS_BORDER);
+
 		text(L"Server status:", 10, 10, 100, 20, SS_CENTERIMAGE);
 		data->tServerStatus = text(L"unknown", 0, 0, 1, 1, SS_CENTERIMAGE);
 		data->bToggleServer = button(L"Start Server", 1, 0, 0, 1, 1, WS_DISABLED);
@@ -343,7 +359,17 @@ LRESULT WndProc_Main(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 		data->Split2 = text(L"", 0, 0, 1, 1, WS_BORDER);
 		data->bApp = button(L"Application...", 4, 0, 0, 1, 1, WS_DISABLED);
 		data->Split3 = text(L"", 0, 0, 1, 1, WS_BORDER);
-		data->wCreditEdit = custom(L"", gwClassCredit, 0, 0, 1, 1, WS_BORDER);
+		data->tSSL = text(L"SSL Cert:", 0, 0, 1, 1, SS_CENTERIMAGE);
+		data->eSSL = edit(L"");
+		data->bSSL = button(L"Choose", 5, 0, 0, 1, 1, WS_DISABLED);
+		data->tSSLK = text(L"SSL Key:", 0, 0, 1, 1, SS_CENTERIMAGE);
+		data->eSSLK = edit(L"");
+		data->bSSLK = button(L"Choose", 6, 0, 0, 1, 1, WS_DISABLED);
+		data->bSSLGen = button(L"Generate", 7);
+		data->Split4 = text(L"", 0, 0, 1, 1, WS_BORDER);
+
+		// ssl generator ÔÝÊ±²»ÍêÉÆ
+		ShowWindow(data->bSSLGen, SW_HIDE);
 
 
 
@@ -372,7 +398,15 @@ LRESULT WndProc_Main(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 		SetWindowPos(data->Split2,			0,	10, 160, sz.cx -20, 1, 0);
 		SetWindowPos(data->bApp,			0,	10, 170, sz.cx -20, 30, 0);
 		SetWindowPos(data->Split3,			0,	10, 210, sz.cx -20, 1, 0);
-		SetWindowPos(data->wCreditEdit,		0,	10, 220, sz.cx -20, sz.cy -230, 0);
+		SetWindowPos(data->tSSL,			0,	10, 220, 60, 20, 0);
+		SetWindowPos(data->eSSL,			0,	80, 220, sz.cx -170, 20, 0);
+		SetWindowPos(data->bSSL,			0,	sz.cx -80, 220, 70, 20, 0);
+		SetWindowPos(data->tSSLK,			0,	10, 250, 60, 20, 0);
+		SetWindowPos(data->eSSLK,			0,	80, 250, sz.cx -170, 20, 0);
+		SetWindowPos(data->bSSLK,			0,	sz.cx -80, 250, 70, 20, 0);
+		//SetWindowPos(data->bSSLGen,			0,	sz.cx -80, 220, 70, 50, 0);
+		SetWindowPos(data->Split4,			0,	10, 280, sz.cx -20, 1, 0);
+		SetWindowPos(data->wCreditEdit,		0,	10, 290, sz.cx -20, sz.cy -300, 0);
 
 	}
 		break;
@@ -504,6 +538,64 @@ LRESULT WndProc_CommandHandler_Main(HWND hwnd, WPARAM wParam, LPARAM lParam, Wnd
 		if (!hMenu) break;
 		RECT rc{}; GetWindowRect(data->bApp, &rc);
 		TrackPopupMenu(hMenu, TPM_RIGHTBUTTON, rc.left, rc.bottom, 0, hwnd, NULL);
+	}
+		break;
+
+	case 5:
+	case 6:
+	case 7:
+	{
+		WCHAR wsFile[1024]{};
+		OPENFILENAMEW ofn{};
+		ofn.lStructSize = sizeof ofn;
+		ofn.hwndOwner = hwnd;
+		ofn.lpstrTitle = L"Choose File";
+		ofn.lpstrFile = wsFile;
+		ofn.nMaxFile = 1024;
+		ofn.lpstrFilter = L"All Files\0*.*\0\0";
+		ofn.Flags = OFN_EXPLORER;
+
+		if (wmId == 7) {
+			ofn.lpstrTitle = L"Please choose OpenSSL binary";
+			ofn.lpstrFilter = L"OpenSSL\0openssl.exe\0executable\0*.exe\0\0";
+		}
+
+		if (!GetOpenFileNameW(&ofn)) break;
+
+		switch (wmId) {
+		case 5:
+		case 6:
+			SetWindowTextW(wmId == 5 ? data->eSSL : data->eSSLK, wsFile);
+			break;
+
+		case 7:
+		{
+			std::wstring ossl = wsFile, key, cert;
+			ofn.lpstrFilter = L"PEM Key\0*.pem\0All Files\0*.*\0\0";
+			wsFile[0] = L'\0';
+			ofn.lpstrTitle = L"Please choose where to save the private key";
+			if (!GetSaveFileNameW(&ofn)) break;
+			key = wsFile;
+
+			ofn.lpstrFilter = L"certificate\0*.cer\0All Files\0*.*\0\0";
+			wsFile[0] = L'\0';
+			ofn.lpstrTitle = L"Please choose where to save the public cert";
+			if (!GetSaveFileNameW(&ofn)) break;
+			cert = wsFile;
+
+			std::wstring releasePath = sInstanceDir + L"/_generate_ssl_cert.cmd";
+			if (!FreeResFile(IDR_BIN_SSLGEN, L"BIN", releasePath, hInst)) {
+				MessageBoxW(hwnd, LastErrorStrW().c_str(), 0, MB_ICONERROR); break;
+			}
+			std::wstring command =
+				L" \"" + ossl + L"\" \"" + key + L"\" \"" + cert + L"\"";
+			str_replace(command, L"\\", L"/");
+			Process.StartOnly(L"\"" + releasePath + L"\"" + command);
+		}
+			break;
+
+		default:;
+		}
 	}
 		break;
 

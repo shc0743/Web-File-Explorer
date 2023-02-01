@@ -7,11 +7,11 @@
         <ElTableColumn prop="src" :label="tr('ui.transfer.src')" />
         <ElTableColumn prop="dest" :label="tr('ui.transfer.dest')" />
         <ElTableColumn prop="status" :label="tr('ui.transfer.stat')" width="180" />
-        <ElTableColumn fixed="right" :label="tr('ui.transfer.operations')" width="200">
+        <ElTableColumn fixed="right" :label="tr('ui.transfer.operations')" width="80">
             <template #default="scope">
-                <span style="float: rght">
-                    <ElButton type="danger" plain @click="deleteTask(scope.$index)"><ElIcon><Delete /></ElIcon></ElButton>
-                    <ElButton type="danger" plain>{{tr('ui.transfer.cancel')}}</ElButton>
+                <span style="float: right">
+                    <!--ElButton @click="repeatTask(scope.$index)">{{tr('ui.transfer.repeat')}}</ElButton-->
+                    <ElButton type="danger" plain @click="deleteTask(scope.$index)" aria-label="Delete this task"><ElIcon><Delete /></ElIcon></ElButton>
                 </span>
             </template>
         </ElTableColumn>

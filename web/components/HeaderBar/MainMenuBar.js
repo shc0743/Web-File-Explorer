@@ -19,7 +19,7 @@ const data = {
         launchHandler(ev) {
             const t = ev.target.dataset.text || ev.target.parentElement.dataset.text;
             for (const i of this.items) {
-                if (t === i.text) return TrackPopupMenu(i.cb.call(this, CreatePopupMenu()), ev.x, ev.y);
+                if (t === i.text) return TrackPopupMenu(i.cb.call(this, CreatePopupMenu(), ev.x, ev.y), ev.x, ev.y);
             }
         },
         newfile(srv, pw, path, name) {

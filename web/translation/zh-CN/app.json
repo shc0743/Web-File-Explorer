@@ -13,6 +13,7 @@
   "doctitle$=serverList": "服务器列表",
   "doctitle$=manageServer": "管理服务器",
   "doctitle$=upload": "上传文件",
+  "doctitle$=fileOps": "文件操作",
   "ui.welcome.title/h1[0]": "开始",
   "ui.login.ui/server": "服务器",
   "ui.login.ui/pswd": "密码",
@@ -91,5 +92,16 @@
   "ui.fo.confirm/deleteForever": "请确认您要永久删除 $1。此操作无法撤销。",
   "ui.fo.new.file.text": "在 $1 下新建文件\n请输入文件名：",
   "ui.fo.new.dir.text": "在 $1 下新建文件夹\n请输入名称：",
-  "ui.fo.new.err.noexpl": "需要在文件浏览器中执行此命令。"
+  "ui.fo.new.err.noexpl": "需要在文件浏览器中执行此命令。",
+  "ui.transfer.repeat": "再次执行",
+  "Properties": "属性",
+  "ui.file.name": "文件名",
+  "ui.file.attr": "文件属性",
+  "ui.file.size": "大小",
+  "ui.file.fullpath": "完整路径",
+  "ui.file.time.create": "创建时间",
+  "ui.file.time.access": "访问时间",
+  "ui.file.time.write": "修改时间",
+  "ui.fo.fileops.do": "执行",
+  "ui.fo.fileops.type": "类型"
 }

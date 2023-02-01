@@ -161,8 +161,8 @@ void server::FileServer::downloadFile(const HttpRequestPtr& req, std::function<v
 	// https://github.com/drogonframework/drogon/blob/0b3147c15764820c2624a557b83b2b3343d9810a/lib/src/StaticFileRouter.cc#L352
 	if (!rangeStr.empty())
 	do {
-        // Check If-Range precondition
-        const std::string &ifRange = req->getHeader("if-range");
+		// Check If-Range precondition
+		const std::string &ifRange = req->getHeader("if-range");
 		if (!ifRange.empty()) {
 			if (ifRange != ftstr) break;
 		}
@@ -557,6 +557,22 @@ void server::FileServer::getFileInfo(const HttpRequestPtr& req, std::function<vo
 
 	ret["type"] = to_string(fstat);
 	ret["size"] = to_string(MyGetFileSizeW(wsfile));
+	ret["attrs"] = to_string(GetFileAttributesW(wsfile.c_str()));
+
+	Json::Value time;
+	if (HANDLE hFile = CreateFileW(wsfile.c_str(), GENERIC_READ,
+		FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0)) {
+		FILETIME c{}, a{}, w{};
+		GetFileTime(hFile, &c, &a, &w);
+		ULARGE_INTEGER uc{}, ua{}, uw{};
+		uc.LowPart = c.dwLowDateTime, uc.HighPart = c.dwHighDateTime;
+		ua.LowPart = a.dwLowDateTime, ua.HighPart = a.dwHighDateTime;
+		uw.LowPart = w.dwLowDateTime, uw.HighPart = w.dwHighDateTime;
+		time["creation"] = uc.QuadPart;
+		time["access"] = ua.QuadPart;
+		time["write"] = uw.QuadPart;
+	}
+	ret["time"] = time;
 
 	ret["success"] = true;
 	HttpResponsePtr resp = HttpResponse::newHttpJsonResponse(ret);
@@ -565,9 +581,19 @@ void server::FileServer::getFileInfo(const HttpRequestPtr& req, std::function<vo
 }
 
 bool static sys_copy_or_move(std::wstring& src, std::wstring& dest, int type) {
-	if (type == 1) return CopyFileW(src.c_str(), dest.c_str(), true);
-	if (type == 2) return MoveFileW(src.c_str(), dest.c_str());
-	if (type == 3) return CreateSymbolicLinkW(dest.c_str(), src.c_str(), 0x0);
+	auto srcType = IsFileOrDirectory(src);
+
+	if (type == 1)
+		return srcType == -1 ?
+		CopyFileTreeW(src.c_str(), dest.c_str(), true) == 0 :
+		CopyFileW(src.c_str(), dest.c_str(), true);
+
+	if (type == 2) return MoveFileExW(src.c_str(), dest.c_str(),
+		MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH);
+
+	if (type == 3) return CreateSymbolicLinkW(dest.c_str(), src.c_str(),
+		srcType == 1 ? 0x0 : SYMBOLIC_LINK_FLAG_DIRECTORY);
+
 	return false;
 }
 HttpResponsePtr static sys_func(const HttpRequestPtr& req, const string& src, const string& dest, int type) {

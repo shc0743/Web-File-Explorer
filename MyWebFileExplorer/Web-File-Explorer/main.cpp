@@ -3,6 +3,7 @@
 #include <VersionHelpers.h>
 #include <cstdio>
 #include "../../resource/tool.h"
+#include "../includes/ConvertUTF.h"
 
 #include "server.h"
 #include "ui.h"
@@ -69,27 +70,44 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			SetFileAttributesW(root.c_str(), FILE_ATTRIBUTE_HIDDEN);
 		}
 		SetCurrentDirectoryW(root.c_str());
-		std::wstring webroot = root + L"\\webroot";
+		std::wstring webroot = root + L"/webroot";
 		(cl.getopt(L"webroot", webroot));
 		if (-1 != IsFileOrDirectory(webroot)) {
 			if (!CreateDirectoryW(webroot.c_str(), NULL)) {
 				return GetLastError();
 			}
 		}
+		std::wstring uploadPath = root + L"/uploads";
+
+		std::wstring sslCert, sslKey;
+		cl.getopt(L"ssl-cert", sslCert);
+		cl.getopt(L"ssl-key", sslKey);
 
 
 		InitAuthTokenVerify(cl);
+
+		string s_webroot, s_upload, s_sslCrt, s_sslKey;
+		llvm::convertWideToUTF8(webroot, s_webroot);
+		llvm::convertWideToUTF8(uploadPath, s_upload);
+		llvm::convertWideToUTF8(sslCert, s_sslCrt);
 
 
 		std::shared_ptr<server::FileServer> srv(new server::FileServer);
 		auto& app = drogon::app();
 		app.setLogPath("./")
 			.setLogLevel(trantor::Logger::kDebug)
-			.setDocumentRoot(ws2s(webroot))
-			.setUploadPath(ws2s(root + L"\\uploads"))
+			.setDocumentRoot(s_webroot)
+			.setUploadPath(s_upload)
 			.setThreadNum(8)
-			.registerController(srv)
-			.addListener(allow_global_access ? "0.0.0.0" : "127.0.0.1", port);
+			.registerController(srv);
+		bool useSSL = false;
+		if (!sslCert.empty()) {
+			useSSL = true;
+			if (sslKey.empty()) sslKey = sslCert;
+			llvm::convertWideToUTF8(sslKey, s_sslKey);
+			app.setSSLFiles(s_sslCrt, s_sslKey);
+		}
+		app.addListener(allow_global_access ? "0.0.0.0" : "127.0.0.1", port, useSSL);
 		app.run();
 
 		return 0;

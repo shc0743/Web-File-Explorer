@@ -67,6 +67,23 @@ function messageHandler(ev) {
             if (transferTasks.size < 1) notify({ type: 'hasTask', value: false });
             queueMicrotask(notifyTaskUpdate);
             break;
+        
+        case 'repeatTask':
+        case 'repeatTasks':
+            for (const i of transferTasks) {
+                if (ev.data.type === 'repeatTask' ?
+                    (i.unionId === ev.data.uid) :
+                    (ev.data.uids?.has?.(i.unionId))) {
+                    switch (i.type) {
+                        // case 'upload':
+                        //     addTask({
+                        //         type: 'upload', 
+                        //     })
+                        default: ;
+                    }
+                }
+            }
+            break;
     
         default:
             break;
@@ -86,7 +103,7 @@ function notifyTaskUpdate() {
 }
 
 
-function addTask(taskinfo, detail) {
+function addTask(taskinfo, detail = {}) {
     if (!taskinfo) return false;
     switch (taskinfo.type) {
         case 'upload':
@@ -95,9 +112,9 @@ function addTask(taskinfo, detail) {
 
                 for (let i$ = 0, l = (taskinfo.files.length); i$ < l; ++i$) {
                     const i = taskinfo.files[i$];
-                    const d = {unionId: unionIdPrefix + i$,type: 'upload',status: 'pending',filename: i.filename,blob: i.blob,server: i.server,pswd: i.pswd,path: i.path,override: i.override,handle:i.handle};
+                    const d = Object.assign(i, { unionId: unionIdPrefix + i$, type: 'upload', status: 'pending' });
                     transferTasks.add(d);
-                    transferTasksUser.set(d, {unionId: d.unionId,type: tr('task/upload'),src: i.filename,dest: i.path,status: 'Pending',});
+                    transferTasksUser.set(d, { unionId: d.unionId, type: tr('task/upload'), src: i.filename, dest: i.path, status: tr('Pending') });
                 }
                 notifyTaskUpdate();
 
@@ -108,25 +125,22 @@ function addTask(taskinfo, detail) {
                         i.status = 'prep';
                         try {
                             const cb = perf => {
-                                transferTasksUser.set(i, { unionId: i.unionId, type: tr('task/upload'), src: i.filename, dest: i.path, status: (Math.floor(perf * 10000) / 100) + '%' })
+                                updateUI(i, 'status', (Math.floor(perf * 10000) / 100) + '%');
                             };
                             if (i.handle) {
-                                await uploadFileHandle(
-                                    i.server, i.pswd, i.path, i.filename, i.override, i.handle, cb
-                                )
-                            } else await uploadFile(
-                                i.server, i.pswd, i.path, i.filename, i.override, i.blob, cb
-                            );
+                                await uploadFileHandle(Object.assign({ cb }, i));
+                            } else await uploadFile(Object.assign({ cb }, i));
                             i.status = 'ok';
-                            transferTasksUser.set(i, {unionId: i.unionId,type: tr('task/upload'),src: i.filename,dest: i.path,status: 'Finished',isFinished: true,});
+                            updateUI(i, 'status', tr('Finished'));
+                            updateUI(i, 'isFinished', true);
                             notifyTaskUpdate();
                             detail.notify && notify({ type: 'taskDone', task: detail });
                         }
                         catch (error) {
                             i.status = 'error';
                             i.error = error;
-                            console.error(error);
-                            transferTasksUser.set(i, {unionId: i.unionId,type: tr('task/upload'),src: i.filename,dest: i.path,status: 'Error: ' + error,});
+                            // console.error(error);
+                            updateUI(i, 'status', 'Error: ' + error);
                             detail.notify && notify({ type: 'taskFail', task: detail });
                         }
                     }
@@ -145,7 +159,7 @@ function addTask(taskinfo, detail) {
                     const i = taskinfo.files[_i];
                     const d = { unionId: unionIdPrefix + _i, type: 'sysop', status: 'pending', info: i };
                     transferTasks.add(d);
-                    transferTasksUser.set(d, { unionId: d.unionId, type: tr('task/' + taskinfo.type), src: i.src, dest: i.dest, status: 'Pending' });
+                    transferTasksUser.set(d, { unionId: d.unionId, type: tr('task/' + taskinfo.type), src: i.src, dest: i.dest, status: tr('Pending') });
                 }
 
                 queueMicrotask(async () => {
@@ -157,24 +171,20 @@ function addTask(taskinfo, detail) {
                             const url = new URL('/file/' + taskinfo.type, i.info.server);
                             url.searchParams.set('src', i.info.src);
                             url.searchParams.set('dest', i.info.dest);
-                            try {
-                                const resp = await fetch(url, { method: 'POST', headers: { 'x-auth-token': i.info.pswd } });
-                                if (!resp.ok) throw 'HTTP ERROR ' + resp.status;
 
-                            }
-                            catch (error) {
-                                detail.notify && notify({ type: 'taskFail', task: detail, reason: String(error) });
-                            }
+                            const resp = await fetch(url, { method: 'POST', headers: { 'x-auth-token': i.info.pswd } });
+                            if (!resp.ok) throw 'HTTP ERROR ' + resp.status + ' : ' + await resp.text();
                             
                             i.status = 'ok';
-                            transferTasksUser.set(i, {unionId: i.unionId,type: tr('task/' + taskinfo.type),src: i.info.src,dest: i.info.dest,status: 'Finished',isFinished: true});
+                            updateUI(i, 'status', tr('Finished'));
+                            updateUI(i, 'isFinished', true);
                             notifyTaskUpdate();
                         }
                         catch (error) {
                             i.status = 'error';
                             i.error = error;
-                            console.error(error);
-                            transferTasksUser.set(i, { unionId: i.unionId, type: tr('task/' + taskinfo.type), src: i.info.src, dest: i.info.dest, status: 'Error: ' + error });
+                            // console.error(error);
+                            updateUI(i, 'status', 'Error: ' + error);
                             hasFail = true;
                         }
                     }
@@ -199,7 +209,7 @@ function addTask(taskinfo, detail) {
                         server: i.server, pswd: i.pswd, path: i.path,
                     };
                     transferTasks.add(d);
-                    transferTasksUser.set(d, {unionId: d.unionId,type: tr('task/delete'),src: i.path,dest: '',status: 'Pending',});
+                    transferTasksUser.set(d, {unionId: d.unionId,type: tr('task/delete'),src: i.path,dest: '',status: tr('Pending')});
                 }
                 notifyTaskUpdate();
                 
@@ -208,7 +218,7 @@ function addTask(taskinfo, detail) {
                         if (i.type !== 'delete' || i.status !== 'pending') continue;
                         i.status = 'prep';
                         try {
-                            transferTasksUser.set(i, {unionId: i.unionId,type: tr('task/delete'),src: i.path,dest: '',status: 'Loading',isFinished: true,});
+                            updateUI(i, 'status', tr('Loading'));
                             const url = new URL('/file', i.server);
                             url.searchParams.set('name', i.path);
                             const resp = await fetch(url, {
@@ -220,13 +230,14 @@ function addTask(taskinfo, detail) {
                             if (!resp.ok) throw `Fetch error, code ${resp.status}, error text ${await resp.text()}`;
                             
                             i.status = 'ok';
-                            transferTasksUser.set(i, {unionId: i.unionId,type: tr('task/delete'),src: i.path,dest: '',status: 'Finished',isFinished: true,});
+                            updateUI(i, 'status', tr('Finished'));
+                            updateUI(i, 'isFinished', true);
                             notifyTaskUpdate();
                         }
                         catch (error) {
                             i.status = 'error';
                             i.error = error;
-                            transferTasksUser.set(i, {unionId: i.unionId,type: tr('task/delete'),src: i.path,dest: '',status: 'Error: ' + error,});
+                            updateUI(i, 'status', 'Error: ' + error);
                         }
                     }
                     notify({ type: 'dataUpdated' });
@@ -244,12 +255,12 @@ function addTask(taskinfo, detail) {
                     status: 'pending',
                 };
                 transferTasks.add(d);
-                transferTasksUser.set(d, {unionId: d.unionId,type: tr('task/newdir'),src: '',dest: taskinfo.pathname,status: 'Pending'});
+                transferTasksUser.set(d, {unionId: d.unionId,type: tr('task/newdir'),src: '',dest: taskinfo.pathname,status: tr('Pending')});
                 notifyTaskUpdate();
                 
                 queueMicrotask(async () => {
                     try {
-                        transferTasksUser.set(d, {unionId: d.unionId,type: tr('task/newdir'),src: '',dest:taskinfo.pathname,status: 'Loading',isFinished: true,});
+                        updateUI(d, 'status', tr("Running"));
                         const url = new URL('/file/new/dir', taskinfo.server);
                         const resp = await fetch(url, {
                             method: 'POST',
@@ -259,13 +270,14 @@ function addTask(taskinfo, detail) {
                         if (!resp.ok) throw `Fetch error, code ${resp.status}, error text ${await resp.text()}`;
                         
                         d.status = 'ok';
-                        transferTasksUser.set(d, {unionId: d.unionId,type: tr('task/newdir'),src:'',dest:taskinfo.pathname,status: 'Finished',isFinished: true,});
+                        updateUI(d, 'status', tr('Finished'));
+                        updateUI(d, 'isFinished', true);
                         notifyTaskUpdate();
                     }
                     catch (error) {
                         d.status = 'error';
                         d.error = error;
-                        transferTasksUser.set(d, {unionId: d.unionId,type: tr('task/newdir'),src:'',dest:taskinfo.pathname,status: 'Error: ' + error,});
+                        updateUI(d, 'status', 'Error: ' + error);
                     }
                     notify({ type: 'dataUpdated' });
                     // done
@@ -277,6 +289,14 @@ function addTask(taskinfo, detail) {
         default:
             break;
     }
+}
+
+
+function updateUI(datakey, key, value) {
+    const data = transferTasksUser.get(datakey);
+    if (!data) return false;
+    data[key] = value;
+    transferTasksUser.set(datakey, data);
 }
 
 

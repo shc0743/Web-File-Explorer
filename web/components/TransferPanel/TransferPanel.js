@@ -38,6 +38,11 @@ const data = {
             if (!uid) return;
             globalThis.appInstance_.worker.port.postMessage({ type: 'deleteTask', uid });
         },
+        repeatTask(index) {
+            const uid = this.transferList[index]?.unionId;
+            if (!uid) return;
+            globalThis.appInstance_.worker.port.postMessage({ type: 'repeatTask', uid });
+        },
         clearFinished() {
             const uidsToDelete = new Set();
             for (const i of this.transferList) {

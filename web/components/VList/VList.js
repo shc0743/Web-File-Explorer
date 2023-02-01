@@ -12,9 +12,26 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 // VList v3
 
 
-{
-    const globStyle = document.createElement('style');
-    globStyle.textContent = `
+
+addCSS(`
+v-list-view {
+display: block;
+box-sizing: border-box;
+overflow: auto;
+background: var(--background);
+--padding: 5px;
+}
+v-list-view:focus {
+outline: none;
+}
+`);
+
+
+// themes
+
+// a switch to enable/disable dark theme.
+import { theme_dark, theme_autoCompute } from './themes.js';
+export const theme_default = `
 v-list-view {
 --background: #ffffff;
 --v-list-row-color: #000000;
@@ -30,20 +47,11 @@ v-list-view {
 --v-list-row-focus-bg: #cce8ff;
 --v-list-row-focus-outline: 1px solid #99d1ff;
 --v-list-row-dragging-color: rgba(0, 0, 0, 0.5);
---padding: 5px;
-}
-v-list-view {
-display: block;
-box-sizing: border-box;
-overflow: auto;
-background: var(--background);
-}
-v-list-view:focus {
-outline: none;
 }
 `;
-    (document.head || document.documentElement).append(globStyle);
-}
+addCSS(theme_autoCompute(theme_default, theme_dark));
+
+
 
 const rowMarginBottom = 6;
 const vListStyle = document.createElement('style');
@@ -153,6 +161,7 @@ class HTMLVirtualListElement extends HTMLElement {
         this.#selection._has = this.#selection.has;
         this.#selection.add = this.#addSelection.bind(this);
         this.#selection.delete = this.#deleteSelection.bind(this);
+        this.#selection.toggle = this.#toggleSelection.bind(this);
         this.#selection.has = this.#hasSelection.bind(this);
         this.#selection.addRange = this.#selectionAddRange.bind(this);
         this.#selection.toArray = function () {
@@ -252,6 +261,7 @@ class HTMLVirtualListElement extends HTMLElement {
         }
     }
 
+    #lastSelection = null;
     #onkeydown(ev) {
         if (ev.key === 'Tab') return;
 
@@ -260,32 +270,52 @@ class HTMLVirtualListElement extends HTMLElement {
             const el = this.#divContainer.querySelector('v-list-row.pfocus');
             if (el) {
                 el.classList.remove('pfocus');
-                this.selection = +el.dataset.n;
+                this.#lastSelection = el.dataset.n;
+                this.selection.toggle(+el.dataset.n);
+            } else {
+                this.selection.delete(this.#lastSelection);
+                this.#divContainer.querySelector(`v-list-row[data-n="${this.#lastSelection}"]`)?.classList.add('pfocus');
             }
             return;
         }
         if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
             ev.preventDefault();
-            let el = this.#divContainer.querySelector('v-list-row.current');
-            if (!el) el = this.#divContainer.querySelector('v-list-row.checked,v-list-row.pfocus');
-            if (!el) el = this.#divContainer.querySelector('v-list-row');
-            if (!el) return;
-            let elTarget = (ev.key === 'ArrowUp') ? el.previousElementSibling : el.nextElementSibling;
-            if (!elTarget) {
-                this.scrollBy(0, (this.#line_height + rowMarginBottom) * ((ev.key === 'ArrowUp') ? -1 : 1));
-                return;
-            }
+            const handler = nocall => {
+                let el = this.#divContainer.querySelector(`v-list-row[data-n="${this.#lastSelection}"]`);
+                if (!el) el =
+                    this.#divContainer.querySelector('v-list-row.current') ||
+                    this.#divContainer.querySelector('v-list-row.checked,v-list-row.pfocus') ||
+                    this.#divContainer.querySelector('v-list-row');
+                else if (ev.shiftKey) {
+                    el = this.#divContainer.querySelectorAll(`v-list-row.checked`);
+                    el = ev.key === 'ArrowUp' ? el[0] : el[el.length - 1];
+                }
+                else if (ev.ctrlKey) {
+                    let newEl = this.#divContainer.querySelectorAll(`v-list-row.pfocus`);
+                    if (!newEl.length) newEl = [el];
+                    el = ev.key === 'ArrowUp' ? newEl[0] : newEl[newEl.length - 1];
+                }
+                    
+                if (!el) return;
+                let elTarget = (ev.key === 'ArrowUp') ? el.previousElementSibling : el.nextElementSibling;
+                if (!elTarget || !this.#isElementInView_h(elTarget, this)) {
+                    this.scrollBy(0, (this.#line_height + rowMarginBottom) * ((ev.key === 'ArrowUp') ? -1 : 1));
+                    return nocall ? undefined : globalThis.queueMicrotask(handler.bind(this, true));
+                }
 
-            if (ev.ctrlKey) {
-
-            }
-            else if (ev.shiftKey) {
-
-            }
-            else {
-                this.selection = elTarget.dataset.n;
-            }
-            return;
+                if (ev.ctrlKey) {
+                    this.#clearPfocus();
+                    elTarget.classList.add('pfocus');
+                }
+                else if (ev.shiftKey) {
+                    this.selection.add(elTarget.dataset.n);
+                    this.#lastSelection = elTarget.dataset.n;
+                }
+                else {
+                    this.#lastSelection = this.selection = elTarget.dataset.n;
+                }
+            };
+            return handler(false);
         }
         if (ev.key === 'Enter' && this.selection.size) {
             ev.preventDefault();
@@ -302,6 +332,12 @@ class HTMLVirtualListElement extends HTMLElement {
             this.selection = 'all';
             return;
         }
+        if ((ev.key === 'Home' || ev.key === 'End') && this.#data.size) {
+            ev.preventDefault();
+            if (ev.key === 'Home') this.selection = 0;
+            if (ev.key === 'End') this.selection = this.#data.size - 1;
+            return;
+        }
         // console.log(ev.key);
     }
 
@@ -309,7 +345,6 @@ class HTMLVirtualListElement extends HTMLElement {
         globalThis.requestAnimationFrame(() => this.updateOnScroll());
     }
 
-    #lastSelection = null;
     #onclick(ev) {
         // handle selection
         do {
@@ -340,7 +375,6 @@ class HTMLVirtualListElement extends HTMLElement {
                         const rangeStart = this.#lastSelection, rangeEnd = i.dataset.n;
                         this.selection.addRange(rangeStart, rangeEnd);
                     }
-                    // TODO: handle shift-key item selection
                     return;
                 }
                 this.#lastSelection = this.selection = i.dataset.n;
@@ -537,6 +571,11 @@ class HTMLVirtualListElement extends HTMLElement {
         this.#updateSelectionElement();
         return true;
     }
+    #toggleSelection(i) {
+        if (isNaN(i)) return false;
+        i = Number(i);
+        return this.selection.has(i) ? this.selection.delete(i) : this.selection.add(i);;
+    }
     #hasSelection(i) {
         if (isNaN(i)) return false;
         return this.#selection._has.call(this.#selection, Number(i));
@@ -558,6 +597,9 @@ class HTMLVirtualListElement extends HTMLElement {
 
     #setPfocus() {
         this.#divContainer.querySelector('v-list-row')?.classList.add('pfocus');
+    }
+    #clearPfocus() {
+        this.#divContainer.querySelectorAll('v-list-row.pfocus').forEach(el => el.classList.remove('pfocus'));
     }
 
 
@@ -655,8 +697,10 @@ class HTMLVirtualListElement extends HTMLElement {
     updateOnScroll() {
         return this.#updateOnScroll.apply(this, arguments);
     }
+    #rangeOverlay = 10;
     async #updateOnScroll(forceRedraw = false) {
-        const rangeOverlay = 10; // 渲染可视范围内的 ± 10 条数据
+        // 渲染可视范围内的 ± rangeOverlay 条数据
+        const rangeOverlay = this.#rangeOverlay;
 
         if (!this.#data) return;
         // console.debug(new Date().getTime(), 'scroll before');
@@ -742,6 +786,12 @@ class HTMLVirtualListElement extends HTMLElement {
         }
 
         return el;
+    }
+
+    #isElementInView_h(el, container) {
+        const begin = container.scrollTop, end = begin + container.clientHeight;
+        const el_begin = el.offsetTop, el_end = el_begin + el.offsetHeight;
+        return (el_begin >= begin && el_end <= end);
     }
 // painting end
 
@@ -1079,5 +1129,12 @@ function debounce(fn, delay, thisArg = globalThis) {
         }, delay, arguments);
         return timeId;
     };
+}
+
+
+export function addCSS(text) {
+    const el = document.createElement('style');
+    el.textContent = text;
+    (document.head || document.documentElement).append(el);
 }
 

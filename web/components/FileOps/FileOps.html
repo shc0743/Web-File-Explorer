@@ -1,0 +1,49 @@
+<div class="component-root" v-deep>
+    <h1>{{tr('doctitle$=fileOps')}}</h1>
+    <ElForm v-deep ref="form" :model="myform" @submit.prevent>
+        <ElFormItem :label="tr('ui.string:serverAddr')" prop="remoteSrv">
+            <ElSelect :disabled="isLoading" v-model="myform.remoteSrv">
+                <ElOption v-for="item in servers" :key="item.addr" :value="item.addr">
+                    {{ item.name }}
+                </ElOption>
+            </ElSelect>
+        </ElFormItem>
+
+        <ElFormItem :label="tr('ui.fo.fileops.type')" prop="type">
+            <ElSelect :disabled="isLoading" v-model="myform.type">
+                <ElOption value="copy">Copy</ElOption>
+                <ElOption value="move">Move</ElOption>
+                <ElOption value="link">Link</ElOption>
+            </ElSelect>
+        </ElFormItem>
+
+        <ElFormItem :label="tr('ui.transfer.src')" prop="src">
+            <ElInput :disabled="isLoading" v-model="myform.src" />
+        </ElFormItem>
+        <ElFormItem :label="tr('ui.transfer.dest')" prop="dest">
+            <ElInput :disabled="isLoading" v-model="myform.dest" />
+        </ElFormItem>
+
+        <ElFormItem style="margin-bottom: 0">
+            <ElButton size="large" type="primary" :disabled="isLoading" :loading="isLoading" @click="exec">{{tr('ui.fo.fileops.do')}}</ElButton>
+            <ElButton size="large" @click="confirmCancel">{{tr('dialog.cancel')}}</ElButton>
+        </ElFormItem>
+    </ElForm>
+</div>
+
+<style>
+.component-root>>> {
+    display: block;
+    width: calc(100% - (2 * var(--padding)));
+    height: calc(100% - (2 * var(--padding)));
+    overflow: auto;
+    padding: var(--padding);
+    --padding: 10px;
+}
+form>>> {
+    border: 1px solid #ccc;
+    padding: 20px;
+    border-radius: 4px;
+    box-shadow: 0 0 5px 0 #ddd;
+}
+</style>

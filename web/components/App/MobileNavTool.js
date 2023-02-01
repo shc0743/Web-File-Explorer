@@ -18,7 +18,7 @@ const data = {
     methods: {
         a() { history.back() },
         b() { location.reload() },
-        c() { history.go() },
+        c() { history.forward() },
 
     },
 

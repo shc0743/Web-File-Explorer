@@ -1,8 +1,12 @@
 {
     "task/upload": "Upload",
     "task/delete": "Delete",
-    "task/copy": "复制",
-    "task/move": "移动",
-    "task/link": "链接",
-    "task/newdir": "Create directory"
+    "task/copy": "Copy",
+    "task/move": "Move",
+    "task/link": "Link",
+    "task/newdir": "Create directory",
+    "Pending": "Pending",
+    "Loading": "Loading",
+    "Running": "Running",
+    "Finished": "Finished"
 }

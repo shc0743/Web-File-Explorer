@@ -9,7 +9,8 @@ import LoginComponent from '../Login/login.js';
 import HeaderBar from '../HeaderBar/HeaderBar.js';
 import ServerView from '../ServerView/serverview.js';
 import ServerList from '../ServerList/ServerList.js';
-import UploadPage from '../UploadPage/upload.js'
+import UploadPage from '../UploadPage/upload.js';
+import FileOps from '../FileOps/FileOps.js';
 import MobileNavTool from './MobileNavTool.js';
 import TransferPanel from '../TransferPanel/TransferPanel.js';
 
@@ -43,6 +44,7 @@ const data = {
         ServerView,
         ServerList,
         UploadPage,
+        FileOps,
         MobileNavTool,
         TransferPanel,
     },

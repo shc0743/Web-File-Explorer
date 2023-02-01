@@ -78,7 +78,7 @@ const data = {
         },
 
         confirmCancel() {
-            confirm('Cancel?') && history.back();
+            history.back();
         },
 
         async doUpload() {

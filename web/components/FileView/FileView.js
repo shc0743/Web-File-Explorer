@@ -259,22 +259,6 @@ const data = {
     },
 
     watch: {
-        async filename() {
-            // if (this.filename === this.fileinfo.name) return;
-
-            // if (!this.loadingInstance) {
-            //     this.loadingInstance = ElLoading.service({ lock: false, fullscreen: false, target: this.$refs.root });
-            // }
-            // this.loadingInstance.text = 'Performing file move';
-
-            // await new Promise(r => setTimeout(r, 5000));
-
-            // if (this.loadingInstance) {
-            //     this.loadingInstance.close();
-            //     this.loadingInstance = null;
-            // }
-        },
-
         async moreOptionValue() {
             if (null == this.moreOptionValue) return;
             const op = this.moreOptionValue;

@@ -1,6 +1,9 @@
 <header v-deep>
-    <div v-deep class="icon square" style="border: 1px solid; cursor: pointer"
-        @click="goHome" @dblclick="closeapp" @mousedown.middle="openBlank"></div>
+    <div v-deep class="icon square" style="border: 1px solid; cursor: pointer" 
+        draggable="true" role="link" tabindex="0" aria-label="Go to homepage"
+        @click="goHome" @keydown.enter="goHome"
+        @dblclick="closeapp" @mousedown.middle="openBlank"
+        @dragstart="appIcon_dragstart"></div>
     <span v-deep class="sep" style="margin: 0 5px 0 10px"></span>
     <ElButtonGroup v-deep>
         <ElButton @click="reload" aria-label="Reload the content" v-deep text><ElIcon><RefreshRight /></ElIcon></ElButton>

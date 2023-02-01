@@ -11,6 +11,7 @@
   "doctitle$=serverList": "Server List",
   "doctitle$=manageServer": "Manage servers",
   "doctitle$=upload": "Upload File",
+  "doctitle$=fileOps": "File Operations",
   "ui.welcome.title/h1[0]": "Start",
   "ui.login.ui/server": "Server",
   "ui.login.ui/pswd": "Password",
@@ -86,5 +87,16 @@
   "ui.fo.confirm/deleteForever": "Please confirm that you want to delete $1 forever. This operation cannot be undo.",
   "ui.fo.new.file.text": "Creating new file under $1\nPlease type the name of the file:",
   "ui.fo.new.dir.text": "Creating new folder under $1\nPlease type the name:",
-  "ui.fo.new.err.noexpl": "This command needs to be executed in the file explorer."
+  "ui.fo.new.err.noexpl": "This command needs to be executed in the file explorer.",
+  "ui.transfer.repeat": "Repeat task",
+  "Properties": "Properties",
+  "ui.file.name": "File name",
+  "ui.file.attr": "File attributes",
+  "ui.file.size": "Size",
+  "ui.file.fullpath": "Full path",
+  "ui.file.time.create": "Creation Time",
+  "ui.file.time.access": "Access Time",
+  "ui.file.time.write": "Write Time",
+  "ui.fo.fileops.do": "Execute",
+  "ui.fo.fileops.type": "Type"
 }

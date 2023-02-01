@@ -4,5 +4,9 @@
     "task/copy": "复制",
     "task/move": "移动",
     "task/link": "链接",
-    "task/newdir": "新建文件夹"
+    "task/newdir": "新建文件夹",
+    "Pending": "正在等待",
+    "Loading": "正在加载",
+    "Running": "正在运行",
+    "Finished": "已完成"
 }

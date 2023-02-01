@@ -10,6 +10,7 @@
 #define IDS_STRING_UI_CLASS_MAIN        1353
 #define IDS_STRING_UI_TITLE_MAIN        1354
 #define IDS_STRING_UI_CLASS_CREDIT      1355
+#define IDR_BIN_SSLGEN                  2101
 #define ID_MENU_FILE_NEW                40001
 #define ID_MENU_FILE_OPENSERVER         40002
 #define ID_MENU_FILE_OPENFILE           40003
@@ -69,7 +70,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        104
+#define _APS_NEXT_RESOURCE_VALUE        106
 #define _APS_NEXT_COMMAND_VALUE         40067
 #define _APS_NEXT_CONTROL_VALUE         1001
 #define _APS_NEXT_SYMED_VALUE           101
