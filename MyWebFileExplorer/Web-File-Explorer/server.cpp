@@ -244,7 +244,9 @@ static HttpResponsePtr PutFile(const HttpRequestPtr& req, wstring wsfile,
 	HttpResponsePtr resp = HttpResponse::newHttpResponse();
 	CORSadd(req, resp);
 
+	size_t retryCount = 0, maxRetryCount = 5;
 	HANDLE hFile = NULL;
+openFile:
 	switch (type) {
 	case FilePutType::NoOverride:
 		hFile = CreateFileW(wsfile.c_str(), GENERIC_WRITE, 0,
@@ -265,9 +267,12 @@ static HttpResponsePtr PutFile(const HttpRequestPtr& req, wstring wsfile,
 		break;
 	}
 	if (!hFile || INVALID_HANDLE_VALUE == hFile) {
-		if (file_exists(wsfile)) {
+		if (file_exists(wsfile) && type == FilePutType::NoOverride) {
 			resp->setStatusCode(k400BadRequest);
 			resp->setBody("File already exists; if you want to override, use PATCH method.");
+		}
+		else if (retryCount++ < maxRetryCount) {
+			goto openFile;
 		}
 		else {
 			resp->setStatusCode(k500InternalServerError);
@@ -286,13 +291,14 @@ static HttpResponsePtr PutFile(const HttpRequestPtr& req, wstring wsfile,
 		i.QuadPart = offset;
 		SetFilePointerEx(hFile, i, NULL, FILE_BEGIN);
 	}
-
-	const string_view& body = req->getBody();
+	
 	DWORD dw1 = 0, dw2 = 0;
-	const char* pos = (const char*)(void*)body.data();
+	MultiPartParser mpp{};
+	mpp.parse(req);
+	const char* pos = (const char*)(void*)req->bodyData();
 	bool hasSuccess = true;
-	volatile size_t size = body.length() * sizeof(string_view::value_type), written = 0;
-	constexpr size_t max_chunk_size = 65536;
+	volatile size_t size = req->bodyLength(), written = 0;
+	constexpr size_t max_chunk_size = 1048576;
 	size_t chunk_size = (std::min)((size_t)size, (size_t)max_chunk_size);
 	while (written < size) {
 		dw1 = (DWORD)chunk_size;
@@ -338,7 +344,7 @@ void server::FileServer::patchFile(const HttpRequestPtr& req, std::function<void
 		if (ull) return callback(PutFile(req, wsfile, FilePutType::Insert, ull));
 	}
 
-	resp->setStatusCode(k400BadRequest); // TODO
+	resp->setStatusCode(k400BadRequest);
 	callback(resp);
 }
 

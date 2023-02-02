@@ -22,6 +22,7 @@ static std::deque<unsigned long long> nCoreWorkerCode;
 
 static HANDLE hServerProcess;
 static std::wstring sInstanceDir;
+static HANDLE hServerSignal;
 
 
 static DWORD CALLBACK Thread_CoreWorker(PVOID data);
@@ -191,6 +192,7 @@ inline void NotifyCoreWorker(unsigned long long code) {
 	SetEvent(::hEventCoreWorker);
 }
 DWORD Thread_CoreWorker(PVOID dd) {
+	using namespace std;
 	HWND hwnd = (HWND)dd;
 	if (!IsWindow(hwnd)) return ERROR_NOT_FOUND;
 
@@ -228,6 +230,7 @@ DWORD Thread_CoreWorker(PVOID dd) {
 
 			case 0x10001: {
 				if (::hServerProcess) {
+#if 0
 					SetWindowTextW(data->bToggleServer, L"Stopping Server");
 					auto k32 = GetModuleHandle(TEXT("kernel32.dll"));
 					if (!k32) {
@@ -245,6 +248,50 @@ DWORD Thread_CoreWorker(PVOID dd) {
 						SetWindowTextW(data->bToggleServer, L"Stop Server");
 					}
 #pragma warning(pop)
+#else
+					SetWindowTextW(data->bToggleServer, L"Stopping Server");
+					wstring errText = L"Cannot stop the server. Do you want to terminate it?";
+					if (hServerSignal) {
+						DWORD code = 0;
+						SetEvent(hServerSignal);
+						WaitForSingleObject(hServerProcess, 5000);
+						GetExitCodeProcess(hServerProcess, &code);
+						if (code == STILL_ACTIVE) {
+							errText = L"It seems like the server has not response. "
+								"Do you want to terminate it?";
+							goto err;
+						}
+						goto ok;
+					}
+
+				err:
+					if (MessageBoxW(hwnd, errText.c_str(), L"Stop Server", MB_OKCANCEL) == IDOK) {
+						if (TerminateProcess(hServerProcess, ERROR_TIMEOUT)) goto ok;
+						if (Process.kill(hServerProcess, ERROR_TIMEOUT)) goto ok;
+						auto k32 = GetModuleHandle(TEXT("kernel32.dll"));
+						if (k32) {
+							auto f = (LPTHREAD_START_ROUTINE)GetProcAddress(k32, "ExitProcess");
+#pragma warning(push)
+#pragma warning(disable: 6001)
+							HANDLE hRemote = CreateRemoteThread(::hServerProcess,
+								0, 0, f, (PVOID)ERROR_TIMEOUT, 0, 0);
+							if (hRemote) {
+								CloseHandle(hRemote); goto ok;
+							}
+#pragma warning(pop)
+						}
+						MessageBoxW(hwnd, (L"FATAL: CANNOT STOP SERVER\n" +
+							LastErrorStrW()).c_str(), L"Cannot Stop Server", MB_ICONHAND);
+					}
+					EnableWindow(data->bToggleServer, TRUE);
+					SetWindowTextW(data->bToggleServer, L"Stop Server");
+					break;
+
+				ok:
+					if (hServerSignal) CloseHandle(hServerSignal);
+					hServerSignal = NULL;
+
+#endif
 					break;
 				}
 
@@ -252,26 +299,49 @@ DWORD Thread_CoreWorker(PVOID dd) {
 
 				WCHAR port[7]{};
 				GetWindowTextW(data->eServerPort, port, 7);
-				std::wstring cl = L"\"" + GetProgramDirW() + L"\" --type=server --port=\"" + port + L"\" ";
+				std::wstring cl = L"Web-File-Explorer --type=server --port=\""s + port + L"\" ";
 				if (SendMessage(data->cAllowGlobAccess, BM_GETSTATE, 0, 0) & BST_CHECKED) {
 					cl += L"--allow-global-access ";
 				}
 				cl += L"--token=Window;" + std::to_wstring((LONG_PTR)hwnd) +
 					L";" + std::to_wstring((int)WM_CHECKAUTHTOKEN) + L" ";
 
-				WCHAR sslOpt[1024]{};
+				WCHAR sslOpt[1024]{}; bool bHttpsEnabled = false;
 				GetWindowTextW(data->eSSL, sslOpt, 1024);
-				cl += L"--ssl-cert=\"" + std::wstring(sslOpt) + L"\" --ssl-key=\"";
-				GetWindowTextW(data->eSSLK, sslOpt, 1024);
-				cl += std::wstring(sslOpt) + L"\" ";
+				if (sslOpt[0]) {
+					bHttpsEnabled = true;
+					cl += L"--ssl-cert=\"" + std::wstring(sslOpt) + L"\" --ssl-key=\"";
+					GetWindowTextW(data->eSSLK, sslOpt, 1024);
+					cl += std::wstring(sslOpt) + L"\" ";
+				}
 
-				auto pi = Process.Start_Suspended(cl);
-				if (!pi.hProcess) {
+				SECURITY_ATTRIBUTES sa{};
+				sa.nLength = sizeof(sa);
+				sa.bInheritHandle = TRUE;
+				hServerSignal = CreateEvent(&sa, FALSE, FALSE, NULL);
+				if (hServerSignal) {
+					cl += L"--signal=" + std::to_wstring((LONG_PTR)(PVOID)hServerSignal) + L" ";
+				}
+
+				STARTUPINFOW si{}; PROCESS_INFORMATION pi{};
+				si.cb = sizeof(si);
+				PWSTR mem = (PWSTR)calloc(cl.length() + 1, sizeof(WCHAR));
+				if (!mem) {
 					MessageBoxW(hwnd, LastErrorStrW().c_str(), NULL, MB_ICONERROR);
 					enable(TRUE);
 					EnableWindow(data->bServerAddr, FALSE);
 					break;
 				}
+				wcscpy_s(mem, cl.length() + 1, cl.c_str());
+				if (!(CreateProcessW(GetProgramDirW().c_str(), mem, NULL, NULL,
+					TRUE, CREATE_SUSPENDED, NULL, NULL, &si, &pi) && pi.hProcess)) {
+					free(mem);
+					MessageBoxW(hwnd, LastErrorStrW().c_str(), NULL, MB_ICONERROR);
+					enable(TRUE);
+					EnableWindow(data->bServerAddr, FALSE);
+					break;
+				}
+				free(mem);
 				::hServerProcess = pi.hProcess;
 
 				HANDLE hThread = NULL;
@@ -289,7 +359,8 @@ DWORD Thread_CoreWorker(PVOID dd) {
 				if (hThread) CloseHandle(hThread);
 #pragma warning(pop)
 
-				std::wstring srv_addr = L"http://127.0.0.1:"; srv_addr += port;
+				std::wstring srv_addr = bHttpsEnabled ? L"https" : L"http";
+				srv_addr += L"://127.0.0.1:"; srv_addr += port;
 				SetWindowTextW(data->eServerAddr, srv_addr.c_str());
 
 				SetWindowTextW(data->tServerStatus, L"running");
@@ -303,6 +374,7 @@ DWORD Thread_CoreWorker(PVOID dd) {
 				break;
 
 			case 0x10002: {
+				CloseHandle(hServerProcess);
 				::hServerProcess = NULL;
 				SetWindowTextW(data->tServerStatus, L"stopped");
 				SetWindowTextW(data->bToggleServer, L"Start Server");

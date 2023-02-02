@@ -125,7 +125,11 @@ function addTask(taskinfo, detail = {}) {
                         if (i.type !== 'upload' || i.status !== 'pending') continue;
                         i.status = 'prep';
                         try {
-                            const cb = perf => {
+                            const cb = (perf, errText) => {
+                                if (errText) {
+                                    updateUI(i, 'status', errText);
+                                    return;
+                                }
                                 updateUI(i, 'status', (Math.floor(perf * 10000) / 100) + '%');
                             };
                             if (i.handle) {

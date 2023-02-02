@@ -3,7 +3,7 @@ export async function uploadFile({ server, pswd, path, filename: name, override,
     const composedPath = (path + name).replaceAll('\\', '/');
     const size = blob.size, chunkSize = 2097152;
     let pos = 0;
-    let lastStep = 0, step = 0;
+    let lastStep = 0, step = 0, errorCount = 0;
     if (size === 0) {
         await send(server, pswd, composedPath, blob, 0, override);
     }
@@ -11,7 +11,16 @@ export async function uploadFile({ server, pswd, path, filename: name, override,
         const len = pos + Math.min(blob.size - pos, chunkSize);
         const newBlob = blob.slice(pos, len);
         // console.log('Uploading', pos, len, 'of', size, 'data', name, 'blob', newBlob);
-        await send(server, pswd, composedPath, newBlob, pos, override);
+        try{
+            await send(server, pswd, composedPath, newBlob, pos, override);
+        }
+        catch (error) {
+            if (++errorCount > 10) throw error;
+            let ms = errorCount * 500;
+            cb && cb(error, `Error (${errorCount}), retry after ${ms}ms..`);
+            await delay(ms);
+            continue;
+        }
         pos = len;
         step = pos / size;
         if (step - lastStep > 0.00005) {

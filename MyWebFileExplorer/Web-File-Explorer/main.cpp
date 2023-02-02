@@ -99,8 +99,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			.setDocumentRoot(s_webroot)
 			.setUploadPath(s_upload)
 			.setThreadNum(8)
-			.setClientMaxBodySize(8388608)
-			.setClientMaxMemoryBodySize(8388608)
+			.setClientMaxBodySize(2147483648)
+			.setClientMaxMemoryBodySize(67108864)
 			.setFileTypes({
 				"html","css","js",
 				"webmanifest","importmap",
@@ -114,6 +114,21 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			app.setSSLFiles(s_sslCrt, s_sslKey);
 		}
 		app.addListener(allow_global_access ? "0.0.0.0" : "127.0.0.1", port, useSSL);
+
+		std::wstring s_signal; cl.getopt(L"signal", s_signal);
+		if (!s_signal.empty()) {
+			HANDLE signal = (HANDLE)(LONG_PTR)atoll(ws2s(s_signal).c_str());
+			if (signal) {
+				HANDLE hThread = CreateThread(0, 0, [](PVOID signal)->DWORD {
+					HANDLE sign = (HANDLE)signal;
+					WaitForSingleObject(sign, INFINITE);
+					drogon::app().quit();
+					return 0;
+				}, signal, 0, 0);
+				if (hThread) CloseHandle(hThread);
+			}
+		}
+
 		app.run();
 
 		return 0;
