@@ -1,5 +1,17 @@
+<input v-model="text_"
+    v-if="editMode && input_type === 'native'"
+    ref="inputbox_native"
+    v-bind="$attrs"
+    :type="type"
+    :disabled="disabled"
+    :placeholder="placeholder"
+    @blur="finishEdit"
+    @keydown.enter="onEnter"
+    @keydown.esc="finishEditWithoutSaving"
+    :style="styleInput"
+/>
 <ElInput v-model="text_"
-    v-if="editMode"
+    v-else-if="editMode"
     ref="inputbox"
     v-bind="$attrs"
     :type="type"
@@ -18,10 +30,9 @@
     v-deep
     ref="textbox"
     v-bind="$attrs"
-    v-text="textComputed"
     tabindex="0"
     @click="doEdit"
     @keydown.enter="doEdit"
     title="Edit by clicking this"
-></span>
+><span v-text="textComputed"></span></span>
 

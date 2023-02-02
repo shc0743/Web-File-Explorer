@@ -1,7 +1,7 @@
 export async function uploadFile({ server, pswd, path, filename: name, override, blob, cb }) {
     if (!(path.endsWith('/') || path.endsWith('\\'))) path += '/';
     const composedPath = (path + name).replaceAll('\\', '/');
-    const size = blob.size, chunkSize = 131072;
+    const size = blob.size, chunkSize = 2097152;
     let pos = 0;
     let lastStep = 0, step = 0;
     if (size === 0) {

@@ -19,6 +19,7 @@ const data = {
             ],
             m__updateLock: false,
             isFav: false,
+            clickToOpen: false,
             
         }
     },
@@ -67,6 +68,10 @@ const data = {
             if (favindex != null) {
                 this.isFav = true;
             }
+
+            const ctoVal = await userdata.get('config', 'explorer.clickToOpen');
+            (ctoVal == null) && await userdata.put('config', false, 'explorer.clickToOpen');
+            this.clickToOpen = ctoVal === true;
             
             this.objectCount = this.listdata.length || 0;
             globalThis.appInstance_.instance.apptitle = this.path;
@@ -134,7 +139,7 @@ const data = {
             });
         }, 500),
 
-        async openFile() {
+        async openFile(blank = false) {
             const selection = this.$refs.lst.selection;
             if (selection.size < 1) {
                 return ElMessage.error(tr("ui.string:objectNotSelected"));
@@ -179,7 +184,9 @@ const data = {
             }
 
             if (__result) {
-                location.hash = __result;
+                blank ?
+                    window.open(__result, '_blank')?.focus() :
+                    location.hash = __result;
             }
         },
 

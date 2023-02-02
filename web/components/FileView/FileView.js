@@ -107,6 +107,11 @@ const data = {
                     this.loadingInstance = null;
                 }
                 this.updateLock = false;
+
+                if (await userdata.get('config', 'file.preview.auto') === true)
+                this.$nextTick(() => {
+                    this.preview();
+                })
                 
             }).call(this)
             .catch(error => {
@@ -238,7 +243,7 @@ const data = {
         },
 
         async deleteSelf() {
-            globalThis.appInstance_.instance.transferPanel_isOpen = true;
+            // globalThis.appInstance_.instance.transferPanel_isOpen = true;
             globalThis.appInstance_.addTask({
                 type: 'delete',
                 files: [{

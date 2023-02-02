@@ -6,7 +6,8 @@
         customDragMimeType="application/x-web-file-explorer-item"
         :customDragData="customDragData"
         :customCheckDrag="customCheckDrag"
-        @open="openFile"
+        :clickToOpen="clickToOpen"
+        @open="openFile(false)" @openblank="openFile(true)"
         @drop="handleObjectDropping"
     >
         <div class="header" slot="header">

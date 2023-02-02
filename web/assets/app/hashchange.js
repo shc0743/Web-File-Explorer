@@ -19,4 +19,8 @@ export default {
         this.$data.current_page = 'fileOps';
     },
 
+    "#/settings/"(hash) {
+        this.$data.current_page = 'settings';
+    },
+
 };

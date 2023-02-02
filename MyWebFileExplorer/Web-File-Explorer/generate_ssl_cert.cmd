@@ -10,8 +10,6 @@ REM The above copyright notice and this permission notice shall be included in a
 REM
 REM THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-echo this is trashed
-pause&exit /b
 
 
 if "%1"=="" goto error1
@@ -34,6 +32,17 @@ exit /b 1
 :start
 
 title SSL Cert Generator
+echo ================================================
+echo           SSL Cert Generator v:1.2
+echo;
+echo Free software licensed under MIT license. All rights reserved.
+echo ================================================
+echo Warning: 
+echo     The certificate generated is NOT trusted by 
+echo web browsers, they're only use for testing.
+echo     DO NOT use this tool to generate a
+echo certificate that will use in production!!
+echo ================================================
 echo OpenSSL: %1
 echo;
 
@@ -46,9 +55,8 @@ set /p ou=What is the OU (organization unit)?
 set /p cname=What is the CNAME if you knows? (if you don't know, just press Enter to skip) 
 if "%cname%"=="" set cname=127.0.0.1
 set /p email=What is the email address of this certificate? 
-set /p altName=What is the alt name of this certificate? 
 
-set subject="/C=%c%/ST=%st%/L=%l%/O=%org%/OU=%ou%/CN=%cname%/emailAddress=%email%/subjectAltName=%altName%"
+set subject="/C=%c%/ST=%st%/L=%l%/O=%org%/OU=%ou%/CN=%cname%/emailAddress=%email%"
 
 echo ================================================
 echo ^| Please review your options:

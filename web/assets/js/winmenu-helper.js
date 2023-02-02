@@ -225,6 +225,7 @@
         z-index: 800001;
 
         background: #ffffff;
+        box-sizing: border-box;
         box-shadow: 3px 3px 2px 0px #aaa;
 
         display: flex;
@@ -236,6 +237,9 @@
 
         transition: opacity 0.2s;
         opacity: 0;
+
+        max-height: calc(100% - 3px);
+        overflow: auto;
     }
     .${menu_class}[open] > * {
         opacity: 1;

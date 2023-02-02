@@ -99,6 +99,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			.setDocumentRoot(s_webroot)
 			.setUploadPath(s_upload)
 			.setThreadNum(8)
+			.setClientMaxBodySize(8388608)
+			.setClientMaxMemoryBodySize(8388608)
+			.setFileTypes({
+				"html","css","js",
+				"webmanifest","importmap",
+				"png","json","svg","map"})
 			.registerController(srv);
 		bool useSSL = false;
 		if (!sslCert.empty()) {

@@ -220,13 +220,17 @@ globalThis.addEventListener('keydown', function (ev) {
     }
     if (ev.key.toUpperCase() === 'P' && ev.ctrlKey && ev.shiftKey) {
         ev.preventDefault();
-        return globalThis.commandPanel?.open();
+        return globalThis.commandPanel?.toggle();
     }
     if (ev.key.toUpperCase() === 'K' && ev.ctrlKey && !ev.shiftKey) {
         ev.preventDefault();
         return globalThis.appInstance_.instance.transferPanel_isOpen =
             !globalThis.appInstance_.instance.transferPanel_isOpen;
     }
+    if (ev.key === ',' && ev.ctrlKey) {
+        return !(location.hash = '#/settings/');
+    }
+
 });
 
 

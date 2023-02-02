@@ -29,7 +29,6 @@ outline: none;
 
 // themes
 
-// a switch to enable/disable dark theme.
 import { theme_dark, theme_autoCompute } from './themes.js';
 export const theme_default = `
 v-list-view {
@@ -94,6 +93,12 @@ v-list-row {
     background: var(--v-list-row-bg);
     outline: var(--v-list-row-outline);
 }
+.click-to-open v-list-row {
+    cursor: pointer;
+}
+.click-to-open v-list-row:hover {
+    text-decoration: underline;
+}
 v-list-row:nth-last-child(1) {
     margin-bottom: 0;
 }
@@ -118,6 +123,14 @@ v-list-row.dragging, v-list-row.dropping {
     color: var(--v-list-row-dragging-color);
 }
 `;
+
+
+
+import { TickManager } from './TickManager.js';
+
+export const tickManager = new TickManager(500);
+
+
 
 
 class HTMLVirtualListElement extends HTMLElement {
@@ -174,7 +187,7 @@ class HTMLVirtualListElement extends HTMLElement {
     }
 
     on(ev, fn, opt = {}, target = null) {
-        (target || this).addEventListener(ev, fn.bind(target || this), opt);
+        (target || this).addEventListener(ev, fn.bind(this), opt);
     }
 
     #registerEventHandlers() {
@@ -183,7 +196,8 @@ class HTMLVirtualListElement extends HTMLElement {
         this.on('keydown', this.#onkeydown, { capture: true });
         this.on('scroll', this.#onscroll, { passive: true });
         this.on('click', this.#onclick);
-        this.on('dblclick', this.#ondblclick, { capture: true });
+        this.on('dblclick', this.#ondblclick);
+        this.on('mousedown', this.#onmousedown);
         this.on('dragstart', this.#ondragstart);
         this.on('dragend', this.#ondragend);
         this.on('dragenter', this.#ondragenter);
@@ -192,6 +206,8 @@ class HTMLVirtualListElement extends HTMLElement {
         this.on('drop', this.#ondrop);
         this.on('dragend', this.#handleDragEndAndDrop);
         this.on('drop', this.#handleDragEndAndDrop);
+        this.on('pointerover', this.#onpointerover, { capture: true }, this.#divContainer);
+        this.on('pointerout', this.#onpointerout, { capture: true }, this.#divContainer);
 
     }
 
@@ -214,11 +230,13 @@ class HTMLVirtualListElement extends HTMLElement {
 
 
 // custom elements lifecycle start
+    #cancelOnTick = null;
+
     connectedCallback() {
         this.tabIndex = 0;
 
         this.role = 'tree';
-        this.ariaMultiSelectable = true;
+        this.ariaMultiSelectable = !this.noMultiple;
 
         this.#mutationObserver?.observe(this, {
             attributes: true,
@@ -227,8 +245,14 @@ class HTMLVirtualListElement extends HTMLElement {
         });
         this.#resizeObserver?.observe(this);
 
-        this.#mutationFn();
+        globalThis.queueMicrotask(() => {
+            this.#mutationFn();
+            for (const i of HTMLVirtualListElement.observedAttributes)
+                this.#attrChanged(i);
+        })
 
+        tickManager.add(this);
+        this.#cancelOnTick = tickManager.ontick(this.#ontick.bind(this));
     }
 
     disconnectedCallback() {
@@ -237,6 +261,8 @@ class HTMLVirtualListElement extends HTMLElement {
         this.#mutationObserver?.disconnect();
         this.#resizeObserver?.unobserve(this);
 
+        this.#cancelOnTick();
+        tickManager.delete(this);
     }
 
 
@@ -244,6 +270,27 @@ class HTMLVirtualListElement extends HTMLElement {
         this.#header.classList[(this.querySelector('[slot="header"]') ? 'remove' : 'add')]('empty');
 
     }
+
+    static get observedAttributes() { return ['no-multiple', 'click-to-open'] }
+    attributeChangedCallback(name, oldValue, newValue) {
+        globalThis.queueMicrotask(() => this.#attrChanged(name, oldValue, newValue));
+    }
+
+    #attrChanged(name) {
+        switch (name) {
+            case 'no-multiple':
+                this.ariaMultiSelectable = !this.noMultiple;
+                break;
+            
+            case 'click-to-open':
+                this.#divContainer.classList[this.clickToOpen ? 'add' : 'remove']('click-to-open');
+                break;
+        
+            default:
+                break;
+        }
+    }
+
 // custom elements lifecycle end
 
 
@@ -319,7 +366,7 @@ class HTMLVirtualListElement extends HTMLElement {
         }
         if (ev.key === 'Enter' && this.selection.size) {
             ev.preventDefault();
-            this.dispatchEvent(new CustomEvent('open', { target: this }));
+            this.dispatchEvent(new CustomEvent(ev.ctrlKey ? 'openblank' : 'open', { target: this }));
             return;
         }
         if (ev.key === 'Escape') {
@@ -345,7 +392,12 @@ class HTMLVirtualListElement extends HTMLElement {
         globalThis.requestAnimationFrame(() => this.updateOnScroll());
     }
 
-    #onclick(ev) {
+    get clickToOpen() { return (this.getAttribute('click-to-open') != null) }
+    set clickToOpen(val) {
+        val ? this.setAttribute('click-to-open', '') : this.removeAttribute('click-to-open');
+        return true;
+    }
+    #onclick(ev, _internal_just_test_dont_open = false) {
         // handle selection
         do {
             const path = ev.composedPath();
@@ -365,11 +417,8 @@ class HTMLVirtualListElement extends HTMLElement {
             if (i?.tagName?.toLowerCase() === 'v-list-row') {
                 if (ev.ctrlKey || ev.shiftKey) {
                     if (ev.ctrlKey) {
-                        this.selection[
-                            this.selection.has(i.dataset.n) ? 'delete' : 'add'
-                        ](i.dataset.n);
-                        if (this.selection.has(i.dataset.n)) this.#lastSelection = i.dataset.n;
-                        else this.#lastSelection = null;
+                        this.selection.toggle(i.dataset.n);
+                        this.#lastSelection = (this.selection.has(i.dataset.n) ? i.dataset.n : null);
                     }
                     else if (ev.shiftKey && this.#lastSelection != null) {
                         const rangeStart = this.#lastSelection, rangeEnd = i.dataset.n;
@@ -378,6 +427,9 @@ class HTMLVirtualListElement extends HTMLElement {
                     return;
                 }
                 this.#lastSelection = this.selection = i.dataset.n;
+                if ((!_internal_just_test_dont_open) && this.clickToOpen) {
+                    this.dispatchEvent(new CustomEvent('open', { target: i }));
+                }
                 break;
             }
         }
@@ -388,10 +440,50 @@ class HTMLVirtualListElement extends HTMLElement {
 
         for (const i of path) {
             if (i?.tagName?.toLowerCase() === 'v-list-row') {
-                this.dispatchEvent(new CustomEvent('open', { target: i }));
+                this.dispatchEvent(new CustomEvent(ev.button === 1 ? 'openblank' : 'open', { target: i }));
                 break;
             }
         }
+    }
+
+    #onmousedown(ev) {
+        if (ev.button === 1) {
+            this.#onclick(ev, true);
+            if (this.selection.size) {
+                ev.preventDefault();
+                return this.#ondblclick(ev);
+            }
+            return true;
+        }
+
+    }
+
+    #hovern = null;
+    #hovert = null;
+    #onpointerover(ev) {
+        const path = ev.composedPath();
+        for (const i of path) {
+            if (i?.tagName?.toLowerCase() === 'v-list-row' && (!ev.ctrlKey) && (!ev.shiftKey)) {
+                this.#hovern = i.dataset.n;
+                this.#hovert = tickManager.get(this);
+            }
+        }
+    }
+    #onpointerout(ev) {
+        this.#hovern = this.#hovert = null;
+    }
+
+    #ontick() {
+        // 1. select when hover for serval seconds in Click-To-Open mode
+        if (this.clickToOpen && this.#hovern != null && !isNaN(this.#hovert)) {
+            const currentTick = tickManager.get(this);
+            if (currentTick - this.#hovert > 1) {
+                this.selection = this.#hovern;
+                this.#hovern = this.#hovert = null;
+            }
+        }
+
+        
     }
 // common event handlers end
 
@@ -607,8 +699,8 @@ class HTMLVirtualListElement extends HTMLElement {
     get noMultiple() { return (this.getAttribute('no-multiple') != null) }
     set noMultiple(val) {
         val ?
-            this.setAttribute('no-multiple', '') :
-            this.removeAttribute('no-multiple');
+            (this.setAttribute('no-multiple', ''), this.ariaMultiSelectable = false) :
+            (this.removeAttribute('no-multiple'), this.ariaMultiSelectable = true);
         return true;
     }
 // multiple handling end

@@ -12,6 +12,7 @@
   "doctitle$=manageServer": "Manage servers",
   "doctitle$=upload": "Upload File",
   "doctitle$=fileOps": "File Operations",
+  "doctitle$=settings": "Settings",
   "ui.welcome.title/h1[0]": "Start",
   "ui.login.ui/server": "Server",
   "ui.login.ui/pswd": "Password",
@@ -98,5 +99,7 @@
   "ui.file.time.access": "Access Time",
   "ui.file.time.write": "Write Time",
   "ui.fo.fileops.do": "Execute",
-  "ui.fo.fileops.type": "Type"
+  "ui.fo.fileops.type": "Type",
+  "ui.settings.basic": "Basic Settings",
+  "ui.settings.all": "All Settings"
 }

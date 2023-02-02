@@ -58,6 +58,14 @@ const data = [
             AppendMenu(m, String, {}, r['Move File'], fileops);
             AppendMenu(m, String, {}, r['Link File'], fileops);
             AppendMenu(m, 'separator');
+            AppendMenu(m, String, {}, r['Command Panel'], function () {
+                globalThis.commandPanel?.toggle();
+            });
+            AppendMenu(m, 'separator');
+            AppendMenu(m, String, {}, r['Settings'], function () {
+                location.hash = '#/settings/';
+            });
+            AppendMenu(m, 'separator');
             AppendMenu(m, String, {}, r['Close'], function () { close() });
 
             return m;

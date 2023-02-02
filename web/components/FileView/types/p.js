@@ -1,7 +1,7 @@
 // preview
 import 'flv.js';
 const data = {};
-assoc(data, 'txt,log,c,cpp,cxx,cc,h,hpp,asm,htm,html,js,css,py,pyw,java,go,sh,bat,cmd,vbs,ini,inf,ps1,xml,xaml,scss', PlainTextPreview, "Plain Text Viewer");
+assoc(data, 'txt,log,c,cpp,cxx,cc,h,hpp,asm,htm,html,js,css,py,pyw,java,go,sh,bat,cmd,vbs,ini,inf,ps1,xml,xaml,scss,reg,json,cs,md,php,yaml', PlainTextPreview, "Plain Text Viewer");
 assoc(data, 'bmp,jpg,jpeg,png,tiff,webp', PicturePreview, "Picture Viewer");
 assoc(data, 'mp3', AudioPreview, "Audio Player");
 assoc(data, 'mp4,webm,ogg', VideoPreviewNative, "Video Player (native)");

@@ -571,6 +571,7 @@ void server::FileServer::getFileInfo(const HttpRequestPtr& req, std::function<vo
 		time["creation"] = uc.QuadPart;
 		time["access"] = ua.QuadPart;
 		time["write"] = uw.QuadPart;
+		CloseHandle(hFile);
 	}
 	ret["time"] = time;
 

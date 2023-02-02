@@ -38,17 +38,8 @@ a, button {
     display: flex;
     flex-direction: column;
 
-    transition: filter .2s;
-
     color: var(--text-color);
     background: var(--background);
-}
-@media (prefers-color-scheme: dark) {
-/* >>>, >>> * {
-    /|* filter: grayscale(1); *|/
-    background: black;
-    color: white;
-} */
 }
 >>> [data-app] > .main {
     flex: 1;
@@ -121,6 +112,7 @@ a, button {
                 <ServerList v-if="current_page === 'serverList'" :servers="servers" @toggle-server="toggleServer" />
                 <UploadPage v-if="current_page === 'upload'" :servers="servers" />
                 <FileOps v-if="current_page === 'fileOps'" :servers="servers" />
+                <AppSettings v-if="current_page === 'settings'" />
             </main>
         </div>
 

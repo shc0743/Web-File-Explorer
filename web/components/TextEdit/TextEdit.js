@@ -19,7 +19,7 @@ const data = {
     },
 
     props: {
-        modelValue: String,
+        modelValue: [String, Number],
         disabled: Boolean,
         clearable: Boolean,
         showPassword: Boolean,
@@ -28,6 +28,7 @@ const data = {
         formatter: Function,
         parser: Function,
         inline: Boolean,
+        input_type: { type: String, default: 'el-input' }, // can be 'el-input' or 'native'
         type: { type: String, default: 'text' },
         placeholder: { type: String, default: '' },
         idInit: undefined,
@@ -43,10 +44,12 @@ const data = {
     computed: {
         text: {
             get() { return this.modelValue },
-            set(value) { this.$emit('update:modelValue', value, this.$refs.textbox) }
+            set(value) { this.$emit('update:modelValue', value, this.$refs.textbox || this.$refs.textbox_native) }
         },
         textComputed() {
-            return this.showPassword ? '*'.repeat(this.text.length) : this.text;
+            void(this.placeholder);
+            const val1 = this.showPassword ? '*'.repeat(this.text.length) : this.text;
+            return val1 == null ? this.placeholder : String(val1);
         },
         styleInput() {
             return this.inline ? 'width: revert;' : '';
@@ -61,7 +64,7 @@ const data = {
             this.internal__opt_noSave = false;
             this.text_ = this.text;
             this.editMode = true;
-            this.$nextTick(() => this.$refs.inputbox.focus());
+            this.$nextTick(() => (this.$refs.inputbox || this.$refs.inputbox_native).focus());
         },
         onEnter(ev) {
             if (this.type === 'textarea') return;
@@ -70,8 +73,9 @@ const data = {
         finishEdit() {
             this.editMode = false;
             if (!this.internal__opt_noSave) {
-                const $1 = this.text, $2 = this.text_;
+                let $1 = this.text, $2 = this.text_;
                 const $3 = this.updateId.bind(this);
+                if (this.type === 'number') $2 = Number($2);
                 this.$nextTick(() => this.$emit('changed', this.id, $2, $1, this.customData, $3));
                 this.text = $2;
             }
@@ -96,5 +100,5 @@ export default data;
 
 import { LoadCSS } from '@/assets/js/ResourceLoader.js';
 import { getVdeep } from '@/assets/js/browser_side-compiler.js';
-LoadCSS(`[${getVdeep(componentId)}]:empty::after{content:"(empty)";}`);
+LoadCSS(`[${getVdeep(componentId)}]>span:empty::after{content:"(empty)";}`);
 

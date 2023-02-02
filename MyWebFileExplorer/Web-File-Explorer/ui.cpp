@@ -368,9 +368,6 @@ LRESULT WndProc_Main(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 		data->bSSLGen = button(L"Generate", 7);
 		data->Split4 = text(L"", 0, 0, 1, 1, WS_BORDER);
 
-		// ssl generator ÔÝÊ±²»ÍêÉÆ
-		ShowWindow(data->bSSLGen, SW_HIDE);
-
 
 
 #undef MYCTLS_VAR_HFONT
@@ -399,12 +396,12 @@ LRESULT WndProc_Main(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 		SetWindowPos(data->bApp,			0,	10, 170, sz.cx -20, 30, 0);
 		SetWindowPos(data->Split3,			0,	10, 210, sz.cx -20, 1, 0);
 		SetWindowPos(data->tSSL,			0,	10, 220, 60, 20, 0);
-		SetWindowPos(data->eSSL,			0,	80, 220, sz.cx -170, 20, 0);
-		SetWindowPos(data->bSSL,			0,	sz.cx -80, 220, 70, 20, 0);
+		SetWindowPos(data->eSSL,			0,	80, 220, sz.cx -250, 20, 0);
+		SetWindowPos(data->bSSL,			0,	sz.cx -160, 220, 70, 20, 0);
 		SetWindowPos(data->tSSLK,			0,	10, 250, 60, 20, 0);
-		SetWindowPos(data->eSSLK,			0,	80, 250, sz.cx -170, 20, 0);
-		SetWindowPos(data->bSSLK,			0,	sz.cx -80, 250, 70, 20, 0);
-		//SetWindowPos(data->bSSLGen,			0,	sz.cx -80, 220, 70, 50, 0);
+		SetWindowPos(data->eSSLK,			0,	80, 250, sz.cx -250, 20, 0);
+		SetWindowPos(data->bSSLK,			0,	sz.cx -160, 250, 70, 20, 0);
+		SetWindowPos(data->bSSLGen,			0,	sz.cx -80, 220, 70, 50, 0);
 		SetWindowPos(data->Split4,			0,	10, 280, sz.cx -20, 1, 0);
 		SetWindowPos(data->wCreditEdit,		0,	10, 290, sz.cx -20, sz.cy -300, 0);
 

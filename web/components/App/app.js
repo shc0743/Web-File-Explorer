@@ -11,6 +11,7 @@ import ServerView from '../ServerView/serverview.js';
 import ServerList from '../ServerList/ServerList.js';
 import UploadPage from '../UploadPage/upload.js';
 import FileOps from '../FileOps/FileOps.js';
+import AppSettings from '../AppSettings/AppSettings.js';
 import MobileNavTool from './MobileNavTool.js';
 import TransferPanel from '../TransferPanel/TransferPanel.js';
 
@@ -45,6 +46,7 @@ const data = {
         ServerList,
         UploadPage,
         FileOps,
+        AppSettings,
         MobileNavTool,
         TransferPanel,
     },

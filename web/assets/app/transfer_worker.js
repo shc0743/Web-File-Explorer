@@ -120,6 +120,7 @@ function addTask(taskinfo, detail = {}) {
 
                 const { uploadFile, uploadFileHandle } = await import('../workers/upload.js');
                 queueMicrotask(async() => {
+                    let hasFail = false;
                     for (const i of transferTasks) {
                         if (i.type !== 'upload' || i.status !== 'pending') continue;
                         i.status = 'prep';
@@ -134,17 +135,17 @@ function addTask(taskinfo, detail = {}) {
                             updateUI(i, 'status', tr('Finished'));
                             updateUI(i, 'isFinished', true);
                             notifyTaskUpdate();
-                            detail.notify && notify({ type: 'taskDone', task: detail });
                         }
                         catch (error) {
                             i.status = 'error';
                             i.error = error;
                             // console.error(error);
+                            hasFail = true;
                             updateUI(i, 'status', 'Error: ' + error);
-                            detail.notify && notify({ type: 'taskFail', task: detail });
                         }
                     }
                     notify({ type: 'dataUpdated' });
+                    detail.notify && notify({ type: hasFail ? 'taskFail' : 'taskDone', task: taskinfo, detail: detail });
                 });
             });
             break;
@@ -214,6 +215,7 @@ function addTask(taskinfo, detail = {}) {
                 notifyTaskUpdate();
                 
                 queueMicrotask(async () => {
+                    let hasFail = false;
                     for (const i of transferTasks) {
                         if (i.type !== 'delete' || i.status !== 'pending') continue;
                         i.status = 'prep';
@@ -237,10 +239,12 @@ function addTask(taskinfo, detail = {}) {
                         catch (error) {
                             i.status = 'error';
                             i.error = error;
+                            hasFail = true;
                             updateUI(i, 'status', 'Error: ' + error);
                         }
                     }
                     notify({ type: 'dataUpdated' });
+                    detail.notify && notify({ type: hasFail ? 'taskFail' : 'taskDone', task: taskinfo, detail: detail });
                 });
             });
             break;
@@ -259,6 +263,7 @@ function addTask(taskinfo, detail = {}) {
                 notifyTaskUpdate();
                 
                 queueMicrotask(async () => {
+                    let hasFail = false;
                     try {
                         updateUI(d, 'status', tr("Running"));
                         const url = new URL('/file/new/dir', taskinfo.server);
@@ -277,6 +282,7 @@ function addTask(taskinfo, detail = {}) {
                     catch (error) {
                         d.status = 'error';
                         d.error = error;
+                        hasFail = true;
                         updateUI(d, 'status', 'Error: ' + error);
                     }
                     notify({ type: 'dataUpdated' });

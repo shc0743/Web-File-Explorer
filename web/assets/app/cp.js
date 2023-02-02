@@ -6,12 +6,18 @@ const cpTemplate = document.createElement('template');
 cpTemplate.innerHTML = `
 <div class="cp-editor" autofocus contenteditable />
 `;
+const rpTemplate = document.createElement('template');
+rpTemplate.innerHTML = `
+
+`;
 
 
 export class CommandPanel {
 
     #wrapper = null;
+    #container = null;
     #el = null;
+    #rp = null;
 
     constructor() {
         this.#wrapper = document.createElement('dialog');
@@ -19,11 +25,22 @@ export class CommandPanel {
         this.#wrapper.classList.add('cp-wrapper');
         (document.body || document.documentElement).append(this.#wrapper);
 
+        this.#container = document.createElement('div');
+        this.#container.classList.add('cp');
+        this.#container.classList.add('container');
+        this.#wrapper.append(this.#container);
+
         this.#el = document.createElement('div');
         this.#el.classList.add('cp');
         this.#el.classList.add('CommandPanel');
         this.#el.append(cpTemplate.content.cloneNode(true));
-        this.#wrapper.append(this.#el);
+        this.#container.append(this.#el);
+
+        this.#rp = document.createElement('div');
+        this.#rp.classList.add('cp');
+        this.#rp.classList.add('result-panel');
+        this.#rp.append(rpTemplate.content.cloneNode(true));
+        this.#container.append(this.#rp);
 
         this.#el.querySelector('.cp-editor')?.addEventListener('blur', this.#onblur.bind(this));
         this.#el.querySelector('.cp-editor')?.addEventListener('keydown', this.#onkeydown.bind(this));
@@ -39,6 +56,11 @@ export class CommandPanel {
     close() {
         this.#wrapper.close();
         
+    }
+
+    get isOpen() { return !!this.#wrapper.open }
+    toggle() {
+        this.isOpen ? this.close() : this.open();
     }
 
     #onblur() {
@@ -80,18 +102,24 @@ LoadCSS(`
     border: 0; padding: 0;
     width: 0; height: 0;
 }
-.cp.CommandPanel {
+.cp.container {
     position: fixed;
-    top: 10px;
     left: 0; right: 0;
-    margin: 0 auto;
-    padding: 10px;
+    top: 10px;
     width: 50%;
+    margin: 0 auto;
+
+    display: flex;
+    flex-direction: column;
+}
+.cp.container > * {
+    padding: 10px;
     border: 1px solid var(--border-color, #cccccc);
     border-radius: 4px;
     background: var(--color-scheme-background, var(--background));
-    box-shadow: #cccccc 0px 0px 4px 2px;
-
+    box-shadow: #cccccc 0px 0px 4px 1px;
+}
+.cp.CommandPanel {
     --color: black;
 }
 .cp.CommandPanel .cp-editor {
@@ -104,6 +132,9 @@ LoadCSS(`
     overflow: hidden;
     border-radius: 4px;
     outline: 0;
+}
+.cp.result-panel {
+    margin-top: 10px;
 }
 `);
 

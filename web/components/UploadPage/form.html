@@ -1,6 +1,7 @@
 <div
     class="component-root"
     @dragenter.capture="isDragging=true"
+    @dragleave.self="isDragging=false"
     @dragend.capture="isDragging=false"
     @drop.capture="isDragging=false"
     @keydown.capture.esc="isDragging=false"
@@ -37,7 +38,6 @@
         <ElFormItem v-if="useNewUploader" :label="tr('ui.file.upload.local')" prop="localFile"></ElFormItem>
         <div v-if="useNewUploader" v-show="!isLoading" class="upload-area" v-deep tabindex="0" role="button"
         @dragover.prevent="isDropping=true"
-        @dragleave="isDropping=false"
         @drop.prevent="nu_drop"
         @click="nu_click"
         @keydown.enter="nu_click"
@@ -98,12 +98,6 @@ form>>> {
 }
 .file-item>>>+.file-item>>> {
     margin-top: 8px;
-}
-input[type=file]>>> {
-    position: fixed;
-    left: 0; right: 0; top: 0; bottom: 0;
-    background-color: var(--background);
-    z-index: 101;
 }
 .chosen-header>>> {
     border-bottom: 1px solid #ccc;
