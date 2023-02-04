@@ -8,5 +8,7 @@
   "FullScreen (Esc to cancel)": "进入全屏 (按 Esc 以退出)",
   "Get Help": "获取帮助", "Close": "关闭",
   "Copy File": "复制文件", "Move File": "移动文件", "Link File": "创建符号链接",
-  "Command Panel": "命令面板", "Settings": "设置"
+  "Command Panel": "命令面板", "Settings": "设置", "Rename": "重命名",
+  "Select All": "全选", 
+  "Terminal": "终端", "New Terminal": "新建终端", "Open in terminal": "在当前位置打开终端"
 }

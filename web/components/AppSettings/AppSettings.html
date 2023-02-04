@@ -4,7 +4,7 @@
     <fieldset v-deep>
         <legend>{{tr('ui.settings.all')}}</legend>
 
-        <SettingsList v-model="settings_data.all" @changed="updateSettings"></SettingsList>
+        <OptionList v-model="settings_data.all" @changed="updateSettings"></OptionList>
     </fieldset>
 
     <details style="margin-top: 40px">

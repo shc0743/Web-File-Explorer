@@ -15,7 +15,7 @@ export async function uploadFile({ server, pswd, path, filename: name, override,
             await send(server, pswd, composedPath, newBlob, pos, override);
         }
         catch (error) {
-            if (++errorCount > 10) throw error;
+            if (++errorCount > 6) throw error;
             let ms = errorCount * 500;
             cb && cb(error, `Error (${errorCount}), retry after ${ms}ms..`);
             await delay(ms);
@@ -27,6 +27,7 @@ export async function uploadFile({ server, pswd, path, filename: name, override,
             lastStep = step;
             cb && cb(pos / size);
         }
+        errorCount = 0;
         await new Promise(resolve => queueMicrotask(resolve));
     }
 }

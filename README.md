@@ -8,9 +8,9 @@ Explore your file in a web browser, add/edit/delete them online.
 - Create or delete a file or directory online
 - Preview files without downloading
 - (coming soon) Edit text files with a plain text editor, edit binary files with a HEX editor
-- (coming soon) Run command in a virtual terminal in a browser
-- Server: HTTP RESTful API with SSL support
-- Multi-language support (Welcome [contributions]())
+- (coming soon) Remote Terminal
+- Server: HTTP RESTful API with SSL support ([details](https://github.com/shc0743/Web-File-Explorer/blob/main/MyWebFileExplorer/README.md))
+- Multi-language support (Welcome [contributions](#))
 
 
 # Installation

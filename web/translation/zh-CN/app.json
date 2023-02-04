@@ -15,6 +15,7 @@
   "doctitle$=upload": "上传文件",
   "doctitle$=fileOps": "文件操作",
   "doctitle$=settings": "设置",
+  "doctitle$=terminal": "终端",
   "ui.welcome.title/h1[0]": "开始",
   "ui.login.ui/server": "服务器",
   "ui.login.ui/pswd": "密码",
@@ -106,5 +107,12 @@
   "ui.fo.fileops.do": "执行",
   "ui.fo.fileops.type": "类型",
   "ui.settings.basic": "基本设置",
-  "ui.settings.all": "所有设置"
+  "ui.settings.all": "所有设置",
+  "ui.fo.rename": "为 $1 输入新名称：",
+  "ui.rename.title": "批量重命名",
+  "ui.rename.count": "您即将重命名 $1 个文件。",
+  "ui.rename.replacer": "Replacer: (使用 n 代表序号, $ 代表文件名, 允许使用 JavaScript 表达式, 使用 {} 包装多个表达式)",
+  "ui.rename.warning.paste": "警告：使用他人提供的Replacer可能导致数据泄露等安全风险！\n确定继续？",
+  "ui.rename.example.title": "示例",
+  "ui.file.o/rse": "远程 ShellExecute"
 }

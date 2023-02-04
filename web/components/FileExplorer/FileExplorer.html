@@ -1,4 +1,4 @@
-<div v-deep ref="app" @keydown.delete="deleteSelected">
+<div v-deep ref="app" @keydown.delete="deleteSelected" @keydown="rename">
     <v-list-view
         ref="lst"
         :data="renderList"

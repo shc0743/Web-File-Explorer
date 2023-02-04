@@ -598,8 +598,13 @@ bool static sys_copy_or_move(std::wstring& src, std::wstring& dest, int type) {
 	if (type == 2) return MoveFileExW(src.c_str(), dest.c_str(),
 		MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH);
 
-	if (type == 3) return CreateSymbolicLinkW(dest.c_str(), src.c_str(),
-		srcType == 1 ? 0x0 : SYMBOLIC_LINK_FLAG_DIRECTORY);
+	if (type == 3) {
+		if (CreateSymbolicLinkW(dest.c_str(), src.c_str(),
+			srcType == 1 ? 0x0 : SYMBOLIC_LINK_FLAG_DIRECTORY)) return true;
+		return CreateSymbolicLinkW(dest.c_str(), src.c_str(),
+			(srcType == 1 ? 0x0 : SYMBOLIC_LINK_FLAG_DIRECTORY)
+			| SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE);
+	}
 
 	return false;
 }
@@ -651,6 +656,42 @@ void server::FileServer::newDir(const HttpRequestPtr& req, std::function<void(co
 	if (!CreateDirectoryW(wsname.c_str(), NULL)) {
 		resp->setStatusCode(k500InternalServerError);
 		resp->setBody("Failed, code=" + to_string(GetLastError()));
+	}
+	callback(resp);
+}
+
+
+void server::FileServer::sysShellExecute(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback) const
+{
+	string_view body = req->getBody();
+	wstring wsname;
+	llvm::ConvertUTF8toWide(body.data(), wsname);
+	str_replace(wsname, L"/", L"\\");
+	string verb = req->getHeader("x-shell-execute-verb");
+	if (verb.empty()) verb = "open";
+
+	// try to convert GUID path to classic path.
+	// If we don't do this, almost everything cannot work.
+	try {
+		wstring guid = wsname.substr(4);
+		guid = guid.substr(0, guid.find(L"\\"));
+		guid = L"\\\\?\\" + guid + L"\\";
+		WCHAR buffer1[512]{}; DWORD dwLen = 0;
+		if (GetVolumePathNamesForVolumeNameW(guid.c_str(), buffer1, 512, &dwLen)) {
+			wsname.replace(wsname.begin(), wsname.begin() + guid.length(), buffer1);
+		}
+		//DebugBreak();
+	}
+	catch (std::exception&) {}
+	
+	HttpResponsePtr resp = HttpResponse::newHttpResponse();
+	CORSadd(req, resp);
+	resp->setContentTypeCode(CT_TEXT_PLAIN);
+	if ((INT_PTR)ShellExecuteW(NULL, s2ws(verb).c_str(), wsname.c_str(), NULL, NULL, SW_NORMAL) <= 32) {
+		if (!Process.StartOnly_HiddenWindow(L"cmd.exe /c start \"\" \"" + wsname + L"\" ")) {
+			resp->setStatusCode(k500InternalServerError);
+			resp->setBody("Failed, code=" + to_string(GetLastError()));
+		}
 	}
 	callback(resp);
 }

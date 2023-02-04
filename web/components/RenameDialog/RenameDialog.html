@@ -1,0 +1,43 @@
+<dialog ref="dlg" class="component-root" v-deep>
+    <form method="dialog" ref="form" @submit.prevent="perform">
+        <div style="font-weight:bold;font-size:x-large">{{tr('ui.rename.title')}}</div>
+
+        <div style="margin: 10px 0">
+            <p>{{tr('ui.rename.count').replaceAll('$1', count)}}</p>
+            <div>{{tr('ui.rename.replacer')}}</div>
+            <ElInput v-model="replacer" type="textarea" autosize @paste="pasteWarn" />
+            <div v-if="errorText" style="color: red">{{errorText}}</div>
+            <details>
+                <summary v-text="tr('ui.rename.example.title')"></summary>
+                <ul>
+                    <li>Add a order before each filename: <code>n+$</code></li>
+                    <li>Add a order after each filename: <code>$.includes('.') ? ($.substring(0, $.lastIndexOf('.')) + '-' + n + $.substring($.lastIndexOf('.'))) : ($ + '-' + n)</code></li>
+                    <li>Replace "hello" with "world" in filename: <code>$.replaceAll('hello', 'world')</code></li>
+                    <li>Multi-line expression:<br><code>{<br>return 'hello,' + $<br>}</code></li>
+                </ul>
+            </details>
+        </div>
+
+        <div>
+            <button type="submit" ref="submitButton" hidden></button>
+            <ElButton type="primary" @click="$refs.submitButton.click()">{{tr('dialog.ok')}}</ElButton>
+            <ElButton @click="$refs.dlg.close()">{{tr('dialog.cancel')}}</ElButton>
+        </div>
+    </form>
+</dialog>
+
+<style>
+.component-root>>> {
+    border: 1px solid;
+}
+>>> li {
+    margin: 12px 0;
+}
+>>> code {
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    padding: 5px;
+    user-select: all;
+    font-family: Consolas, monospace;
+}
+</style>

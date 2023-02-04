@@ -217,9 +217,10 @@ const data = {
         },
 
         async rename() {
+            const dest = this.fileinfo.path + '/' + this.filename;
+            if (this.path === dest) return;
             const loading = ElLoading.service({ lock: false, fullscreen: false, target: this.$refs.root });
             try {
-                const dest = this.fileinfo.path + '/' + this.filename;
                 const task = {
                     type: 'move',
                     files: [{
@@ -242,7 +243,7 @@ const data = {
             }
         },
 
-        async deleteSelf() {
+        deleteSelf() {
             // globalThis.appInstance_.instance.transferPanel_isOpen = true;
             globalThis.appInstance_.addTask({
                 type: 'delete',
@@ -259,6 +260,34 @@ const data = {
                 history.replaceState({}, '', hash);
                 queueMicrotask(() => window.dispatchEvent(new HashChangeEvent('hashchange')));
             }).catch(error => ElMessage.error(String(error)));
+        },
+
+        async remoteExecute() {
+            try {
+                const url = new URL('/sys/ShellExecute', this.server.addr);
+                const resp = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'x-auth-token': this.server.pswd },
+                    body: this.path
+                });
+                if (!resp.ok) throw 'HTTP ERROR ' + resp.status + " : " + await resp.text();
+                ElMessage.success('');
+            } catch (error) {
+                ElMessage.error(String(error));
+            }
+        },
+
+        toHumanReadableSize(size) {
+            const units = ['Byte', 'KB', 'MB', 'GB', 'TB', 'EB'], n = 1024, d = 6;
+            let newSize = size, unit = units[0];
+            for (let i = 0, unitslen = units.length; i < unitslen; ++i) {
+                unit = units[i];
+                let _val = Math.floor((newSize / n) * (10 ** d)) / (10 ** d);
+                if (_val < 1 || i + 2 > unitslen) break;
+                newSize = _val;
+                unit = units[i + 1];
+            }
+            return newSize + ' ' + unit + (unit !== units[0] ? (` (${size} ${units[0]})`) : '');
         },
         
     },
@@ -277,6 +306,11 @@ const data = {
         const { opts } = await import('./opts.js');
         this.opts = opts;
         for (const i in opts) this.moreOptionList[i] = opts[i];
+        globalThis.appInstance_.showPropertiesDialog = () =>
+            (!this.$refs.fileprop?.open) && this.$refs.fileprop?.showModal();
+    },
+    beforeUnmount() {
+        delete globalThis.appInstance_.showPropertiesDialog;
     },
 
     template: await getHTML(import.meta.url, componentId),

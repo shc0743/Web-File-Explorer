@@ -13,6 +13,7 @@
   "doctitle$=upload": "Upload File",
   "doctitle$=fileOps": "File Operations",
   "doctitle$=settings": "Settings",
+  "doctitle$=terminal": "Terminal",
   "ui.welcome.title/h1[0]": "Start",
   "ui.login.ui/server": "Server",
   "ui.login.ui/pswd": "Password",
@@ -101,5 +102,12 @@
   "ui.fo.fileops.do": "Execute",
   "ui.fo.fileops.type": "Type",
   "ui.settings.basic": "Basic Settings",
-  "ui.settings.all": "All Settings"
+  "ui.settings.all": "All Settings",
+  "ui.fo.rename": "Please type the new name of $1",
+  "ui.rename.title": "Batch Rename",
+  "ui.rename.count": "You are about to rename $1 files.",
+  "ui.rename.replacer": "Replacer: (Use n to represent the order, $ to represent the file name, JavaScript expression allowed, use {} to wrap multiline expression)",
+  "ui.rename.warning.paste": "Warning: using Replacer provided by others may cause security risks such as data leakage!\nStill continue?",
+  "ui.rename.example.title": "Examples",
+  "ui.file.o/rse": "Remote ShellExecute"
 }

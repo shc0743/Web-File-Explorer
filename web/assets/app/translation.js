@@ -23,6 +23,7 @@ if (!translation_table) do {
         const resp = await fetch(`translation/${default_lang}/app.json`);
         if (!resp.ok) continue;
         translation_table = await resp.json();
+        lang = default_lang;
     }
     catch { continue }
 } while (0);
@@ -30,6 +31,7 @@ if (!translation_table) do {
 if (!translation_table) {
     // Failed to load language file
     console.error('[translation]', 'Failed to load translation table!');
+    throw new Error('translation: Failed to load translation table');
 } else {
     // translation table loaded correctly
 

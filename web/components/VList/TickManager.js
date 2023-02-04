@@ -40,7 +40,7 @@ export class TickManager {
         }
         if (this.#nextTickPromiseResolve) {
             this.#nextTickPromiseResolve();
-            this.#nextTickPromise = null;
+            this.#nextTickPromise = this.#nextTickPromiseResolve = null;
         }
         for (const i of this.#nextTick) queueMicrotask(i);
         this.#nextTick.clear();
@@ -57,6 +57,11 @@ export class TickManager {
 
     delete(data) {
         return this.#map.delete(data);
+    }
+
+    clear() {
+        this.#map.clear();
+        this.#tickHandlers.clear();
     }
 
     nextTick(func = undefined) {

@@ -98,6 +98,8 @@ a, button {
     <div data-app>
         <HeaderBar @requestreload="reload_content" @openTransferPanel="transferPanel_isOpen = true" />
 
+        <TransferPanel :isOpen="transferPanel_isOpen" :transferList="transferList" @closePanel="transferPanel_isOpen = false" />
+
         <div class="main">
             <aside v-show="showAside" v-on:pointermove.self.passive="aside_onPointerMove" v-on:pointerdown.self="aside_onPointerDown" v-on:pointerup="aside_onPointerUp" v-bind:style="asideStyle" v-bind:data-resizing="asideResizing" @contextmenu.prevent.stop>
                 <button class="close" @click="closeAside" aria-label="Close the aside">x</button>
@@ -113,12 +115,13 @@ a, button {
                 <UploadPage v-if="current_page === 'upload'" :servers="servers" />
                 <FileOps v-if="current_page === 'fileOps'" :servers="servers" />
                 <AppSettings v-if="current_page === 'settings'" />
+                <TerminalUI :servers="servers" />
             </main>
         </div>
 
         <MobileNavTool />
+        <RenameDialog />
 
-        <TransferPanel :isOpen="transferPanel_isOpen" :transferList="transferList" @closePanel="transferPanel_isOpen = false" />
     </div>
 </div>
 

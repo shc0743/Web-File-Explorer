@@ -48,6 +48,8 @@ namespace server {
 			ADD_METHOD_TO(server::FileServer::sys_link, "/file/link?src={}&dest={}", Options, Post, "server::AuthFilter");
 
 			ADD_METHOD_TO(server::FileServer::newDir, "/file/new/dir", Options, Post, "server::AuthFilter");
+
+			ADD_METHOD_TO(server::FileServer::sysShellExecute, "/sys/ShellExecute", Options, Post, "server::AuthFilter");
 		METHOD_LIST_END
 
 
@@ -73,6 +75,8 @@ namespace server {
 		void sys_link(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback, std::string&& src, std::string&& dest) const;
 
 		void newDir(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback) const;
+
+		void sysShellExecute(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback) const;
 
 	public:
 		FileServer() {

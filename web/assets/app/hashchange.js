@@ -23,4 +23,9 @@ export default {
         this.$data.current_page = 'settings';
     },
 
+    "#/terminal/"(hash) {
+        this.$data.current_page = 'terminal';
+        globalThis.appInstance_.terminal?.update();
+    },
+
 };

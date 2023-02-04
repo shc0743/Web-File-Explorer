@@ -213,22 +213,31 @@ globalThis.addEventListener('storage', function (ev) {
 
 
 globalThis.addEventListener('keydown', function (ev) {
-    if (ev.key === 'F5' && !(ev.ctrlKey || ev.shiftKey)) {
+    const key = ev.key.toUpperCase();
+    if (key === 'F5' && !(ev.ctrlKey || ev.shiftKey)) {
         if (!globalThis.location.hash.startsWith('#/s/')) return;
         ev.preventDefault();
         return window.dispatchEvent(new HashChangeEvent('hashchange'));
     }
-    if (ev.key.toUpperCase() === 'P' && ev.ctrlKey && ev.shiftKey) {
+    if (key === 'P' && ev.ctrlKey && ev.shiftKey) {
         ev.preventDefault();
         return globalThis.commandPanel?.toggle();
     }
-    if (ev.key.toUpperCase() === 'K' && ev.ctrlKey && !ev.shiftKey) {
+    if (key === 'K' && ev.ctrlKey && !ev.shiftKey) {
         ev.preventDefault();
         return globalThis.appInstance_.instance.transferPanel_isOpen =
             !globalThis.appInstance_.instance.transferPanel_isOpen;
     }
-    if (ev.key === ',' && ev.ctrlKey) {
+    if (key === ',' && ev.ctrlKey) {
         return !(location.hash = '#/settings/');
+    }
+    if (key === 'N' && ev.ctrlKey) {
+        ev.preventDefault();
+        return globalThis.appInstance_.newFileOp(ev.shiftKey ? 'dir' : 'file');
+    }
+    if (key === 'ENTER' && ev.altKey) {
+        ev.preventDefault();
+        return globalThis.appInstance_.showPropertiesDialog?.();
     }
 
 });

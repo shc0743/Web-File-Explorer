@@ -32,6 +32,18 @@ export const opts = [
     },
     {
         id: 5,
+        text: t('ui.file.o/rse'),
+        cb() {
+            this.remoteExecute();
+        },
+    },
+    {
+        id: 6,
+        disabled: true,
+        text: '--------',
+    },
+    {
+        id: 7,
         text: t('Delete'),
         cb() {
             ElMessageBox.confirm(t('ui.fo.confirm/delete').replaceAll('$1', ''), 'Delete File', {
@@ -45,12 +57,12 @@ export const opts = [
         },
     },
     {
-        id: 6,
+        id: 8,
         disabled: true,
         text: '--------',
     },
     {
-        id: 7,
+        id: 9,
         text: t('Properties'),
         cb() {
             this.$refs.fileprop.showModal();

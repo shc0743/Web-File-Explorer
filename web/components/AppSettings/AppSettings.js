@@ -1,5 +1,5 @@
 import { getHTML } from '@/assets/js/browser_side-compiler.js';
-import SettingsList from './SettingsList.js';
+import OptionList from '../OptionList/OptionList.js';
 
 
 const componentId = 'd4080c23793342e786f2698bf628bacd';
@@ -15,7 +15,7 @@ const data = {
     },
 
     components: {
-        SettingsList,
+        OptionList,
     },
 
     methods: {

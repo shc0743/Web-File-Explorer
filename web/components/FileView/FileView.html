@@ -7,12 +7,12 @@
         <div style="color:gray;font-size:x-small">Binary File</div>
 
         <div class="file text file-path center">
-            <ElTooltip placement="top">
+            <!-- <ElTooltip placement="top">
                 <template #content>
                     <div style="max-width: 100%; word-break: break-all;">{{path}}</div>
-                </template>
+                </template> -->
                 <TextEdit v-deep class="path" v-model="filename" @changed="rename"></TextEdit>
-            </ElTooltip>
+            <!-- </ElTooltip> -->
         </div>
 
         <div class="file btn btn-group btn-primary">
@@ -42,12 +42,12 @@
     <div v-deep v-if="type === 'preview'" class="preview">
         <div class="file text file-path" style="display: flex; align-items: center; width: 100%;">
             <img :src="fileIcon" alt="File Icon" style="height: 1em; margin-right: 8px;" />
-            <ElTooltip placement="top-start">
+            <!-- <ElTooltip placement="top-start">
                 <template #content>
                     <div style="max-width: 100%; word-break: break-all;">{{path}}</div>
-                </template>
+                </template> -->
                 <TextEdit v-deep class="path" style="flex: 1; margin-right: 10px;" v-model="filename" @changed="rename"></TextEdit>
-            </ElTooltip>
+            <!-- </ElTooltip> -->
             <ElPopover placement="bottom" trigger="click">
                 <template #reference>
                     <ElButton>
@@ -104,7 +104,7 @@
             </ElDescriptionsItem>
             <ElDescriptionsItem>
                 <template #label>{{ tr('ui.file.size') }}</template>
-                <span>{{serverSideFileInfo.size}}</span>
+                <span>{{toHumanReadableSize(serverSideFileInfo.size)}}</span>
             </ElDescriptionsItem>
             <ElDescriptionsItem>
                 <template #label>{{ tr('ui.file.attr') }}</template>

@@ -14,9 +14,11 @@ import FileOps from '../FileOps/FileOps.js';
 import AppSettings from '../AppSettings/AppSettings.js';
 import MobileNavTool from './MobileNavTool.js';
 import TransferPanel from '../TransferPanel/TransferPanel.js';
+import RenameDialog from '../RenameDialog/RenameDialog.js';
+import TerminalUI from '../Terminal/terminal-ui.js';
 
 
-const componentId = '65ea71a404e947c0b8d52896ca5837eb';
+export const componentId = '65ea71a404e947c0b8d52896ca5837eb';
 
 
 
@@ -49,6 +51,8 @@ const data = {
         AppSettings,
         MobileNavTool,
         TransferPanel,
+        RenameDialog,
+        TerminalUI,
     },
 
     computed: {

@@ -1,0 +1,98 @@
+<div v-deep class="component-root" v-if="isActive">
+<style v-if="hideStatusbar">
+[{{appVdeep}}] header, [{{appVdeep}}] aside {
+    display: none !important;
+}
+</style>
+<style>
+.component-root>>> {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+
+    --terminal-color: #cccccc;
+    --terminal-background: #0c0c0c
+}
+.terminal>>> {
+    color: var(--terminal-color);
+    background: var(--terminal-background);
+    font-family: var(--terminal-font-family, Consolas);
+    padding: var(--terminal-padding, 10px);
+    flex: 1;
+}
+.tabbar>>> {
+    display: flex;
+    justify-content: space-between;
+    place-items: center;
+    border-bottom: 1px solid var(--text-color);
+    padding: 10px 10px 0 10px;
+    background: var(--terminal-tabbar-bg, #eaeaea);
+}
+.tabbar>>> > .tabs {
+    flex: 1;
+    overflow: auto;
+    white-space: nowrap;
+}
+.tabbar>>> > .tabs::-webkit-scrollbar {
+    width: auto; height: 1px;
+}
+.tabbar>>> .close {
+    position: relative;
+    top: -4px; right: -8px;
+}
+.tabbar>>> .tab {
+    padding: 5px 0px 5px 10px;
+    border: 1px solid var(--theme-tab-border, #ccc);
+    /* border-radius: 5px; */
+    border-bottom: 0;
+    display: inline-flex;
+    place-items: center;
+    cursor: default;
+    user-select: none;
+    transition: .2s;
+    margin-right: 12px;
+}
+.tabbar>>> .tab > button {
+    padding: 5px 8px;
+}
+.tabbar>>> .tab > .tab-title {
+    position: relative;
+    top: -1px;
+    margin: 0 5px;
+}
+.tabbar>>> .tab:hover {
+    background-color: var(--terminal-tab-hover-bg, #e2e2e2);
+}
+.tabbar>>> .tab.current {
+    background-color: var(--terminal-tab-current-bg, #f9f9f9);
+    font-weight: bold;
+}
+</style>
+
+    <div class="header flex-header tabbar" v-deep>
+        <div class="tabs" role="tabpanel" ref="tabs" @wheel.passive="handleTabbarWheel">
+            <div v-for="item in instances"
+                :key="item.id" :data-id="item.id"
+                :class="current === item.id ? 'tab current' : 'tab'"
+                role="tab"
+                @mousedown.middle="terminateTab(item.id, 'down')"
+                @mouseup.middle.prevent="terminateTab(item.id, 'up')"
+                draggable="true"
+                @dragstart.self="handleTabDragstart"
+                @dragover.self.prevent
+                @drop.self="handleTabDrop">
+                <span class="tab-title">{{item.title}}</span>
+                <ElButton text @click="terminateTab(item.id)"><ElIcon><Close /></ElIcon></ElButton>
+            </div>
+        </div>
+        <div class="close">
+            <span><ElButton text><ElIcon><Plus /></ElIcon></ElButton></span>
+            <ElButton text><ElIcon><Close /></ElIcon></ElButton>
+        </div>
+    </div>
+
+    <div class="terminal" v-deep>
+        <span>Terminal is still in developing. Coming soon!</span>
+    </div>
+</div>

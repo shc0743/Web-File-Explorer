@@ -1,7 +1,9 @@
 (function (window) {
 
-    var menu_class = 'WINCLASS-_32768';
-    var do_not_show_new_popup = false;
+    const menu_class = 'WINCLASS-_32768';
+    const LAST_POSITION = Symbol();
+    let do_not_show_new_popup = false;
+    let lastPosition = { x: 0, y: 0 };
 
     window.CreatePopupMenu = function CreatePopupMenu() {
         let menu = document.createElement('div');
@@ -48,7 +50,12 @@
             let sub = document.createElement('div');
             sub.tabIndex = 0;
             sub.append(document.createTextNode(data));
-            if (event) sub.addEventListener('pointerup', event);
+            if (config && config.submenu) {
+                sub.addEventListener('pointerup', () => {
+                    TrackPopupMenu(event, LAST_POSITION);
+                });
+            }
+            else if (event) sub.addEventListener('pointerup', event);
             sub.onkeydown = function (ev) {
                 if (ev.key.includes('Enter')) {
                     ev.target.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
@@ -82,6 +89,10 @@
     window.TrackPopupMenu = function TrackPopupMenu(hMenu, x, y, flags = 0) {
 
         if (do_not_show_new_popup) return false;
+        if (x === LAST_POSITION) {
+            x = lastPosition.x, y = lastPosition.y;
+        }
+        else lastPosition.x = x, lastPosition.y = y;
 
         (document.documentElement).append(hMenu);
 

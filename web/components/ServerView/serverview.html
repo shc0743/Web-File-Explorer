@@ -22,7 +22,6 @@
     <FileView v-if="viewType === 'fileview'" :ref="updateView" :server="currentSrv" :path="explorerPath" />
 
     <UploadForm v-if="viewType === 'sys/upload'" :ref="updateView" :server="currentSrv" :path="pathSrc" />
-</my-container>
 
 <style>
 my-container>>> {
@@ -31,3 +30,5 @@ my-container>>> {
     height: 100%;
 }
 </style>
+</my-container>
+

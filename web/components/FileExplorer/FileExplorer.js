@@ -96,7 +96,10 @@ const data = {
                     headers: { 'x-auth-token': this.server.pswd },
                 });
                 if (!resp.ok) return resp;
-                return (await resp.text()).split('\n').filter(el => el.length > 2 && (!forbiddenKeywords.includes(el)));
+                return (await resp.text())
+                    .split('\n')
+                    .filter(el => el.length > 2 && (!forbiddenKeywords.includes(el)))
+                    .sort();
             }
             catch (error) { return error };
         },
@@ -433,6 +436,44 @@ const data = {
                 type: 'delete',
                 files: files,
             });
+        },
+
+        async rename(ev) {
+            if (ev.key !== 'F2') return;
+
+            let el_data = this.listdata;
+            if (!el_data) return;
+            if (this.$refs.lst.getFilter())
+                el_data = this.listdata.filter(this.$refs.lst.getFilter());
+            const p = this.path.endsWith('/') ? this.path : this.path + '/';
+            const file = this.$refs.lst.selection,
+                srv = this.server.addr,
+                pw = this.server.pswd;
+            if (file.size == 0) return;
+            else if (file.size === 1) {
+                const src = el_data[file.toArray()[0]].substring(2);
+                ElMessageBox.prompt(
+                    h('div', { style: 'word-break:break-all' },
+                        tr('ui.fo.rename').replaceAll('$1', p + src)), 'File Operation', {
+                    confirmButtonText: tr('dialog.ok'),
+                    cancelButtonText: tr('dialog.cancel'),
+                    inputValidator: v => !!v,
+                    inputValue: src,
+                }).then(name => {
+                    if (name.action !== 'confirm') return;
+                    const task = {
+                        type: 'move',
+                        files: [{
+                            server: srv, pswd: pw,
+                            src: p + src, dest: p + name.value,
+                        }]
+                    };
+                    globalThis.appInstance_.addTask(task, { wait: true });
+                }).catch(() => { });
+            }
+            else if (file.size > 1) {
+                globalThis.appInstance_.renameDialog?.rename(file, el_data, p, srv, pw);
+            }
         },
 
 

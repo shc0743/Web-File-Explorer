@@ -119,7 +119,9 @@ v-list-row.checked, v-list-row.dragging, v-list-row.dropping {
 v-list-row.checked, v-list-row.dragging {
     outline: var(--v-list-row-focus-outline);
 }
-v-list-row.dragging, v-list-row.dropping {
+v-list-row.dragging, v-list-row.dropping,
+#container:has(v-list-row.dragging) v-list-row.checked
+{
     color: var(--v-list-row-dragging-color);
 }
 `;
@@ -567,12 +569,13 @@ class HTMLVirtualListElement extends HTMLElement {
         this.lastDropEffect = dropEffect;
     }
     #ondragleave(ev) {
+        this.classList.remove('dropping');
 
     }
     #ondrop(ev) {
         if (!this.#checkIfDragAllowed(ev)) return;
-        //console.log(ev.dataTransfer.getData('application/x-vlist-item-drag'));
-        // user custom event handlers will do something
+        this.classList.remove('dropping');
+        // user custom event handlers should do something
         // else this do no effect
     }
     #checkIfDragAllowed(ev, prevent = true) {
@@ -622,6 +625,10 @@ class HTMLVirtualListElement extends HTMLElement {
             newSelection = Number(newSelection);
             this.#selection.add(newSelection);
             this.#updateSelectionElement();
+            if (!this.#isRectInView(newSelection * this.#line_height,
+                (newSelection + 1) * this.#line_height)) {
+                this.scrollTop = newSelection * this.#line_height;
+            }
             return true;
         }
 
@@ -880,10 +887,16 @@ class HTMLVirtualListElement extends HTMLElement {
         return el;
     }
 
+    #isRectInRect(pbegin, pend, begin, end) {
+        return (begin >= pbegin && end <= pend);
+    }
+    #isRectInView(begin, end, container = this) {
+        return this.#isRectInRect(container.scrollTop, container.scrollTop + container.clientHeight, begin, end);
+    }
     #isElementInView_h(el, container) {
         const begin = container.scrollTop, end = begin + container.clientHeight;
         const el_begin = el.offsetTop, el_end = el_begin + el.offsetHeight;
-        return (el_begin >= begin && el_end <= end);
+        return this.#isRectInRect(begin, end, el_begin, el_end);
     }
 // painting end
 

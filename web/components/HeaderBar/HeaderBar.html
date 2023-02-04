@@ -18,7 +18,7 @@
     <MainMenuBar v-deep class="ws" />
     <span v-deep class="sep ws" style="margin: 0 10px 0 5px"></span>
     <!-- <div v-deep ref="current_directory" class="cd">&nbsp;</div> -->
-    <div v-deep role="" class="titlebar" :title="apptitle">{{apptitle}}</div>
+    <div v-deep class="titlebar" :title="apptitle">{{apptitle}}</div>
     <span v-deep class="sep" style="margin: 0 5px"></span>
     <SysCtl @closeapp="closeapp" class="window-controls-container" />
 </header>
@@ -38,7 +38,7 @@
 </div>
 
 <style>
-@media screen and (max-width: 539px) {
+@media screen and (max-width: 599px) {
 >>>.ws { /* wide screen */
     display: none;
 }

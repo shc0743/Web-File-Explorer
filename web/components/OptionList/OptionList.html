@@ -1,0 +1,67 @@
+<table v-deep v-bind="$attrs">
+    <tbody>
+        <tr v-for="item in listarr">
+            <td class="name">
+                <TextEdit class="TextEdit" v-model="item[0]" @changed="update_value()" />
+            </td>
+            <td class="value">
+                <TextEdit v-if="canBeTextEdit(item[1])" class="TextEdit" v-model="item[1]" @changed="update_value()" />
+                <label v-else-if="typeof(item[1])==='boolean'">
+                    <input type="checkbox" v-model="item[1]" @change="update_value()" />
+                    <span>Boolean value</span>
+                </label>
+                <span v-else>Unsupported type</span>
+            </td>
+            <td class="operation"><button type="button" @click="delete_value(item)">Delete</button></td>
+        </tr>
+
+        <tr>
+            <td class="name">
+                <TextEdit class="TextEdit" v-model="createValue.k" @changed="new_value()" placeholder="(New value...)" />
+            </td>
+            <td class="value">
+                <TextEdit class="TextEdit" v-model="createValue.v" @changed="new_value()" placeholder="&lt;-- Click to set the key" />
+            </td>
+            <td></td>
+        </tr>
+    </tbody>
+</table>
+
+<style>
+table>>> {
+    box-sizing: border-box;
+    width: calc(100% - 2 * var(--margin));
+    margin: var(--margin);
+    font-family: monospace;
+
+    --margin: 5px;
+}
+table>>>, table>>> tr, table>>> td {
+    border: 1px solid gray;
+    border-collapse: collapse;
+}
+table>>> td {
+    padding: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+table>>> td.name {
+    font-weight: bold;
+    width: 1px;
+    background-color: #f4f7fc;
+}
+table>>> td.operation {
+    width: 1px;
+}
+table>>> .TextEdit {
+    display: inline-block;
+    width: 100%;
+    min-width: 120px;
+    --el-component-size: 24px;
+}
+table>>> .TextEdit > * {
+    width: 100%;
+    box-sizing: border-box;
+}
+</style>
