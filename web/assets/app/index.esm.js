@@ -106,7 +106,7 @@ updateLoadStat('Register shared worker');
 if (globalThis.SharedWorker) {
     let hasTask = false;
     const tasksInQueue = new Map();
-    const worker = new SharedWorker(import.meta.resolve('./transfer_worker.js'), { type: 'module' });
+    const worker = new SharedWorker(('assets/app/transfer_worker.js'), { type: 'module' });
     globalThis.appInstance_.worker = worker;
     worker.port.onmessage = (function (ev) {
         if (!ev.data) return;

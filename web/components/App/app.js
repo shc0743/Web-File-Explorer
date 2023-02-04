@@ -18,7 +18,8 @@ import RenameDialog from '../RenameDialog/RenameDialog.js';
 import TerminalUI from '../Terminal/terminal-ui.js';
 
 
-export const componentId = '65ea71a404e947c0b8d52896ca5837eb';
+const componentId = '65ea71a404e947c0b8d52896ca5837eb';
+export { componentId };
 
 
 
@@ -151,7 +152,12 @@ const data = {
 
     },
 
-    template: await getHTML(import.meta.url, componentId),
+    // template: await getHTML(import.meta.url, componentId), // 这里importShim polyfill了一个很奇怪的表达式：
+    // template: await getHTML(importShim._r['http://192.168.0.103:4307/web-file-explorer/web/components/App/app.js'].m
+    // ;import{u$_}from'blob:http://192.168.0.103:4307/6ce422f5-12fc-4754-9c2a-936395f494f6';try{u$_({componentId:componentId})}catch(_){};
+    // .url, componentId),
+    // 估计是它内部bug，于是现在只能这么写了。。。
+    template: await getHTML('components/App/app.js', componentId),
 
 };
 

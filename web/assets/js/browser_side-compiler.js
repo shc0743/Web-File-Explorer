@@ -2,7 +2,7 @@
 
 
 export async function getHTML(jspath, cid) {
-    const url = new URL(jspath);
+    const url = new URL(jspath, location.href);
     const url2 = url.pathname.replace('.js', '.html');
     const resp = await fetch(url2);
     if (!resp.ok) return null;

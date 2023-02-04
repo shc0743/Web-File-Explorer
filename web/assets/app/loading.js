@@ -9,6 +9,8 @@
         <div style="display: inline-block; width: 20px;"></div>
         <div data-content></div>
     </div>
+
+    <table class="error-tracker"></table>
     
     <style>
 .loading-spin {
@@ -27,12 +29,22 @@
 @keyframes loading-animation-01 {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
+}
+.error-tracker { 
+    border: 1px solid gray;
+    word-break: break-all;
+    font-family: Consolas, monospace;
+}
+.tracker-lineno {
+    background-color: rgb(240, 240, 240);
+    white-space: nowrap; text-align: right;
 }</style>`;
     const cont = el.querySelector('[data-content]');
     (document.body || document.documentElement).append(el);
 
     global.FinishLoad = function FinishLoad() {
         delete global.FinishLoad;
+        delete global.ShowLoadProgress;
         cont.innerHTML = '';
         window.removeEventListener('error', scriptErrorHandler);
         el.remove();
@@ -51,6 +63,7 @@
 
     function scriptErrorHandler(ev) {
         ShowLoadProgress(`${ev.message} ([${ev.filename}], line#${ev.lineno} column#${ev.colno})`, true)
+        trackError(ev, el.querySelector('.error-tracker'));
     }
     window.addEventListener('error', scriptErrorHandler);
 
@@ -78,6 +91,53 @@
         for (const i in timeouts) timeoutid.push(setTimeout(timeouts[i], i));
     }
     (updateTimeout());
+    async function trackError(ev, el) {
+        try {
+            if (!ev.filename) throw 'filename not found';
+            const resp = await fetch(ev.filename);
+            if (!resp.ok) throw `Failed to fetch, HTTP error ${resp.status}`;
+            const blob = await resp.blob();
+            if (blob.size > 1048576) throw 'file too large : size ' + blob.size;
+            const text = await blob.text();
+            let arr = text.split('\n');
+            el.innerHTML = '';
+            {
+                const tr = document.createElement('tr');
+                const td1 = document.createElement('td');
+                const td2 = document.createElement('td');
+                td1.className = 'tracker-lineno';
+                td1.innerText = 'File.', td2.innerText = ev.filename;
+                tr.append(td1), tr.append(td2);
+                el.append(tr);
+            }
+            for (let i = 0, l = arr.length; i < l; ++i){
+                const tr = document.createElement('tr');
+                const ln = document.createElement('td');
+                const dt = document.createElement('td');
+                ln.innerText = i + 1 + '. ';
+                ln.className = 'tracker-lineno';
+                if (i + 1 === ev.lineno) {
+                    tr.style.color = 'red';
+                    ln.style.fontWeight = 'bold';
+                    let str = arr[i];
+                    let el2 = document.createElement('span'), elError = document.createElement('span');
+                    elError.style.textDecoration = 'underline red';
+                    elError.style.fontWeight = 'bold';
+                    if (ev.colno) {
+                        el2.innerText = str.substring(0, ev.colno - 1);
+                        elError.innerHTML = str.substring(ev.colno - 1);
+                    } else elError.innerText = str;
+                    dt.append(el2); dt.append(elError);
+                } else dt.innerText = arr[i];
+                tr.append(ln);
+                tr.append(dt);
+                el.append(tr);
+            }
+        } catch (error) {
+            el.innerHTML = '<b>Failed to track error</b><br>';
+            el.append(String(error));
+        }
+    }
 
     ShowLoadProgress('preparing');
 
