@@ -11,6 +11,91 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 
 // VList v3
 
+/*
+Documentation
+
+class HTMLVirtualListElement
+Properties:
+    get/set data    Set the function that returns the data shown in the list. If source data changed but data function is not changed, call update() to update it manually.
+    get $data       Get the cached data. If data function is not set, this is null.
+    (normal property) customDragMimeType    Set the drag data's mime type. See "Drag&Drop" to learn more.
+    (normal property) customDragData        A function. See "Drag&Drop" to learn more.
+    (normal property) customCheckDrag       A function. See "Drag&Drop" to learn more.
+    get/set selection                       VList Selection data. See "Selection" to learn more.
+
+    shadowRoot      Return the shadow root. Maybe useful in some schemes?
+
+Attributes:
+    click-to-open (interface: get/set clickToOpen)      If this is true, just single click posts a "open" message. The behavior is "Click to open, hover to select".
+    allow-drag (interface: get/set allowDrag)           If this is true, all items are draggable. See "Drag&Drop" to learn more.
+    no-multiple (interface: get/set noMultiple)         If this is true, user (and selection API) can only select one item at the same time.
+
+APIs:
+    - public APIs
+    update()        Queue a update. See "Data" to learn more.
+    filter(fn)      Filter the data with fn. Return the length of filter result. To get the result, use $data property. See also: [Array.prototype.filter](developer.mozilla.net)
+    getFilter()     Get the current filter using by VList. This is useful when your user tried to filter something but it's difficult to save the filter.
+    setLineHeight(px, shouldAutoFix = true)     Set line height. In the VList control, all line's height is same. Use this api to set your own line height (just a item's clientHeight,
+                                                if you disabled auto-fix, you should use a <v-list-row> element and get its offsetHeight and add paddingTop and add paddingBottom. so, we suggested you to enable auto fix.)
+    - internal APIs
+    updateHeight()      Re-compute row height and container height. It's not necessary to call it manually, because a update() calls it too.
+    updateOnScroll(forceRedraw = false) Useless unless you're using a custom scroll framework such as better-scroll. Call this in a scroll event listener. Also, if there's some strange bug (after a long running), try to call with forceRedraw = true.
+
+Data:
+    the data function should return the array contains the data to be displayed.
+    Example:
+    (HTML)<v-list-view id=demo1></v-list-view>
+    (JS) demo1.data = () => [
+        ['text1', 'text2', 'text3'], // common text rendering. Each item will be put in a <v-list-item>.
+        [{html: '<b>Hello World!</b>It works!'}], // HTML is also supported. But notice, DO NOT use untrusted data such as user given!!
+        [{html: '<img src="eee" onerror=javascript:alert("HELLO")>'}], // Look, if you do this, user can execute JavaScript!
+    ]
+    Of course, this is a simple demo, so there is no dynamic load. But: You can also use a async function or a common function return a Promise. Async is supported, it's good for dynamic data download.
+
+Drag&Drop
+    VList provide good supports for native drag&drop. To enable it:
+    - Set allow-drag attribute or set allowDrag property to true
+    - (optional) set a (long) mime type for your data. This can prevent conflicts with other app (example: you set "text/uri-list" as the type, now user can open a meaningless webpage.)
+    - (optional) set customDragData to a function. The function will be call with arg: selection index. you can do nothing, in this case custom drag data is {the data you provided to show}[index]. Remember: This will be stringify, so DO NOT add a loop reference.
+    - (optional) set customCheckDrag to a function. You can check the arguments[0], these are types of this drop. e.g. ['application/x-vlist-item-drag'] (this is default if you didn't change customDragMimeType) return true to allow this drop, return false to disallow.
+    - Add a {ondrop} event handler. This is the final data after customCheckDrag's verify. You can get the data in event.dataTransfer. See also: MDN
+
+Selection
+    a Set with selection utility. This means you can simply enum it.
+    Example: 
+        (HTML)<v-list-view id=demo1></v-list-view>
+        (JS) for (const i of demo1.selection) console.log(i);
+    APIs:
+    (Tip: n is the index in $data)
+        selection.toArray()     Convert the Set to a Array.
+        selection = n           Set the selection to n.
+        selection.add(n)        Add a selection at n.
+        selection.delete(n)     Delete the selection at n.
+        selection.toggle(n)     Toggle the selection at n.
+        selection.has(n)        Check if n is selected.
+        selection.addRange(start : Number, end : Number)    Select items between start and end.
+        selection.extend(n)     Extend selection to n. If nothing selected, select n.
+
+Custom Events
+    open        User (double) clicked (depends on [click-to-open] attribute) items or pressed Enter to open them. You should open selection items.
+    openBlank   User pressed the middle button of the mouse or Ctrl+Enter keyshortcut. You should open selection items in a new window.
+
+
+====
+
+class HTMLVirtualListScrollbarElement
+
+A scrollbar to emulate native scrollbar but can accept very large integer. Used in v2, but in v3 it is no longer used.
+If you need this, you can also use. Element: <v-list-scrollbar></v-list-scrollbar>
+
+[Optional property] type    can be 'vertical' or 'horizontal'.
+[property] min(max)         Get or set the min (or max) value of the scrollbar.
+[property] value            Get or set the current value.
+
+
+
+*/
+
 
 
 addCSS(`
@@ -178,6 +263,7 @@ class HTMLVirtualListElement extends HTMLElement {
         this.#selection.delete = this.#deleteSelection.bind(this);
         this.#selection.toggle = this.#toggleSelection.bind(this);
         this.#selection.has = this.#hasSelection.bind(this);
+        this.#selection.extend = this.#extendSelection.bind(this);
         this.#selection.addRange = this.#selectionAddRange.bind(this);
         this.#selection.toArray = function () {
             const r = [];
@@ -226,7 +312,7 @@ class HTMLVirtualListElement extends HTMLElement {
         return true;
     }
     get $data() {
-        return this.#data || this.data;
+        return this.#data;
     }
 // data end
 
@@ -347,8 +433,8 @@ class HTMLVirtualListElement extends HTMLElement {
                     
                 if (!el) return;
                 let elTarget = (ev.key === 'ArrowUp') ? el.previousElementSibling : el.nextElementSibling;
-                if (!elTarget || !this.#isElementInView_h(elTarget, this)) {
-                    this.scrollBy(0, (this.#line_height + rowMarginBottom) * ((ev.key === 'ArrowUp') ? -1 : 1));
+                if (!elTarget || !this.#isElementInView_h(elTarget)) {
+                    this.scrollBy(0, (this.#line_height) * ((ev.key === 'ArrowUp') ? -1 : 1));
                     return nocall ? undefined : globalThis.queueMicrotask(handler.bind(this, true));
                 }
 
@@ -381,10 +467,16 @@ class HTMLVirtualListElement extends HTMLElement {
             this.selection = 'all';
             return;
         }
-        if ((ev.key === 'Home' || ev.key === 'End') && this.#data.size) {
+        if ((ev.key === 'Home' || ev.key === 'End') && (this.#data.length)) {
             ev.preventDefault();
-            if (ev.key === 'Home') this.selection = 0;
-            if (ev.key === 'End') this.selection = this.#data.size - 1;
+            const shouldSelection = (ev.key === 'Home') ? 0 : this.#data.length - 1;
+            if (ev.shiftKey) {
+                this.selection.extend(shouldSelection);
+            } else if (ev.ctrlKey) {
+                this.selection.add(shouldSelection);
+            }
+            else this.selection = shouldSelection;
+            this.#lastSelection = shouldSelection;
             return;
         }
         // console.log(ev.key);
@@ -662,6 +754,9 @@ class HTMLVirtualListElement extends HTMLElement {
         if (this.noMultiple) this.clearSelection(true);
         this.#selection._add.call(this.#selection, Number(i));
         this.#updateSelectionElement();
+        if (!this.#isRectInView(i * this.#line_height, (i + 1) * this.#line_height)) {
+            this.scrollTop = i * this.#line_height;
+        }
         return true;
     }
     #deleteSelection(i) {
@@ -692,6 +787,15 @@ class HTMLVirtualListElement extends HTMLElement {
         }
         this.#updateSelectionElement();
         return true;
+    }
+    #extendSelection(i) {
+        if (isNaN(i)) return false;
+        i = Number(i);
+        const currentSelection = this.#lastSelection || this.#selection.values().next().value;
+        if (!currentSelection) return this.selection = i;
+        let start = currentSelection, end = i;
+        if (end < start) [start, end] = [end, start];
+        return this.selection.addRange(start, end);
     }
 
     #setPfocus() {
@@ -893,8 +997,9 @@ class HTMLVirtualListElement extends HTMLElement {
     #isRectInView(begin, end, container = this) {
         return this.#isRectInRect(container.scrollTop, container.scrollTop + container.clientHeight, begin, end);
     }
-    #isElementInView_h(el, container) {
-        const begin = container.scrollTop, end = begin + container.clientHeight;
+    #isElementInView_h(el) {
+        const container = this, _fix = this.#header.offsetHeight;
+        const begin = container.scrollTop, end = begin + container.clientHeight - _fix;
         const el_begin = el.offsetTop, el_end = el_begin + el.offsetHeight;
         return this.#isRectInRect(begin, end, el_begin, el_end);
     }

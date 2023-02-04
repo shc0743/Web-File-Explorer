@@ -12,7 +12,7 @@
 1. Check "Show hidden files" in Explorer Options.
 2. Click "Stop server" and wait a moment.
 3. Close the application's window and wait a moment.
-4. Delete the application and `.AppName.exe.data`. For example, you saved the app as `WFE.exe`, you should delete `WFE.exe` and `.WFE.exe.data`.
+4. Delete the application and `AppName.exe.data`. For example, you saved the app as `WFE.exe`, you should delete `WFE.exe` and `WFE.exe.data`.
 5. Done! Thanks for using the application.
 
 ## Command-Line Options
@@ -43,6 +43,12 @@ These options need   --type=ui   option.
 -------- Server Options
 These options need   --type=server option.
 
-// TODO
+--allow-global-access    Use this option to make the server listen on 0.0.0.0  ; else, the server listens on 127.0.0.1
+--port=<Number>          Specify listen port
+--root-path=<Path>       Specify the root path. By default, it is ProgramName.exe.data
+--webroot=<Path>         Specify the webroot directory.
+--ssl-cert=<File>        Specify the SSL Cert. See [drogon](https://github.com/drogonframework/drogon/) to learn more.
+--ssl-key=<File>         Specify the SSL PEM Key file.
+--signal=<LongPtrHandle> Specify a inherited Event handle (created by CreateEvent). when SetEvent is called by parent or other process, the server quits.
 
 ```
