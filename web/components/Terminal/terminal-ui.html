@@ -1,6 +1,6 @@
 <div v-deep class="component-root" v-if="isActive">
 <style v-if="hideStatusbar">
-[{{appVdeep}}] header, [{{appVdeep}}] aside {
+[{{appVdeep}}] header, [{{appVdeep}}] aside, [{{appVdeep}}] .mobile-nav-tool {
     display: none !important;
 }
 </style>
@@ -35,7 +35,7 @@
     white-space: nowrap;
 }
 .tabbar>>> > .tabs::-webkit-scrollbar {
-    width: auto; height: 1px;
+    width: auto; height: 0px;
 }
 .tabbar>>> .close {
     position: relative;
@@ -76,7 +76,7 @@
                 :key="item.id" :data-id="item.id"
                 :class="current === item.id ? 'tab current' : 'tab'"
                 role="tab"
-                @mousedown.middle="terminateTab(item.id, 'down')"
+                @mousedown.middle.prevent="terminateTab(item.id, 'down')"
                 @mouseup.middle.prevent="terminateTab(item.id, 'up')"
                 draggable="true"
                 @dragstart.self="handleTabDragstart"

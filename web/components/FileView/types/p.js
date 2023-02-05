@@ -21,7 +21,7 @@ export const mimeTypes = {
     'mp4': 'video/mp4',
     'ogg': 'video/ogg',
     'webm': 'video/webm',
-    'flv': 'video/flv',
+    'flv': 'video/x-flv',
     'mp3': 'audio/mpeg',
     'png': 'image/png',
     'jpg': 'image/jpeg',

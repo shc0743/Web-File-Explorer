@@ -57,7 +57,7 @@ const data = {
                     ElMessage.error(`Failed to load data: HTTP error ${this.listdata.status}, error text:\n`
                         + await this.listdata.text());
                 this.m__updateLock = false;
-                return history.back();
+                return globalThis.navigation?.canGoBack && history.back();
             }
 
             this.isFav = false;
@@ -99,7 +99,7 @@ const data = {
                 return (await resp.text())
                     .split('\n')
                     .filter(el => el.length > 2 && (!forbiddenKeywords.includes(el)))
-                    .sort();
+                    .sort((a, b) => (a[0] == 'd' && b[0] == 'f') ? -1 : ((a[0] == 'f' && b[0] == 'd') ? 1 : 0));
             }
             catch (error) { return error };
         },

@@ -50,6 +50,7 @@ namespace server {
 			ADD_METHOD_TO(server::FileServer::newDir, "/file/new/dir", Options, Post, "server::AuthFilter");
 
 			ADD_METHOD_TO(server::FileServer::sysShellExecute, "/sys/ShellExecute", Options, Post, "server::AuthFilter");
+			ADD_METHOD_TO(server::FileServer::sysCreateProcess, "/sys/CreateProcess", Options, Post, "server::AuthFilter");
 		METHOD_LIST_END
 
 
@@ -77,6 +78,7 @@ namespace server {
 		void newDir(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback) const;
 
 		void sysShellExecute(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback) const;
+		void sysCreateProcess(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback) const;
 
 	public:
 		FileServer() {

@@ -244,6 +244,15 @@ globalThis.addEventListener('keydown', function (ev) {
 
 
 
+globalThis.setInterval(function () {
+    globalThis.appInstance_.instance.canGo = {
+        back: globalThis.navigation?.canGoBack,
+        forward: globalThis.navigation?.canGoForward,
+    }
+}, 1000);
+
+
+
 
 
 

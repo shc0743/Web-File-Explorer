@@ -1,4 +1,4 @@
-<div v-deep ref="app" @keydown.delete="deleteSelected" @keydown="rename">
+<div v-deep ref="app" @keydown="rename">
     <v-list-view
         ref="lst"
         :data="renderList"
@@ -8,7 +8,7 @@
         :customCheckDrag="customCheckDrag"
         :clickToOpen="clickToOpen"
         @open="openFile(false)" @openblank="openFile(true)"
-        @drop="handleObjectDropping"
+        @drop="handleObjectDropping" @keydown.delete="deleteSelected"
     >
         <div class="header" slot="header">
             <span v-for="item in selectedColumns">{{item}}</span>

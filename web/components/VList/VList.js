@@ -190,12 +190,14 @@ v-list-row:nth-last-child(1) {
 v-list-row.pfocus {
     color: var(--v-list-row-pf-color);
     background: var(--v-list-row-pf-bg);
-    outline: var(--v-list-row-pf-outline);
 }
 v-list-row:hover {
     color: var(--v-list-row-hover-color);
     background: var(--v-list-row-hover-bg);
     outline: var(--v-list-row-hover-outline);
+}
+v-list-row.pfocus {
+    outline: var(--v-list-row-pf-outline);
 }
 v-list-row.checked, v-list-row.dragging, v-list-row.dropping {
     color: var(--v-list-row-focus-color);
@@ -434,6 +436,14 @@ class HTMLVirtualListElement extends HTMLElement {
                 if (!el) return;
                 let elTarget = (ev.key === 'ArrowUp') ? el.previousElementSibling : el.nextElementSibling;
                 if (!elTarget || !this.#isElementInView_h(elTarget)) {
+                    // if (ev.shiftKey) {
+                    //     const arr = this.selection.toArray().sort((a, b) => a - b);
+                    //     let newSelection = (ev.key === 'ArrowUp') ? arr[0] - 1 : arr[arr.length - 1] + 1;
+                    //     if (!this.#isRectInView(newSelection * this.#line_height, (newSelection + 1) * this.#line_height)) {
+                    //         this.scrollTop = newSelection * this.#line_height;
+                    //     }
+                    //     return;
+                    // }
                     this.scrollBy(0, (this.#line_height) * ((ev.key === 'ArrowUp') ? -1 : 1));
                     return nocall ? undefined : globalThis.queueMicrotask(handler.bind(this, true));
                 }
@@ -451,6 +461,20 @@ class HTMLVirtualListElement extends HTMLElement {
                 }
             };
             return handler(false);
+        }
+        if (ev.key === 'PageDown' || ev.key === 'PageUp') {
+            ev.preventDefault();
+            let currentSelection = this.#lastSelection || this.#selection.values().next().value;
+            if (!currentSelection) currentSelection = 0;
+            const _fix = this.#header.offsetHeight;
+            const height = this.clientHeight - _fix;
+            let newSelection = currentSelection + ((ev.key === 'PageDown' ? 1 : -1) * (Math.floor(height / this.#line_height)));
+            newSelection = Math.max(0, Math.min(newSelection, this.#data.length - 1));
+            if (ev.ctrlKey || ev.shiftKey)
+                this.selection[ev.ctrlKey ? 'add' : 'extend'](newSelection);
+            else this.selection = newSelection;
+            
+            return;
         }
         if (ev.key === 'Enter' && this.selection.size) {
             ev.preventDefault();
@@ -725,9 +749,11 @@ class HTMLVirtualListElement extends HTMLElement {
         }
 
         if (newSelection === 'all') {
+            let scrollTop = this.scrollTop;
             let datalen = this.#data.length;
             for (let i = 0; i < datalen; ++i) this.#selection.add(i);
             this.#updateSelectionElement();
+            this.scrollTop = scrollTop;
             return true;
         }
 
@@ -752,7 +778,8 @@ class HTMLVirtualListElement extends HTMLElement {
     #addSelection(i) {
         if (isNaN(i)) return false;
         if (this.noMultiple) this.clearSelection(true);
-        this.#selection._add.call(this.#selection, Number(i));
+        i = +i;
+        this.#selection._add.call(this.#selection, i);
         this.#updateSelectionElement();
         if (!this.#isRectInView(i * this.#line_height, (i + 1) * this.#line_height)) {
             this.scrollTop = i * this.#line_height;
@@ -795,7 +822,10 @@ class HTMLVirtualListElement extends HTMLElement {
         if (!currentSelection) return this.selection = i;
         let start = currentSelection, end = i;
         if (end < start) [start, end] = [end, start];
-        return this.selection.addRange(start, end);
+        this.selection.addRange(start, end);
+        if (!this.#isRectInView(i * this.#line_height, (i + 1) * this.#line_height)) {
+            this.scrollTop = i * this.#line_height;
+        }
     }
 
     #setPfocus() {
@@ -995,7 +1025,8 @@ class HTMLVirtualListElement extends HTMLElement {
         return (begin >= pbegin && end <= pend);
     }
     #isRectInView(begin, end, container = this) {
-        return this.#isRectInRect(container.scrollTop, container.scrollTop + container.clientHeight, begin, end);
+        const _fix = container === this ? this.#header.offsetHeight : 0;
+        return this.#isRectInRect(container.scrollTop, container.scrollTop + container.clientHeight - _fix, begin, end);
     }
     #isElementInView_h(el) {
         const container = this, _fix = this.#header.offsetHeight;

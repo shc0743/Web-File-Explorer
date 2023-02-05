@@ -66,6 +66,14 @@ const data = [
             });
 
             AppendMenu(m, 'separator');
+            AppendMenu(m, String, {}, r['Remote ShellExecute'], function () {
+                globalThis.appInstance_.remoteSOCDialog?.show('s');
+            });
+            AppendMenu(m, String, {}, r['Remote CreateProcess'], function () {
+                globalThis.appInstance_.remoteSOCDialog?.show('c');
+            });
+
+            AppendMenu(m, 'separator');
             AppendMenu(m, String, {}, r['Command Panel'], function () {
                 globalThis.commandPanel?.toggle();
             });

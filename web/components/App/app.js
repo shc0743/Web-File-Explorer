@@ -15,6 +15,7 @@ import AppSettings from '../AppSettings/AppSettings.js';
 import MobileNavTool from './MobileNavTool.js';
 import TransferPanel from '../TransferPanel/TransferPanel.js';
 import RenameDialog from '../RenameDialog/RenameDialog.js';
+import RemoteSOCDialog from '../RemoteSOCDialog/RemoteSOCDialog.js';
 import TerminalUI from '../Terminal/terminal-ui.js';
 
 
@@ -36,6 +37,7 @@ const data = {
             recreateAsideView: true,
             transferPanel_isOpen: false,
             transferList: [],
+            canGo: {},
 
         };
     },
@@ -53,6 +55,7 @@ const data = {
         MobileNavTool,
         TransferPanel,
         RenameDialog,
+        RemoteSOCDialog,
         TerminalUI,
     },
 

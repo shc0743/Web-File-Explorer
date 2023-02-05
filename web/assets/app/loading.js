@@ -34,10 +34,11 @@
     border: 1px solid gray;
     word-break: break-all;
     font-family: Consolas, monospace;
+    white-space: pre;
 }
 .tracker-lineno {
     background-color: rgb(240, 240, 240);
-    white-space: nowrap; text-align: right;
+    text-align: right;
 }</style>`;
     const cont = el.querySelector('[data-content]');
     (document.body || document.documentElement).append(el);
@@ -101,20 +102,36 @@
             const text = await blob.text();
             let arr = text.split('\n');
             el.innerHTML = '';
+            let errorElement = null;
             {
                 const tr = document.createElement('tr');
                 const td1 = document.createElement('td');
                 const td2 = document.createElement('td');
                 td1.className = 'tracker-lineno';
-                td1.innerText = 'File.', td2.innerText = ev.filename;
+                td1.innerText = 'File.', td2.textContent = ev.filename;
                 tr.append(td1), tr.append(td2);
+                el.append(tr.cloneNode(true)); // 反复利用，节省资源 [doge]
+                td1.innerText = 'Error.';
+                td2.textContent = ev.message;
+                const a = document.createElement('a');
+                a.href = '#';
+                a.onclick = function (event) {
+                    event.preventDefault();
+                    errorElement && errorElement.scrollIntoView({ behavior: 'smooth' });
+                };
+                a.innerText = 'Goto';
+                td2.append(' ');
+                td2.append(a);
                 el.append(tr);
+                const tr2 = document.createElement('tr');
+                tr2.innerHTML = '<td class=tracker-lineno>0.</td><td></td>';
+                el.append(tr2);
             }
             for (let i = 0, l = arr.length; i < l; ++i){
                 const tr = document.createElement('tr');
                 const ln = document.createElement('td');
                 const dt = document.createElement('td');
-                ln.innerText = i + 1 + '. ';
+                ln.innerText = i + 1 + '.';
                 ln.className = 'tracker-lineno';
                 if (i + 1 === ev.lineno) {
                     tr.style.color = 'red';
@@ -124,11 +141,12 @@
                     elError.style.textDecoration = 'underline red';
                     elError.style.fontWeight = 'bold';
                     if (ev.colno) {
-                        el2.innerText = str.substring(0, ev.colno - 1);
-                        elError.innerHTML = str.substring(ev.colno - 1);
-                    } else elError.innerText = str;
+                        el2.textContent = str.substring(0, ev.colno - 1);
+                        elError.textContent = str.substring(ev.colno - 1);
+                    } else elError.textContent = str;
                     dt.append(el2); dt.append(elError);
-                } else dt.innerText = arr[i];
+                    errorElement = tr;
+                } else dt.textContent = arr[i];
                 tr.append(ln);
                 tr.append(dt);
                 el.append(tr);

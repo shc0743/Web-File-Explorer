@@ -1,0 +1,71 @@
+<dialog ref="dlg" class="component-root" v-deep>
+    <form method="dialog" ref="form" @submit.prevent="perform">
+        <p style="margin-top: 0;"><label>
+            <span>{{tr('ui.login.ui/server')}}</span>
+            <select required :disabled="isLoading" v-model="server">
+                <option v-for="item in servers" :value="item.addr">
+                    {{ item.name }} ({{item.addr}})
+                </option>
+            </select>
+        </label></p>
+
+        <p><label>
+            <span>{{tr('ui.fo.fileops.type')}}</span>
+            <select required :disabled="isLoading" v-model="type" @change="$refs.s_n.disabled = true">
+                <option value="n" ref="s_n">Please select</option>
+                <option value="s">ShellExecute</option>
+                <option value="c">CreateProcess</option>
+            </select>
+        </label></p>
+        
+        <template v-if="type === 's'">
+            <p><label>
+                <span>{{tr('ui.remotesoc.s.prog')}}</span>
+                <ElInput :disabled="isLoading" required v-model="s_prog" />
+            </label></p>
+            <p><label>
+                <span>{{tr('ui.remotesoc.s.verb')}}</span>
+                <ElInput :disabled="isLoading" v-model="s_verb" />
+            </label></p>
+            <p><label>
+                <span>{{tr('ui.remotesoc.s.param')}}</span>
+                <ElInput :disabled="isLoading" v-model="s_param" />
+            </label></p>
+            <p><label>
+                <span>{{tr('ui.remotesoc.s.show')}}</span>
+                <ElInput :disabled="isLoading" v-model="s_show" type="number" />
+            </label></p>
+        </template>
+        
+        <template v-if="type === 'c'">
+            <p><label>
+                <span>{{tr('ui.remotesoc.c.app')}}</span>
+                <ElInput :disabled="isLoading" v-model="c_app" placeholder="Optional" />
+            </label></p>
+            <p><label>
+                <span>{{tr('ui.remotesoc.c.cl')}}</span>
+                <ElInput :disabled="isLoading" v-model="c_cl" required type="textarea" autosize />
+            </label></p>
+            <p><label>
+                <input :disabled="isLoading" type="checkbox" v-model="c_susp">
+                <span>{{tr('ui.remotesoc.c.susp')}}</span>
+            </label></p>
+            <p><label>
+                <span>{{tr('ui.remotesoc.c.show')}}</span>
+                <ElInput :disabled="isLoading" v-model="c_show" type="number" />
+            </label></p>
+        </template>
+        
+        <div>
+            <button type="submit" ref="submitButton" hidden></button>
+            <ElButton type="primary" :disabled="isLoading" @click="$refs.submitButton.click()">{{tr('dialog.ok')}}</ElButton>
+            <ElButton @click="$refs.dlg.close()">{{tr('dialog.cancel')}}</ElButton>
+        </div>
+    </form>
+</dialog>
+
+<style>
+.component-root>>> {
+    border: 1px solid;
+}
+</style>

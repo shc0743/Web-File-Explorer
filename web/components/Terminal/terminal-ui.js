@@ -41,6 +41,11 @@ const data = {
         Close, Plus,
     },
 
+    props: {
+        servers: { type: Object, required: true },
+        
+    },
+
     methods: {
         update() {
             if ((this.isActive = location.hash.startsWith('#/terminal/'))) {

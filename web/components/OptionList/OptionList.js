@@ -9,6 +9,7 @@ const data = {
         return {
             listarr: [],
             createValue: {},
+            multiline_editors: new Set,
             
         }
     },
@@ -67,8 +68,10 @@ const data = {
     watch: {
         modelValue: {
             handler() {
+                this.multiline_editors.clear();
                 const r = []; for (const i in this.modelValue) {
                     r.push([i, this.modelValue[i]]);
+                    String(this.modelValue[i]).includes('\n') && this.multiline_editors.add(i);
                 }; this.listarr = r;
             },
             immediate: true,

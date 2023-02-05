@@ -1,8 +1,8 @@
-<div v-deep>
+<div v-deep class="mobile-nav-tool">
     <ElButtonGroup>
-        <ElButton text @click="a" aria-label="Back to last page in your browse history"><ElIcon><ArrowLeft /></ElIcon></ElButton>
-        <ElButton text @click="b" aria-label="Reload the page"><ElIcon><RefreshRight /></ElIcon></ElButton>
-        <ElButton text @click="c" aria-label="Go to next page in your browse history"><ElIcon><ArrowRight /></ElIcon></ElButton>
+        <ElButton v-deep text @click="a" :disabled="!canGoBack" aria-label="Back to last page in your browse history"><ElIcon><ArrowLeft /></ElIcon></ElButton>
+        <ElButton v-deep text @click="b" aria-label="Reload the page"><ElIcon><RefreshRight /></ElIcon></ElButton>
+        <ElButton v-deep text @click="c" :disabled="!canGoForward" aria-label="Go to next page in your browse history"><ElIcon><ArrowRight /></ElIcon></ElButton>
     </ElButtonGroup>
 </div>
 
@@ -21,5 +21,8 @@ div>>> {
 div>>> button {
     font-size: 1.2em;
     --color: var(--text-color);
+}
+button>>>:disabled {
+    opacity: 0.5;
 }
 </style>

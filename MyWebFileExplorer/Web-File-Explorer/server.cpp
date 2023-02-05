@@ -661,6 +661,7 @@ void server::FileServer::newDir(const HttpRequestPtr& req, std::function<void(co
 }
 
 
+#if 0
 void server::FileServer::sysShellExecute(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback) const
 {
 	string_view body = req->getBody();
@@ -693,6 +694,94 @@ void server::FileServer::sysShellExecute(const HttpRequestPtr& req, std::functio
 			resp->setBody("Failed, code=" + to_string(GetLastError()));
 		}
 	}
+	callback(resp);
+}
+
+#else
+void server::FileServer::sysShellExecute(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback) const
+{
+	//string_view body = req->getBody();
+	//wstring wsname;
+	//llvm::ConvertUTF8toWide(body.data(), wsname);
+	//str_replace(wsname, L"/", L"\\");
+	//string verb = req->getHeader("x-shell-execute-verb");
+	//if (verb.empty()) verb = "open";
+	wstring wsname, wsparam; int nShow = SW_NORMAL; string verb;
+	string sname = req->getParameter("appName");
+	string sparam = req->getParameter("args");
+	string sShow = req->getParameter("nShow");
+	verb = req->getParameter("verb");
+	llvm::ConvertUTF8toWide(sname, wsname);
+	llvm::ConvertUTF8toWide(sparam, wsparam);
+	nShow = atoi(sShow.c_str());
+
+
+	// try to convert GUID path to classic path.
+	// If we don't do this, almost everything cannot work.
+	try {
+		wstring guid = wsname.substr(4);
+		guid = guid.substr(0, guid.find(L"\\"));
+		guid = L"\\\\?\\" + guid + L"\\";
+		WCHAR buffer1[512]{}; DWORD dwLen = 0;
+		if (GetVolumePathNamesForVolumeNameW(guid.c_str(), buffer1, 512, &dwLen)) {
+			wsname.replace(wsname.begin(), wsname.begin() + guid.length(), buffer1);
+		}
+		//DebugBreak();
+	}
+	catch (std::exception&) {}
+	
+	HttpResponsePtr resp = HttpResponse::newHttpResponse();
+	CORSadd(req, resp);
+	if ((INT_PTR)ShellExecuteW(NULL,
+		s2ws(verb).c_str(), wsname.c_str(), wsparam.c_str(),
+		NULL, nShow) <= 32
+	) {
+		if (!Process.StartOnly_HiddenWindow(L"cmd.exe /c start \"\" \"" + wsname + L"\" ")) {
+			resp->setContentTypeCode(CT_TEXT_PLAIN);
+			resp->setStatusCode(k500InternalServerError);
+			resp->setBody("Failed, code=" + to_string(GetLastError()));
+		}
+	}
+	callback(resp);
+}
+#endif
+
+void server::FileServer::sysCreateProcess(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback) const
+{
+	wstring wsname, wsparam; int nShow = SW_NORMAL; DWORD option = 0;
+	string sname = req->getParameter("appName");
+	string sparam = req->getParameter("args");
+	string sShow = req->getParameter("nShow");
+	string sOption = req->getParameter("options");
+	llvm::ConvertUTF8toWide(sname, wsname);
+	llvm::ConvertUTF8toWide(sparam, wsparam);
+	nShow = atoi(sShow.c_str());
+	option = (DWORD)atol(sOption.c_str());
+
+	
+	HttpResponsePtr resp = HttpResponse::newHttpResponse();
+	CORSadd(req, resp);
+	resp->setContentTypeCode(CT_TEXT_PLAIN);
+
+	STARTUPINFO si{};
+	PROCESS_INFORMATION pi{};
+	si.cb = sizeof(si);
+	si.dwFlags = STARTF_USESHOWWINDOW;
+	si.wShowWindow = nShow;
+	PWSTR pwCl = new WCHAR[wsparam.length() + 1];
+	wcscpy_s(pwCl, wsparam.length() + 1, wsparam.c_str());
+	if (CreateProcessW(wsname[0] == L'\0' ? NULL : wsname.c_str(), pwCl,
+		NULL, NULL, FALSE, option, NULL, NULL, &si, &pi)) {
+		CloseHandle(pi.hThread);
+		CloseHandle(pi.hProcess);
+		resp->setBody(to_string(pi.dwProcessId));
+	}
+	else {
+		resp->setStatusCode(k500InternalServerError);
+		resp->setBody("Failed, error code=" + to_string(GetLastError()));
+	}
+	delete[] pwCl;
+
 	callback(resp);
 }
 

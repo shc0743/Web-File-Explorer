@@ -114,5 +114,14 @@
   "ui.rename.replacer": "Replacer: (使用 n 代表序号, $ 代表文件名, 允许使用 JavaScript 表达式, 使用 {} 包装多个表达式)",
   "ui.rename.warning.paste": "警告：使用他人提供的Replacer可能导致数据泄露等安全风险！\n确定继续？",
   "ui.rename.example.title": "示例",
-  "ui.file.o/rse": "远程 ShellExecute"
+  "ui.file.o/rse": "远程 ShellExecute",
+  "ui.file.o/rse.s": "远程打开",
+  "ui.remotesoc.s.prog": "程序",
+  "ui.remotesoc.s.verb": "谓词",
+  "ui.remotesoc.s.param": "参数",
+  "ui.remotesoc.s.show": "显示",
+  "ui.remotesoc.c.app": "应用程序 (可选)",
+  "ui.remotesoc.c.cl": "命令行",
+  "ui.remotesoc.c.susp": "CREATE_SUSPENDED",
+  "ui.remotesoc.c.show": "显示"
 }

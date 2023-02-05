@@ -10,6 +10,8 @@ const data = {
 
         }
     },
+    
+    props: { canGoBack: Boolean, canGoForward: Boolean },
 
     components: {
         ArrowLeft, ArrowRight, RefreshRight,

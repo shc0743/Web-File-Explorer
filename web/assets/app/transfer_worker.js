@@ -4,7 +4,7 @@ bug 记录：
     在 SharedWorker 注册 onconnect 之前，不能有任何的 await 一个宏任务或异步请求（比如setTimeout、fetch等）
     （踩坑！mdn也没说）
 解决方案：
-    （暂时）砍掉翻译，换成异步加载
+    换成异步加载
 */
 globalThis.tr = v => v;
 import('./translation_For_worker.js');

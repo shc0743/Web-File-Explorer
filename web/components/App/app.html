@@ -96,7 +96,7 @@ a, button {
     <a href="#/servers/" class="skip-to-content" tabindex="1" @click.prevent.stop="skipToServerList">Skip to server list</a>
 
     <div data-app>
-        <HeaderBar @requestreload="reload_content" @openTransferPanel="transferPanel_isOpen = true" />
+        <HeaderBar @requestreload="reload_content" @openTransferPanel="transferPanel_isOpen = true" :canGoBack="canGo.back" :canGoForward="canGo.forward" />
 
         <TransferPanel :isOpen="transferPanel_isOpen" :transferList="transferList" @closePanel="transferPanel_isOpen = false" />
 
@@ -119,8 +119,9 @@ a, button {
             </main>
         </div>
 
-        <MobileNavTool />
+        <MobileNavTool :canGoBack="canGo.back" :canGoForward="canGo.forward" />
         <RenameDialog />
+        <RemoteSOCDialog :servers="servers" />
 
     </div>
 </div>

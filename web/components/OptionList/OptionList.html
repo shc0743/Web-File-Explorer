@@ -5,7 +5,8 @@
                 <TextEdit class="TextEdit" v-model="item[0]" @changed="update_value()" />
             </td>
             <td class="value">
-                <TextEdit v-if="canBeTextEdit(item[1])" class="TextEdit" v-model="item[1]" @changed="update_value()" />
+                <TextEdit v-if="canBeTextEdit(item[1])" class="TextEdit" v-model="item[1]" @changed="update_value()"
+                    :type="multiline_editors.has(item[0]) ? 'textarea' : 'text'" autosize @keydown.shift.enter.capture="multiline_editors.add(item[0])" />
                 <label v-else-if="typeof(item[1])==='boolean'">
                     <input type="checkbox" v-model="item[1]" @change="update_value()" />
                     <span>Boolean value</span>
@@ -58,6 +59,7 @@ table>>> .TextEdit {
     display: inline-block;
     width: 100%;
     min-width: 120px;
+    white-space: pre;
     --el-component-size: 24px;
 }
 table>>> .TextEdit > * {

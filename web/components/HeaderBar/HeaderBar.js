@@ -19,6 +19,8 @@ const data = {
         MainMenuBar, SysCtl,
     },
 
+    props: { canGoBack: Boolean, canGoForward: Boolean },
+
     emits: ['requestreload', 'openTransferPanel'],
 
     inject: ['apptitle'],

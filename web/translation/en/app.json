@@ -109,5 +109,14 @@
   "ui.rename.replacer": "Replacer: (Use n to represent the order, $ to represent the file name, JavaScript expression allowed, use {} to wrap multiline expression)",
   "ui.rename.warning.paste": "Warning: using Replacer provided by others may cause security risks such as data leakage!\nStill continue?",
   "ui.rename.example.title": "Examples",
-  "ui.file.o/rse": "Remote ShellExecute"
+  "ui.file.o/rse": "Remote ShellExecute",
+  "ui.file.o/rse.s": "Remote Open",
+  "ui.remotesoc.s.prog": "Program",
+  "ui.remotesoc.s.verb": "verb",
+  "ui.remotesoc.s.param": "Parameters",
+  "ui.remotesoc.s.show": "Show",
+  "ui.remotesoc.c.app": "Application (Optional)",
+  "ui.remotesoc.c.cl": "Command Line",
+  "ui.remotesoc.c.susp": "CREATE_SUSPENDED",
+  "ui.remotesoc.c.show": "Show"
 }
