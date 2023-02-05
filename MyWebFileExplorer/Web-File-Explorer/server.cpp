@@ -394,7 +394,8 @@ void server::FileServer::getFileList(const HttpRequestPtr& req, std::function<vo
 {
 	wstring wsfile;
 	llvm::ConvertUTF8toWide(file.c_str(), wsfile);
-	wstring result;
+	// 直接把目录和文件分到2个容器里面，排序都省了
+	std::vector<wstring> resultFile, resultDir; wstring resultStr;
 	const auto err = [&req, &callback](HttpStatusCode status, string body = "") {
 		HttpResponsePtr resp = HttpResponse::newHttpResponse();
 		CORSadd(req, resp);
@@ -407,7 +408,7 @@ void server::FileServer::getFileList(const HttpRequestPtr& req, std::function<vo
 	auto fstat = IsFileOrDirectory(wsfile);
 	if (fstat != -1) return (fstat == 0 ? err(k404NotFound, file + " not found") : (
 		fstat == 1 ? err(k400BadRequest, "Cannot list files in a file") : err(k500InternalServerError)
-		));
+	));
 
 	{
 		WIN32_FIND_DATA ffd{};
@@ -429,13 +430,13 @@ void server::FileServer::getFileList(const HttpRequestPtr& req, std::function<vo
 		do {
 			if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
 				//_tprintf(TEXT("  %s   <DIR>\n"), ffd.cFileName);
-				result += (L"d|"s + ffd.cFileName) + L"\n";
+				resultDir.push_back(L"d|"s + ffd.cFileName + L"\n");
 			}
 			else {
 				filesize.LowPart = ffd.nFileSizeLow;
 				filesize.HighPart = ffd.nFileSizeHigh;
 				//_tprintf(TEXT("  %s   %ld bytes\n"), ffd.cFileName, filesize.QuadPart);
-				result += (L"f|"s + ffd.cFileName) + L"\n";
+				resultFile.push_back(L"f|"s + ffd.cFileName + L"\n");
 			}
 		} while (FindNextFileW(hFind, &ffd) != 0);
 
@@ -447,6 +448,11 @@ void server::FileServer::getFileList(const HttpRequestPtr& req, std::function<vo
 		FindClose(hFind);
 	}
 
+	// 拼接
+	for (auto& i : resultDir) { resultStr += i; }
+	for (auto& i : resultFile) { resultStr += i; }
+
+#if 0
 	//srand(time(0) % rand());
 	//wstring szTemp = L".temp-RESPONSE-" + to_wstring(time(0)) + L"-" + to_wstring(rand()) + L".tmp";
 	//HANDLE hTemp = CreateFileW(szTemp.c_str(), GENERIC_WRITE,
@@ -455,14 +461,14 @@ void server::FileServer::getFileList(const HttpRequestPtr& req, std::function<vo
 	//DWORD dwTemp = 0;
 	//WriteFile(hTemp, result.c_str(), DWORD((result.length() + 1) * sizeof(WCHAR)), &dwTemp, 0);
 	//CloseHandle(hTemp);
-
+	//
 	//HttpResponsePtr resp = HttpResponse::newFileResponse(ws2s(szTemp));
 	//resp->setContentTypeString("text/plain; charset=utf-16");
 	//CORSadd(req, resp);
 	//callback(resp);
-
+	//
 	//DeleteFileW(szTemp.c_str());
-
+	//
 	//size_t len = (result.length() + 1) * sizeof(wchar_t);
 	//UTF8* utf8 = (UTF8*)calloc(1, len);
 	//UTF16* utf16 = (UTF16*)calloc(1, len);
@@ -477,8 +483,9 @@ void server::FileServer::getFileList(const HttpRequestPtr& req, std::function<vo
 	//	free(utf8); free(utf16);
 	//	return err(k500InternalServerError, "Cannot alloc memory");
 	//}
+#endif
 	string utf8;
-	if (!llvm::convertWideToUTF8(result, utf8)) {
+	if (!llvm::convertWideToUTF8(resultStr, utf8)) {
 		return err(k500InternalServerError, "Cannot convert wide to utf8");
 	}
 	HttpResponsePtr resp = HttpResponse::newHttpResponse();

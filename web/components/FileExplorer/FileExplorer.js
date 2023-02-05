@@ -74,7 +74,16 @@ const data = {
             this.clickToOpen = ctoVal === true;
             
             this.objectCount = this.listdata.length || 0;
-            globalThis.appInstance_.instance.apptitle = this.path;
+
+            let apptitle = this.path.replaceAll('\\', '/');
+            const noFullpath = await userdata.get('config', 'explorer.noFullpath');
+            if (noFullpath === true) {
+                if (apptitle.endsWith('/')) apptitle = apptitle.substring(0, apptitle.length - 1);
+                apptitle = apptitle.substring(apptitle.lastIndexOf('/') + 1);
+            } else if (noFullpath !== false) {
+                await userdata.put('config', true, 'explorer.noFullpath');
+            }
+            globalThis.appInstance_.instance.apptitle = apptitle;
             this.$nextTick(() => {
                 if (this.loadingInstance) {
                     this.loadingInstance.close();
@@ -99,13 +108,16 @@ const data = {
                 return (await resp.text())
                     .split('\n')
                     .filter(el => el.length > 2 && (!forbiddenKeywords.includes(el)))
-                    .sort((a, b) => (a[0] == 'd' && b[0] == 'f') ? -1 : ((a[0] == 'f' && b[0] == 'd') ? 1 : 0));
+                    // .sort((a, b) => (a[0] == 'd' && b[0] == 'f') ? -1 : ((a[0] == 'f' && b[0] == 'd') ? 1 : 0));
+                    //此处的排序改为在后端做，(C++那不比js快多了。。)
             }
             catch (error) { return error };
         },
 
         renderList() {
             const r = [];
+            // 缓存循环中用到的数据（性能分析器显示调用了很多很多！次 get）
+            const addr = this.server.addr, pswd = this.server.pswd, path = this.path;
             if (!this.listdata || !Array.isArray(this.listdata)) return [];
             for (let i of this.listdata) {
                 if (i.length < 3) continue;
@@ -122,7 +134,7 @@ const data = {
                 else {
                     b[0] = a[0];
                 }
-                b[0] && (b[0]._srv = this.server.addr, b[0]._pswd = this.server.pswd, b[0]._path = this.path);
+                b[0] && (b[0]._srv = addr, b[0]._pswd = pswd, b[0]._path = path);
                 r.push(b);
             }
             return r;

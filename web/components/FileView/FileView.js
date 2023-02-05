@@ -101,7 +101,12 @@ const data = {
                     this.isFav = true;
                 }
 
-                globalThis.appInstance_.instance.apptitle = this.path;
+                let apptitle = this.path.replaceAll('\\', '/');
+                const noFullpath = await userdata.get('config', 'explorer.noFullpath');
+                if (noFullpath === true) {
+                    apptitle = apptitle.substring(apptitle.lastIndexOf('/') + 1);
+                }
+                globalThis.appInstance_.instance.apptitle = apptitle;
                 if (this.loadingInstance) {
                     this.loadingInstance.close();
                     this.loadingInstance = null;

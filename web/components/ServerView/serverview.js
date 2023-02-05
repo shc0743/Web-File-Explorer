@@ -24,6 +24,7 @@ const data = {
             advancedVolumeView: false,
             explorerPath: '',
             pathSrc: '', pathDest: '',
+            doNotUseLongPath: false,
         }
     },
 
@@ -69,7 +70,11 @@ const data = {
 
         handleIndexRowClick(row) {
             if (!row.guid) return;
-            location.hash += row.guid.replaceAll('\\', '/');
+            let text = row.guid;
+            if (this.doNotUseLongPath) {
+                if (row.drive) text = row.drive;
+            }
+            location.hash += text.replaceAll('\\', '/');
         },
 
         updateView(el) {
@@ -81,6 +86,9 @@ const data = {
     watch: {
         advancedVolumeView() {
             this.$nextTick(() => this.updateVolumeView());
+        },
+        doNotUseLongPath() {
+            this.$nextTick(() => userdata.put('config', this.doNotUseLongPath, 'volumes.doNotUseLongPath'));
         },
     },
 
@@ -218,6 +226,8 @@ async function ExecuteHandler(srv_data, srv_id, hash) {
                     fs: arr2[3],
                 });
             }
+
+            this.doNotUseLongPath = (await userdata.get('config', 'volumes.doNotUseLongPath') === true) ? true : false;
             
             this.isLoading = false;
             
@@ -289,7 +299,7 @@ async function ExecuteHandler(srv_data, srv_id, hash) {
             if (text !== '1') $is = 'dir';
         } catch {}
 
-        queueMicrotask(() => {
+        // queueMicrotask(() => {
             if ($is === 'file') {
                 this.$data.viewType = 'fileview';
             }
@@ -298,7 +308,7 @@ async function ExecuteHandler(srv_data, srv_id, hash) {
             }
             this.$data.explorerPath = val;
             this.$data.currentSrv = srv_data;
-        })
+        // })
 
         return;
     }
