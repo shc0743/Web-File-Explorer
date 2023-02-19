@@ -24,7 +24,7 @@ const data = {
         openItem(item, inBlank = false) {
             try {
                 const hash = '#/s/' + btoa(item.srv) + '/' + item.pathname;
-                if (inBlank) window.open(hash);
+                if (inBlank) window.w_open(hash);
                 else location.hash = hash;
             } catch (error) {
                 console.error('Failed to open favlist item: ', error);

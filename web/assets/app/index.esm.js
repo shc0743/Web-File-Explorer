@@ -8,6 +8,52 @@ import { reportFatalError } from './error-reporter.js';
 
 const updateLoadStat = (globalThis.ShowLoadProgress) ? globalThis.ShowLoadProgress : function () {};
 
+globalThis.appInstance_ = {};
+
+
+export function delay(timeout = 0) {
+    return new Promise(resolve => setTimeout(resolve, timeout));
+}
+
+
+let pwa = new(URL)(globalThis.location.href).searchParams.get('pwa');
+globalThis.w_open = window.open;
+if (pwa === 'true' || pwa === '1' || pwa === 'yes') {
+    globalThis.w_open = function (...args) {
+        if (args.length > 0) {
+            if (args.length < 2) args.push('_blank')
+            if (args.length < 3) args.push(`width=${window.innerWidth},height=${window.innerHeight},left=${window.screenLeft},top=${window.screenTop}`)
+        }
+        return window.open.apply(window, args);
+    };
+    globalThis.addEventListener('pointerdown', function (ev) {
+        if (!(/A/i.test(ev.target?.tagName))) return;
+        if (ev.button !== 1) return;
+        const href = ev.target.getAttribute('href');
+        if (!href || href.startsWith('javascript:')) return;
+        try {
+            const hrefComputed = new URL(ev.target.href, location.href);
+            ev.preventDefault();
+            window.w_open(hrefComputed);
+        } catch {}
+    }, { capture: true });
+    pwa = true;
+}
+pwa = (pwa === true);
+globalThis.appInstance_.pwa = pwa;
+console.log('[main]', 'pwa=', pwa);
+
+updateLoadStat('Waiting');
+await new Promise(resolve => setTimeout(resolve));
+
+import { registerResizableWidget } from '../js/BindMove.js';
+registerResizableWidget();
+
+updateLoadStat('Creating JSCon');
+import { JsCon, register as registerJsCon } from '../js/jscon.js';
+registerJsCon();
+globalThis.appInstance_.con = new JsCon();
+globalThis.appInstance_.con.registerConsoleAPI(globalThis.console);
 
 let db_name = null;
 try {
@@ -20,19 +66,26 @@ try {
 catch (error) {
     throw reportFatalError(error, 'main');
 }
-    
+
+// break long tasks
+await delay();
+
+updateLoadStat('Loading sw content');
+import '@/assets/sw/sw_content.js';
+
 updateLoadStat('Loading Vue.js');
 import { createApp } from 'vue';
 updateLoadStat('Loading Resource Loader');
 import { LoadCSSAsLink } from '../js/ResourceLoader.js';
 
+// break long tasks
+await delay();
 
 updateLoadStat('Loading element-plus.css');
 LoadCSSAsLink('modules/element-plus/element-plus.css');
 
 
-globalThis.appInstance_ = {};
-
+updateLoadStat('Loading servers');
 async function loadServers_() {
     // This is for initinaze only
     //console.trace();
@@ -64,12 +117,25 @@ globalThis.notifyDataUpdate = function () {
     localStorage.setItem(db_name + '-update', (new Date).getTime());
 };
 
+updateLoadStat('Loading version');
+try {
+    globalThis.appInstance_.version = await (await fetch('assets/app/version')).text();
+} catch (error) {
+    globalThis.appInstance_.version = Symbol('N/A');
+    globalThis.appInstance_.versionError = error;
+}
+
+// break long tasks
+await delay();
+
 updateLoadStat('Loading Vue Application');
 // import Vue_App from '../../components/App/app.js'; // don't use this because some browser preload modules so that the progress cannot show correctly
 const Vue_App = (await import('../../components/App/app.js')).default;
 
 updateLoadStat('Creating Vue application');
 const app = createApp(Vue_App);
+// break long tasks
+await delay(10);
 updateLoadStat('Loading Element-Plus');
 {
     const element = await import('element-plus');
@@ -77,6 +143,8 @@ updateLoadStat('Loading Element-Plus');
         if (i.startsWith('El')) app.component(i, element[i]);
     }
 }
+// break long tasks
+await delay();
 updateLoadStat('Creating app instance');
 globalThis.appInstance_.app = app;
 app.config.unwrapInjectedRef = true;
@@ -93,11 +161,14 @@ updateLoadStat('Loading translation');
 await import('./translation.js');
 app.config.globalProperties.tr = globalThis.tr;
 
+// break long tasks
+await delay(10);
+
 updateLoadStat('Mounting application to document');
 app.mount(myApp);
 
 updateLoadStat('Waiting');
-await new Promise(resolve => setTimeout(resolve));
+await delay();
 
 updateLoadStat('Register shared worker');
 // if (!globalThis.SharedWorker) {
@@ -165,15 +236,22 @@ if (globalThis.SharedWorker) {
     });
 }
 
+// break long tasks
+await delay();
 updateLoadStat('Finishing');
 globalThis.FinishLoad?.call(globalThis);
 
 
 
 
+// break long tasks
+await delay(100);
+
 
 import('./hashchange.js').then(function (data) {
     function hashchange_handler(ev) {
+        canGoDetector();
+        
         let hash = location.hash;
 
         for (const i in data.default) {
@@ -214,42 +292,61 @@ globalThis.addEventListener('storage', function (ev) {
 
 globalThis.addEventListener('keydown', function (ev) {
     const key = ev.key.toUpperCase();
-    if (key === 'F5' && !(ev.ctrlKey || ev.shiftKey)) {
+    if (key === 'F5' && !(ev.ctrlKey || ev.shiftKey)) { // F5 only
         if (!globalThis.location.hash.startsWith('#/s/')) return;
         ev.preventDefault();
         return window.dispatchEvent(new HashChangeEvent('hashchange'));
     }
-    if (key === 'P' && ev.ctrlKey && ev.shiftKey) {
+    if (key === 'P' && ev.ctrlKey && ev.shiftKey) { // Ctrl_Shift_P
         ev.preventDefault();
         return globalThis.commandPanel?.toggle();
     }
-    if (key === 'K' && ev.ctrlKey && !ev.shiftKey) {
+    if (key === 'K' && ev.ctrlKey && !ev.shiftKey) { // Ctrl_K
         ev.preventDefault();
         return globalThis.appInstance_.instance.transferPanel_isOpen =
             !globalThis.appInstance_.instance.transferPanel_isOpen;
     }
-    if (key === ',' && ev.ctrlKey) {
-        return !(location.hash = '#/settings/');
-    }
-    if (key === 'N' && ev.ctrlKey) {
+    if (key === 'N' && ev.ctrlKey) { // Ctrl_N | Ctrl_Shift_N
         ev.preventDefault();
         return globalThis.appInstance_.newFileOp(ev.shiftKey ? 'dir' : 'file');
     }
-    if (key === 'ENTER' && ev.altKey) {
+    if (key === 'ENTER' && ev.altKey) { // Alt_Enter
         ev.preventDefault();
         return globalThis.appInstance_.showPropertiesDialog?.();
     }
+    if (key === 'F2' && !(ev.ctrlKey || ev.shiftKey)) { // F2 only
+        ev.preventDefault();
+        return globalThis.appInstance_.renameItem();
+    }
+    if (key === ',' && ev.ctrlKey) { // Ctrl+,
+        return !(location.hash = '#/settings/');
+    }
+    if (key === 'I' && ev.ctrlKey && ev.shiftKey) { // Ctrl_Shift_P
+        ev.preventDefault();
+        return globalThis.appInstance_.con?.open();
+    }
 
+    if (ev.key === 'Alt') {
+        ev.preventDefault();
+        return globalThis.appInstance_.instance
+            .$refs.headerBar
+            .$refs.mainMenuBar
+            .$refs.menubar
+            .querySelector('button')?.focus();
+    }
 });
 
 
 
-globalThis.setInterval(function () {
+export function canGoDetector() {
     globalThis.appInstance_.instance.canGo = {
-        back: globalThis.navigation?.canGoBack,
-        forward: globalThis.navigation?.canGoForward,
-    }
-}, 1000);
+        back: globalThis.navigation?.canGoBack !== false,
+        forward: globalThis.navigation?.canGoForward !== false,
+    } // let old devices can use go and back
+}
+globalThis.setInterval(canGoDetector, 1000);
+
+
 
 
 

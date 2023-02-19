@@ -1,5 +1,6 @@
 import { getHTML } from '@/assets/js/browser_side-compiler.js';
 import OptionList from '../OptionList/OptionList.js';
+import { prettyPrintFileSize as ppfs } from '@/modules/util/fileinfo.js';
 
 
 const componentId = 'd4080c23793342e786f2698bf628bacd';
@@ -10,6 +11,7 @@ const data = {
             settings_data: {
                 all: {},
             },
+            estimate: null,
 
         }
     },
@@ -30,7 +32,34 @@ const data = {
                 console.warn('Failed to save settings:', error);
             }
         },
+        prettyPrintFileSize() {
+            return ppfs.apply(this, arguments);
+        },
+        openSWoption() {
+            swapi.showOptions();
+        },
 
+    },
+
+    computed: {
+        appVersion() {
+            return globalThis.appInstance_.version;
+        },
+        estimateUnavailable() {
+            return typeof (globalThis.navigator?.storage?.estimate) !== 'function';
+        },
+        swUnavailable() {
+            return globalThis.swapi == undefined;
+        },
+        
+    },
+
+    created() {
+        (async () => {
+            if (!this.estimateUnavailable) {
+                this.estimate = await globalThis.navigator.storage.estimate();
+            }
+        })();
     },
 
     mounted() {

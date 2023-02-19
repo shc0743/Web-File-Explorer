@@ -121,6 +121,8 @@ LoadCSS(`
 }
 .cp.CommandPanel {
     --color: black;
+    -webkit-app-region: drag;
+    app-region: drag;
 }
 .cp.CommandPanel .cp-editor {
     box-sizing: border-box;
@@ -132,6 +134,8 @@ LoadCSS(`
     overflow: hidden;
     border-radius: 4px;
     outline: 0;
+    -webkit-app-region: no-drag;
+    app-region: no-drag;
 }
 .cp.result-panel {
     margin-top: 10px;

@@ -6,7 +6,8 @@
   .then(v => v.json())
   .then(v => {
     v.id = h;
-    v.start_url = p;
+    v.start_url = new URL(p);
+    v.start_url.searchParams.set('pwa', 'true');
     for (let i of v.icons) {
       i.src = p + i.src;
     }

@@ -1,4 +1,4 @@
-<my-menubar v-deep v-bind="$attrs">
+<my-menubar v-deep v-bind="$attrs" ref="menubar">
     <my-menuitem v-for="item in items">
         <ElButton size="small" text :data-text="item.text" @click="launchHandler">{{ item.text }}</ElButton>
     </my-menuitem>

@@ -27,7 +27,9 @@
     place-items: center;
     border-bottom: 1px solid var(--text-color);
     padding: 10px 10px 0 10px;
-    background: var(--terminal-tabbar-bg, #eaeaea);
+    background: var(--terminal-tabbar-bg, #ffffff);
+    -webkit-app-region: drag;
+    app-region: drag;
 }
 .tabbar>>> > .tabs {
     flex: 1;
@@ -40,6 +42,8 @@
 .tabbar>>> .close {
     position: relative;
     top: -4px; right: -8px;
+    -webkit-app-region: no-drag;
+    app-region: no-drag;
 }
 .tabbar>>> .tab {
     padding: 5px 0px 5px 10px;
@@ -52,6 +56,8 @@
     user-select: none;
     transition: .2s;
     margin-right: 12px;
+    -webkit-app-region: no-drag;
+    app-region: no-drag;
 }
 .tabbar>>> .tab > button {
     padding: 5px 8px;

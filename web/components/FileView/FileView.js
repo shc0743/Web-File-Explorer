@@ -3,7 +3,7 @@ import { ElMessage, ElMessageBox, ElLoading } from 'element-plus';
 import { Download, Edit, MoreFilled, Star, StarFilled } from 'icons-vue';
 import TextEdit from '../TextEdit/TextEdit.js';
 
-import { fileinfo } from '../../modules/util/fileinfo.js';
+import { fileinfo, prettyPrintFileSize } from '../../modules/util/fileinfo.js';
 import { editable } from './types/f.js';
 import previews from './types/p.js';
 import { mimeTypes } from './types/p.js';
@@ -87,7 +87,7 @@ const data = {
                 this.fileinfo = fileinfo(this.path);
                 this.filename = this.fileinfo.name;
 
-                if (previews[(this.fileinfo.ext)]) {
+                if (previews[String(this.fileinfo.ext).toLowerCase()]) {
                     this.type = 'preview';
                 } else {
                     this.type = 'binary';
@@ -136,15 +136,16 @@ const data = {
             url.searchParams.set('t', this.server.pswd);
             url.searchParams.set('f', this.path);
             url.searchParams.set('a', this.fileinfo.name);
-            window.open(url);
+            window.open(url, '_self');
         },
 
         preview() {
+            if (this.type !== 'preview') return;
             this.isPreview = true;
             this.$nextTick(() => {
                 for (const el of this.$refs.previewArea.children)
                     el.remove();
-                previews[this.fileinfo.ext]?.call(this, this.$refs.previewArea);
+                previews[String(this.fileinfo.ext).toLowerCase()]?.call(this, this.$refs.previewArea);
             })
         },
 
@@ -194,7 +195,7 @@ const data = {
             url.searchParams.set('t', this.server.pswd);
             url.searchParams.set('f', this.path);
             url.searchParams.set('m', mime);
-            window.open(url);
+            window.w_open(url);
         },
 
         async modifyFav() {
@@ -270,10 +271,13 @@ const data = {
         async remoteExecute() {
             try {
                 const url = new URL('/sys/ShellExecute', this.server.addr);
+                const fd = new URLSearchParams();
+                fd.append('appName', this.path);
+                fd.append('verb', 'open');
                 const resp = await fetch(url, {
                     method: 'POST',
-                    headers: { 'x-auth-token': this.server.pswd },
-                    body: this.path
+                    headers: { 'content-type': 'application/x-www-form-urlencoded', 'x-auth-token': this.server.pswd },
+                    body: fd.toString()
                 });
                 if (!resp.ok) throw 'HTTP ERROR ' + resp.status + " : " + await resp.text();
                 ElMessage.success('');
@@ -283,16 +287,11 @@ const data = {
         },
 
         toHumanReadableSize(size) {
-            const units = ['Byte', 'KB', 'MB', 'GB', 'TB', 'EB'], n = 1024, d = 6;
-            let newSize = size, unit = units[0];
-            for (let i = 0, unitslen = units.length; i < unitslen; ++i) {
-                unit = units[i];
-                let _val = Math.floor((newSize / n) * (10 ** d)) / (10 ** d);
-                if (_val < 1 || i + 2 > unitslen) break;
-                newSize = _val;
-                unit = units[i + 1];
-            }
-            return newSize + ' ' + unit + (unit !== units[0] ? (` (${size} ${units[0]})`) : '');
+            return prettyPrintFileSize(size);
+        },
+
+        getFileNameEditor() {
+            return this.$refs.fileNameEditor1 || this.$refs.fileNameEditor2;
         },
         
     },
@@ -311,11 +310,13 @@ const data = {
         const { opts } = await import('./opts.js');
         this.opts = opts;
         for (const i in opts) this.moreOptionList[i] = opts[i];
+        globalThis.appInstance_.fileView = this;
         globalThis.appInstance_.showPropertiesDialog = () =>
             (!this.$refs.fileprop?.open) && this.$refs.fileprop?.showModal();
     },
     beforeUnmount() {
         delete globalThis.appInstance_.showPropertiesDialog;
+        delete globalThis.appInstance_.fileView;
     },
 
     template: await getHTML(import.meta.url, componentId),

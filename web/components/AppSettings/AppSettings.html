@@ -1,20 +1,71 @@
 <div v-deep class="component-root">
     <h1>{{tr('doctitle$=settings')}}</h1>
 
-    <fieldset v-deep>
-        <legend>{{tr('ui.settings.all')}}</legend>
+    <details v-deep>
+        <summary>{{tr('ui.settings.storage')}}</summary>
+
+        <div style="padding: 10px;">
+            <div v-if="estimateUnavailable">Not Applicable</div>
+            <template v-else>
+                <ElDescriptions :column="1" border>
+                    <ElDescriptionsItem>
+                        <template #label>{{ tr('ui.storage.estimate.quota') }}</template>
+                        <span>{{prettyPrintFileSize(estimate?.quota)}}</span>
+                    </ElDescriptionsItem>
+                    <ElDescriptionsItem>
+                        <template #label>{{ tr('ui.storage.estimate.usage') }}</template>
+                        <span>{{prettyPrintFileSize(estimate?.usage)}}</span>
+                    </ElDescriptionsItem>
+                </ElDescriptions>
+                <br>
+                <ElDescriptions :column="1" border>
+                    <ElDescriptionsItem>
+                        <template #label>{{ tr('ui.storage.estimate.caches') }}</template>
+                        <span>{{prettyPrintFileSize(estimate?.usageDetails.caches)}}</span>
+                    </ElDescriptionsItem>
+                    <ElDescriptionsItem>
+                        <template #label>{{ tr('ui.storage.estimate.indexedDB') }}</template>
+                        <span>{{prettyPrintFileSize(estimate?.usageDetails.indexedDB)}}</span>
+                    </ElDescriptionsItem>
+                    <ElDescriptionsItem>
+                        <template #label>{{ tr('ui.storage.estimate.sw') }}</template>
+                        <span>{{prettyPrintFileSize(estimate?.usageDetails.serviceWorkerRegistrations)}}</span>
+                    </ElDescriptionsItem>
+                </ElDescriptions>
+            </template>
+        </div>
+    </details>
+
+    <details v-deep>
+        <summary>{{tr('ui.settings.sw')}}</summary>
+
+        <div style="padding: 10px;">
+            <div v-if="swUnavailable">Not Applicable</div>
+            <template v-else>
+                <div><b>Service Worker options available</b></div>
+                <div><ElButton type="primary" plain style="width:100%" @click="openSWoption">{{tr('Open')}}</ElButton></div>
+            </template>
+        </div>
+    </details>
+
+    <details v-deep open>
+        <summary>{{tr('ui.settings.all')}}</summary>
 
         <OptionList v-model="settings_data.all" @changed="updateSettings"></OptionList>
-    </fieldset>
 
-    <details style="margin-top: 40px">
-        <summary>Tips</summary>
-        <ol>
-            <li>You can input "true" or "false" directly and they will be converted to Boolean automatically!</li>
-            <li>You can add "String:" before a number to store it as a string, or it will be converted to a number.</li>
-            <li>You can focus on the text and press [Shift+Enter] to edit the item in multiline mode.</li>
-        </ol>
+        <details style="margin-top: 40px">
+            <summary>Tips</summary>
+            <ol>
+                <li>You can input "true" or "false" directly and they will be converted to Boolean automatically!</li>
+                <li>You can add "String:" before a number to store it as a string, or it will be converted to a number.</li>
+                <li>You can focus on the text and press [Shift+Enter] to edit the item in multiline mode.</li>
+            </ol>
+        </details>
     </details>
+
+    <div v-deep class="ver">
+        <div>Version: <span v-text=appVersion></span></div>
+    </div>
 </div>
 
 <style>
@@ -22,11 +73,27 @@
     padding: 10px;
 }
 
-fieldset>>> {
+details>>> {
     border: 1px solid #ccc;
+    padding: 5px;
+    overflow: auto;
 }
-fieldset>>>+fieldset>>> {
+details>>> * {
+    white-space: nowrap;
+}
+details>>>+details>>> {
     margin-top: 15px;
+}
+details>>>>summary {
+    cursor: pointer;
+}
+.ver>>> {
+    border: 1px solid #ccc;
+    padding: 10px;
+    color: gray;
+    margin-top: 30px;
+    white-space: nowrap;
+    overflow: auto;
 }
 
 </style>

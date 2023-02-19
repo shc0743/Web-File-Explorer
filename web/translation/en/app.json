@@ -118,5 +118,12 @@
   "ui.remotesoc.c.app": "Application (Optional)",
   "ui.remotesoc.c.cl": "Command Line",
   "ui.remotesoc.c.susp": "CREATE_SUSPENDED",
-  "ui.remotesoc.c.show": "Show"
+  "ui.remotesoc.c.show": "Show",
+  "ui.settings.storage": "Storage Settings",
+  "ui.storage.estimate.quota": "Quota",
+  "ui.storage.estimate.usage": "Usage",
+  "ui.storage.estimate.caches": "Caches",
+  "ui.storage.estimate.indexedDB": "IndexedDB",
+  "ui.storage.estimate.sw": "Service Worker",
+  "ui.settings.sw": "Service Worker Options"
 }

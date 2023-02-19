@@ -259,6 +259,8 @@
         display: block;
         padding: 4px;
         cursor: pointer;
+        -webkit-app-region: no-drag;
+        app-region: no-drag;
     }
     .${menu_class} > * > *:not(:nth-child(1)) {
         margin-top: 3px;

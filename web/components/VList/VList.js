@@ -1100,10 +1100,12 @@ vScrollStyle.textContent = `
     display: block;
     position: absolute;
     background: #cecfd1;
+    border: 1px solid #cecfd1;
     border-radius: 3px;
     cursor: default;
     transition: background 0.1s;
     touch-action: none;
+    box-sizing: border-box;
 
     visibility: hidden;
 }
@@ -1111,7 +1113,8 @@ vScrollStyle.textContent = `
     background: #c0c1c3;
 }
 #thumb:focus {
-    outline: 1px solid #aaaaaa;
+    border: 1px solid #aaaaaa;
+    outline: none;
 }
 #thumb.visible {
     visibility: visible;

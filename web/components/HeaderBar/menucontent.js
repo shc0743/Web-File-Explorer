@@ -17,6 +17,11 @@ globalThis.appInstance_.newFileOp = (type) => {
         globalThis.appInstance_.mainMenuBar?.['new' + type](srv, pw, path, name.value);
     }).catch(() => { });
 };
+globalThis.appInstance_.renameItem = () => {
+    if (appInstance_.explorer) return globalThis.appInstance_.explorer?.rename({});
+    if (appInstance_.fileView) return appInstance_.fileView.getFileNameEditor()?.doEdit();
+    return ElMessage.error(tr('ui.fo.new.err.noexpl'));
+};
 
 let r = {};
 
@@ -51,11 +56,8 @@ const data = [
             AppendMenu(m, String, {}, r['Copy File'], fileops);
             AppendMenu(m, String, {}, r['Move File'], fileops);
             AppendMenu(m, String, {}, r['Link File'], fileops);
-            
-            AppendMenu(m, String, {}, r['Rename'], () => {
-                if (!appInstance_.explorer) return ElMessage.error(tr('ui.fo.new.err.noexpl'));
-                this.renameFile();
-            });
+
+            AppendMenu(m, String, {}, r['Rename'], globalThis.appInstance_.renameItem);
 
             AppendMenu(m, 'separator');
             AppendMenu(m, String, {}, r['Delete Selected File'], function () {
@@ -76,6 +78,9 @@ const data = [
             AppendMenu(m, 'separator');
             AppendMenu(m, String, {}, r['Command Panel'], function () {
                 globalThis.commandPanel?.toggle();
+            });
+            AppendMenu(m, String, {}, r['JavaScript Console'], function () {
+                globalThis.appInstance_.con.open();
             });
 
             AppendMenu(m, 'separator');

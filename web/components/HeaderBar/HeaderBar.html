@@ -1,26 +1,30 @@
-<header v-deep>
-    <div v-deep class="ui icon square" style="border: 1px solid; cursor: pointer" 
-        draggable="true" role="link" tabindex="0" aria-label="Go to homepage"
-        @click="goHome" @keydown.enter="goHome"
-        @dblclick="closeapp" @mousedown.middle="openBlank"
-        @dragstart="appIcon_dragstart"></div>
-    <span v-deep class="ui sep" style="margin: 0 5px 0 10px"></span>
-    <ElButtonGroup v-deep class="ui">
-        <ElButton @click="reload" aria-label="Reload the content" v-deep text><ElIcon><RefreshRight /></ElIcon></ElButton>
-        <ElButton @click="hist(-1)" :disabled="!canGoBack" aria-label="Back to last page" v-deep text><ElIcon><ArrowLeft /></ElIcon></ElButton>
-        <ElButton @click="hist(1)" :disabled="!canGoForward" aria-label="Go to next page" v-deep text><ElIcon><ArrowRight /></ElIcon></ElButton>
-    </ElButtonGroup>
-    <span v-deep class="ui sep" style="margin: 0 5px"></span>
-    <ElButton class="ui ws" @click="pathUp(false)" @mousedown.middle="pathUp(true)" aria-label="Switch to parent directory" v-deep text><ElIcon><Top /></ElIcon></ElButton>
-    <span v-deep class="ui sep ws" style="margin: 0 5px"></span>
-    <ElButton class="ui" style="color:#000" @click="openTransPanel" aria-label="Open transfer tasks list" v-deep text>T</ElButton>
-    <span v-deep class="ui sep" style="margin: 0 5px"></span>
-    <MainMenuBar v-deep class="ui ws" />
-    <span v-deep class="ui sep ws" style="margin: 0 10px 0 5px"></span>
-    <!-- <div v-deep ref="current_directory" class="cd">&nbsp;</div> -->
-    <div v-deep class="titlebar" :title="apptitle">{{apptitle}}</div>
-    <span v-deep class="ui sep" style="margin: 0 5px"></span>
-    <SysCtl @closeapp="closeapp" class="window-controls-container" />
+<div v-deep class="drag-region">&NoBreak;</div>
+<header v-deep class="headerbar_container" :data-autohide="autohide">
+    <div v-deep class="drag-region">&NoBreak;</div>
+    <header v-deep class="header-content" @keydown.esc="$event.target?.blur?.()">
+        <div v-deep class="ui icon square"
+            draggable="true" role="link" tabindex="0" aria-label="Go to homepage"
+            @click="goHome" @keydown.enter="goHome"
+            @dblclick="closeapp" @mousedown.middle="openBlank"
+            @dragstart="appIcon_dragstart"></div>
+        <span v-deep class="ui sep" style="margin: 0 5px 0 10px"></span>
+        <ElButtonGroup v-deep class="ui">
+            <ElButton @click="reload" aria-label="Reload the content" v-deep text><ElIcon><RefreshRight /></ElIcon></ElButton>
+            <ElButton @click="hist(-1)" :disabled="!canGoBack" aria-label="Back to last page" v-deep text><ElIcon><ArrowLeft /></ElIcon></ElButton>
+            <ElButton @click="hist(1)" :disabled="!canGoForward" aria-label="Go to next page" v-deep text><ElIcon><ArrowRight /></ElIcon></ElButton>
+        </ElButtonGroup>
+        <span v-deep class="ui sep" style="margin: 0 5px"></span>
+        <ElButton class="ui ws" @click="pathUp(false)" @mousedown.middle="pathUp(true)" aria-label="Switch to parent directory" v-deep text><ElIcon><Top /></ElIcon></ElButton>
+        <span v-deep class="ui sep ws" style="margin: 0 5px"></span>
+        <ElButton class="ui" style="color:#000" @click="openTransPanel" aria-label="Open transfer tasks list" v-deep text>T</ElButton>
+        <span v-deep class="ui sep" style="margin: 0 5px"></span>
+        <MainMenuBar v-deep class="ui ws" ref="mainMenuBar" />
+        <span v-deep class="ui sep ws" style="margin: 0 10px 0 5px"></span>
+        <!-- <div v-deep ref="current_directory" class="cd">&nbsp;</div> -->
+        <div v-deep class="titlebar" :title="apptitle">{{apptitle}}</div>
+        <!-- <span v-deep class="ui sep" style="margin: 0 5px"></span> -->
+        <!-- <SysCtl @closeapp="closeapp" class="window-controls-container ui" /> -->
+    </header>
 </header>
 
 <style>
@@ -29,20 +33,51 @@
     display: none;
 }
 }
-header>>> {
+.headerbar_container>>> {
+    position: relative;
+    border-bottom: 1px solid;
+}
+.headerbar_container>>>[data-autohide="true"] {
+    height: 0;
+    overflow: hidden;
+}
+.headerbar_container>>>:focus-within {
+    height: auto;
+}
+header.header-content>>> {
     display: flex;
     flex-direction: row;
     align-items: center;
-
-    padding: 5px 10px;
-    border-bottom: 1px solid;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+    padding: var(--paddingTB) var(--paddingLR);
+    /* border-right: 1px solid; */
 
     -webkit-app-region: drag;
+    app-region: drag;
+    position: relative;
+    left: env(titlebar-area-x, 0);
+    top: env(titlebar-area-y, 0);
+    width: calc(env(titlebar-area-width, 100%) - (2 * var(--paddingLR, 0)) - 1px);
+    min-height: env(titlebar-area-height, 1em);
 
     --color: black;
+    --paddingLR: 10px; --paddingTB: 5px;
+}
+.drag-region>>> {
+    -webkit-app-region: drag;
+    app-region: drag;
+    position: absolute;
+    left: 0; top: 0; width: 100%;
+    background-color: #fcfcfc;
+}
+header>>> .drag-region>>> {
+    height: 100%;
 }
 .ui>>>, .ui>>> * {
     -webkit-app-region: no-drag;
+    app-region: no-drag;
 }
 .sep>>> {
     height: calc(1em + 2px);
@@ -52,6 +87,12 @@ header>>> {
     display: inline-block;
     min-width: 1em;
     min-height: 1em;
+}
+.icon>>> {
+    border: 1px solid; 
+    cursor: pointer; 
+    background: url(assets/img/shell/folder.png) no-repeat center; 
+    background-size: contain;
 }
 .current_directory>>> {
     flex: 1;
@@ -71,6 +112,7 @@ header>>> {
     overflow: hidden;
     text-overflow: ellipsis;
     -webkit-app-region: drag;
+    app-region: drag;
 }
 button>>> {
     border: none;

@@ -10,6 +10,7 @@ const data = {
     data() {
         return {
             pwd: '',
+            autohide: false,
 
         }
     },
@@ -27,7 +28,7 @@ const data = {
 
     methods: {
         closeapp() {
-            let w = window.open('', '_self');
+            let w = window.w_open('', '_self');
             window.close();
             w.opener = null;
             w.close();
@@ -54,7 +55,7 @@ const data = {
             if (hash[hash.length - 1] === '') hash.pop();
             hash.pop();
             hash = hash.join('/') + '/';
-            if (blank) window.open(hash);
+            if (blank) window.w_open(hash);
             else location.hash = hash;
         },
 
@@ -73,7 +74,7 @@ const data = {
 
         goHome() { location.hash = '#/' },
 
-        openBlank() { window.open(window.location, '_blank') },
+        openBlank() { window.w_open(window.location, '_blank') },
 
         openTransPanel() {
             this.$emit('openTransferPanel');
@@ -84,6 +85,14 @@ const data = {
     computed: {
         
 
+    },
+
+    created() {
+        (async () => {
+            const ah = await userdata.get('config', 'nav.autohide');
+            if (ah) this.autohide = true;
+            else if (ah !== false) await userdata.put('config', false, 'nav.autohide');
+        })();
     },
 
     template: await getHTML(import.meta.url, componentId),

@@ -3,27 +3,25 @@ const { cacheName, cacheFiles } = globalThis.sw_env;
 
 globalThis.addEventListener('install', function (e) {
     console.log('[Service Worker] Install');
-    e.waitUntil(
-        caches.open(cacheName).then(function (cache) {
-            return cache.addAll(cacheFiles);
-        })
-    );
+    e.waitUntil((async function () {
+        globalThis.skipWaiting();
+        const cache = await caches.open(cacheName);
+        return cache.addAll(cacheFiles);
+    })());
 });
 
 globalThis.addEventListener('activate', function (e) {
-    // e.waitUntil(
-    //     caches.keys().then(function (keyList) {
-    //         return Promise.all(keyList.map(function (key) {
-    //             if (!cacheName.includes(key)) {
-    //                 return caches.delete(key);
-    //             }
-    //         }));
-    //     })
-    // );
+    e.waitUntil((async function () {
+        await clients.claim();
+    })());
 });
 
 globalThis.addEventListener('fetch', function (e) {
     e.respondWith(async function () {
+        const url = String(e.request.url);
+        for (const i in globalThis.sw_replaces) {
+            if (url.endsWith(i)) return await globalThis.sw_replaces[i](e.request);
+        }
         if (!navigator.onLine) {
             const cacheResult = await caches.match(e.request);
             return cacheResult || fetch(e.request).catch(nop);

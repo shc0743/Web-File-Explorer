@@ -4,7 +4,7 @@
     el_noscript.remove();
     const el = document.createElement('div');
     el.innerHTML = `
-    <div style="display: flex; align-items: center;">
+    <div style="display: flex; align-items: center; -webkit-app-region: drag; app-region: drag;">
         <div class="loading-spin" style="width: 15px; border-width: 5px;"></div>
         <div style="display: inline-block; width: 20px;"></div>
         <div data-content></div>
@@ -51,6 +51,7 @@
         el.remove();
     }
     global.ShowLoadProgress = function ShowLoadProgress(text, isError) {
+        console[isError ? 'error' : 'log']('[lifecycle]', '[load_progress]', performance.now(), text);
         if (isError) {
             updateTimeout(true);
             cont.style.color = 'red';

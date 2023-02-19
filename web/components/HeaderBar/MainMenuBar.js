@@ -57,9 +57,6 @@ const data = {
                 globalThis.appInstance_.explorer?.update();
             }).catch(error=>ElMessage.error(error));
         },
-        renameFile() {
-            globalThis.appInstance_.explorer?.rename({key:'F2'});
-        },
     },
 
     mounted() {

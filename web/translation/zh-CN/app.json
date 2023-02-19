@@ -123,5 +123,12 @@
   "ui.remotesoc.c.app": "应用程序 (可选)",
   "ui.remotesoc.c.cl": "命令行",
   "ui.remotesoc.c.susp": "CREATE_SUSPENDED",
-  "ui.remotesoc.c.show": "显示"
+  "ui.remotesoc.c.show": "显示",
+  "ui.settings.storage": "存储设置",
+  "ui.storage.estimate.quota": "总量",
+  "ui.storage.estimate.usage": "用量",
+  "ui.storage.estimate.caches": "Caches",
+  "ui.storage.estimate.indexedDB": "IndexedDB",
+  "ui.storage.estimate.sw": "Service Worker",
+  "ui.settings.sw": "Service Worker 设置"
 }

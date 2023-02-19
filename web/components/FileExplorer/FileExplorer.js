@@ -194,13 +194,13 @@ const data = {
                     isFirst = false;
                     __result = hash;
                 } else {
-                    window.open(hash, '_blank');
+                    window.w_open(hash, '_blank');
                 }
             }
 
             if (__result) {
                 blank ?
-                    window.open(__result, '_blank')?.focus() :
+                    window.w_open(__result, '_blank')?.focus() :
                     location.hash = __result;
             }
         },
@@ -451,7 +451,6 @@ const data = {
         },
 
         async rename(ev) {
-            if (ev.key !== 'F2') return;
 
             let el_data = this.listdata;
             if (!el_data) return;
