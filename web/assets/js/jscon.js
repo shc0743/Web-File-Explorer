@@ -49,6 +49,10 @@ ConRoot_Template.innerHTML = `
 </dialog>
 `;
 addCSS(`
+$$$ {
+    z-index: 1073741823;
+    --background: #FFFFFF; /* 以后再适配夜间模式，现在能用要紧 */
+}
 $$$ [hidden] {
     display: none!important;
 }
@@ -197,9 +201,11 @@ export class JsCon {
                 }
             }
         });
-        cons.addEventListener('paste', ev => {
+        const antipaste = ev => {
             if (!this.#allowPaste) ev.preventDefault();
-        });
+        };
+        cons.addEventListener('paste', antipaste);
+        cons.addEventListener('drop', antipaste);
         const ap = this.#widget.querySelector('[data-id=AllowPaste]');
         const pc = this.#el.querySelector('[data-id=allowPasteConfirm]');
         const pcok = this.#el.querySelector('[data-id=doAllowPaste]');
