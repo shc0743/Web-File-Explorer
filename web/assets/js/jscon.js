@@ -450,6 +450,7 @@ export function register() {
 
 export const focusableElements = ['a', 'button',];
 export const CONSOLE_HISTORY_MAX = 1000;
+export const PROPERTIESCOUNTEACHPAGE = 100;
 
 export const UrlTester = /([A-z]|[0-9]|\\|\/|\?|\[|\]|\;|\:|\,|\.|\#|\$|\%|\@|\&|\-|\+|\=|\{|\})/;
 
@@ -1385,6 +1386,7 @@ export class HTMLJsconObjectViewerElement extends HTMLElement {
             toggle();
         });
         reeval.addEventListener('click', () => {
+            this.loadMetaData();
             this.#isDirty = true, this.#_isOpen = false;
             toggle();
             const node = document.createTextNode('d');
@@ -1452,6 +1454,12 @@ export class HTMLJsconObjectViewerElement extends HTMLElement {
                     if (prototype === Array.prototype) {
                         objType = `Array (${data.length})`;
                     }
+                    else if (prototype === Promise.prototype) {
+                        objType = `Promise {<Querying State>}`;
+                        const t = {};
+                        Promise.race([data, t]).then(v => (v === t) ? "pending" : "fulfilled", () => "rejected")
+                            .then(state => this.innerHTML = `<span>Promise {<span style="color: var(--color-text-secondary, #5f6368)">&lt;${state}&gt;</span>}</span>`);
+                    }
                     else if (prototype) {
                         const name = prototype.constructor?.name;
                         if (data[Symbol.toStringTag]) { objType = data[Symbol.toStringTag] }
@@ -1471,8 +1479,8 @@ export class HTMLJsconObjectViewerElement extends HTMLElement {
     }
 
 
-    load(offset = 0) {
-        const PropertiesCountEachPage = 100;
+    load(offset = 0, expandMore = false) {
+        const PropertiesCountEachPage = expandMore ? 1048576 : PROPERTIESCOUNTEACHPAGE;
 
         if (!this.#isDirty && offset === 0) return;
         const viewer = this.#shadowRoot.getElementById('viewer');
@@ -1483,6 +1491,30 @@ export class HTMLJsconObjectViewerElement extends HTMLElement {
         const datatype = typeof data;
         if (!(/(function|object)/.test(datatype))) return;
         const keys = Reflect.ownKeys(data);
+        const s_key = Symbol(), s_desc = Symbol();
+        const symbols2str = {
+            [Symbol.toPrimitive]: "Symbol(Symbol.toPrimitive)",
+            [Symbol.toStringTag]: "Symbol(Symbol.toStringTag)",
+            [Symbol.iterator]: "Symbol(Symbol.iterator)",
+            [Symbol.unscopables]: "Symbol(Symbol.unscopables)",
+        };
+        // enum prototype chain
+        try {
+            let temp = data;
+            while ((temp = Reflect.getPrototypeOf(temp))) {
+                const tkeys = Reflect.ownKeys(temp);
+                for (const i of tkeys) try {
+                    const desc = Object.getOwnPropertyDescriptor(temp, i);
+                    if (desc && desc.value && (
+                        typeof desc.value === 'symbol' ||
+                        typeof desc.value === 'function'
+                    )) continue;
+                    if (i === '__proto__' || i in symbols2str || keys.includes(i)) continue;
+                    keys.push({ [s_key]: i, [s_desc]: desc });
+                } catch { continue }
+            }
+        } catch {}
+        // splice
         const propCount = keys.length;
         let isSpliced = false;
         if (PropertiesCountEachPage < keys.length) {
@@ -1492,19 +1524,11 @@ export class HTMLJsconObjectViewerElement extends HTMLElement {
         }
 
         const symbolName = (symbol) => {
-            switch (symbol) {
-                case Symbol.toPrimitive:
-                    return 'Symbol(Symbol.toPrimitive)';
-                case Symbol.toStringTag:
-                    return 'Symbol(Symbol.toStringTag)';
-                case Symbol.iterator:
-                    return 'Symbol(Symbol.iterator)';
-                case Symbol.unscopables:
-                    return 'Symbol(Symbol.unscopables)';
-                default:
-                    try { return symbol.toString(); }
-                    catch { return 'Symbol()'; }
+            try {
+                if (symbol in symbols2str) return symbols2str[symbol];
+                return symbol.toString();
             }
+            catch { return 'Symbol()'; }
         };
         const valueHandler = (value, node) => {
             switch (typeof value) {
@@ -1536,27 +1560,67 @@ export class HTMLJsconObjectViewerElement extends HTMLElement {
                     node.innerText = 'unknown'; break;
             }
         };
-        for (const i of keys) {
+        for (const I of keys) {
+            const i = (I && I[s_key]) ? I[s_key] : I;
+
             const node = document.createElement('div');
             node.className = 'property';
 
             const node1 = document.createElement('span');
             node1.innerText = (typeof i === 'symbol') ? symbolName(i) : String(i);
-            node1.className = 'property-key is-own';
+            node1.className = 'property-key';
             node.append(node1);
+            if (Object.prototype.hasOwnProperty.call(data, i)) node1.classList.add('is-own');
 
             const node2 = document.createElement('span');
             node2.className = 'property-value';
 
-            const desc = Object.getOwnPropertyDescriptor(data, i);
+            const desc = (I && I[s_desc]) ? I[s_desc] : Object.getOwnPropertyDescriptor(data, i);
+            node1.addEventListener('click', (ev) => {
+                const rect = node1.getBoundingClientRect();
+                const opt = document.createElement('select');
+                opt.setAttribute('style', `position: fixed; left: ${rect.x}px; top: ${rect.y}px; z-index: 1073741823; background: white; font-family: monospace; outline: 0;`);
+                const opts = {
+                    '(Context Menu)': () => { },
+                    'Cancel': () => { },
+                    'Store as global variable': () => {
+                        try {
+                            let global_suffix = 1;
+                            while (('temp' + global_suffix) in globalThis && global_suffix < 32767) ++global_suffix;
+                            const val = ((!desc) ? Reflect.get(data, i, data) : (desc.value || Reflect.get(data, i, data)));
+                            globalThis['temp' + global_suffix] = val;
+                            console.log('>', 'temp' + global_suffix);
+                            console.log('<', val);
+                        } catch (error) {
+                            console.error('Cannot store as global variable:', error);
+                        }
+                    },
+                };
+                for (const i in opts) {
+                    const el = document.createElement('option');
+                    el.value = el.innerText = i;
+                    opt.append(el);
+                }
+                opt.onblur = () => opt.remove();
+                opt.oninput = () => {
+                    opts[opt.value]?.call(this);
+                    opt.blur();
+                };
+                (document.body || document.documentElement).append(opt);
+                opt.focus();
+            });
             if (desc && (!desc.enumerable)) {
                 node1.classList.add('is-unenumerable');
             }
-            if (!desc || 'value' in desc) {
-                const val = (!desc) ? Reflect.get(data, i) : desc.value;
+            if (!desc || 'value' in desc) try {
+                const val = (!desc) ? Reflect.get(data, i, data) : desc.value;
                 const newNode = valueHandler(val, node2);
                 node.append(newNode || node2);
-            } else if ('get' in desc) {
+            } catch (error) {
+                node2.innerText = `[Exception: ${error}]`;
+                node.append(node2);
+            }
+            else if ('get' in desc) {
                 const node4 = document.createElement('a');
                 node4.className = 'property-value';
                 node4.href = 'javascript:';
@@ -1565,7 +1629,7 @@ export class HTMLJsconObjectViewerElement extends HTMLElement {
                 node4.title = 'Call getter';
                 node4.onclick = () => {
                     try {
-                        const val = Reflect.get(data, i);
+                        const val = Reflect.get(data, i, data);
                         const newNode = valueHandler(val, node2);
                         node4.replaceWith(newNode || node2);
                     }
@@ -1637,6 +1701,12 @@ export class HTMLJsconObjectViewerElement extends HTMLElement {
             node2.onclick = () => {
                 node2.remove();
                 this.load(offset + PropertiesCountEachPage);
+            };
+            node2.onpointerdown = (ev) => {
+                if (ev.button !== 1) return;
+                node2.remove();
+                this.#isDirty = true;
+                queueMicrotask(() => this.load(0, true));
             };
             node.append(node2);
             viewer.append(node);
