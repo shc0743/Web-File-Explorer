@@ -28,4 +28,9 @@ export default {
         globalThis.appInstance_.terminal?.update();
     },
 
+    "#/debugging/"(hash) {
+        this.$data.current_page = 'debugging';
+        globalThis.appInstance_.con?.open();
+    },
+
 };

@@ -288,27 +288,63 @@ const data = {
                 return ElMessage.error(tr('ui.fo.error/cantLoadDataFromRemote'));
             }
 
+            let nsa = h('input', { type: 'checkbox' }); // "不再提示"框
+
             if (dfiles.length) {
                 // 文件上传
                 if (!targetdir) return;
 
+                let override_box = h('input', { type: 'checkbox' }); // "不再提示"框
+                const executer = async () => {
+                    if (nsa.el?.checked) {
+                        await userdata.put('config', true, 'file.upload.noAsk')
+                    }
+                    const override = !!(override_box.el?.checked);
+
+                    // const key = String(new Date().getTime()) + String(Math.floor(Math.random() * 1e8));
+                    // await userdata.put('uploadCache', dfiles, key);
+                    // const arr = location.hash.split('/');
+                    // arr.splice(3, Infinity, 'sys/upload/k=' + key);
+                    // arr.push(targetdir);
+                    // location.hash = arr.join('/');
+                    const files = [];
+
+                    for (let i of dfiles) {
+                        files.push({
+                            server: this.server.addr,
+                            pswd: this.server.pswd,
+                            path: targetdir,
+                            filename: i.name,
+                            override: override,
+                            blob: i,
+                        });
+                    }
+                    globalThis.appInstance_.addTask({
+                        type: 'upload',
+                        files: files,
+                    });
+
+                    globalThis.appInstance_.instance.transferPanel_isOpen = true;
+                };
+                if (await userdata.get('config', 'file.upload.noAsk')) {
+                    executer();
+                } else
                 ElMessageBox({
                     title: 'File Operation',
                     message: h('div', null, [
                         h('span', null, tr('ui.fo.confirm/upload').replaceAll('$1', dfiles.length)),
                         h('textarea', { rows: 3, readonly: true, style: 'width:100%;box-sizing:border-box;resize:vertical' }, targetdir),
+                        h('label', { style: 'display:block;margin-top:5px' }, [
+                            nsa, h('span', tr('doNotAskAgain')),
+                        ]),
+                        h('label', { style: 'display:block;margin-top:5px' }, [
+                            override_box, h('span', tr('ui.file.upload.override')),
+                        ]),
                     ]),
                     showCancelButton: true,
                     confirmButtonText: tr('dialog.ok'),
                     cancelButtonText: tr('dialog.cancel'),
-                }).then(async () => {
-                    const key = String(new Date().getTime()) + String(Math.floor(Math.random() * 1e8));
-                    await userdata.put('uploadCache', dfiles, key);
-                    const arr = location.hash.split('/');
-                    arr.splice(3, Infinity, 'sys/upload/k=' + key);
-                    arr.push(targetdir);
-                    location.hash = arr.join('/');
-                }).catch(err => {
+                }).then(executer).catch(err => {
                     if (err instanceof DOMException) {
                         ElMessage.error(err.stack);
                 } });
@@ -368,7 +404,6 @@ const data = {
             let srcText = files.length < 2 ?
                 (data[0][0]._path + data[0][1]) :
                 tr('ui.fo.confirm/count').replace('$1', files.length);
-            let nsa = h('input', { type: 'checkbox' });
 
             const executer = async () => {
                 if (nsa.el?.checked) {

@@ -40,9 +40,11 @@
 .headerbar_container>>>[data-autohide="true"] {
     height: 0;
     overflow: hidden;
+    border-bottom: 0;
 }
 .headerbar_container>>>:focus-within {
     height: auto;
+    border-bottom: 1px solid;
 }
 header.header-content>>> {
     display: flex;
@@ -89,7 +91,6 @@ header>>> .drag-region>>> {
     min-height: 1em;
 }
 .icon>>> {
-    border: 1px solid; 
     cursor: pointer; 
     background: url(assets/img/shell/folder.png) no-repeat center; 
     background-size: contain;

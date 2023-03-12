@@ -87,9 +87,11 @@ export async function VideoPreviewFlv(el) {
     const area = document.createElement('video');
     area.setAttribute('style', 'width: 100%; height: 100%;');
     area.controls = true;
+    area.playsInline = true;
+    area.crossOrigin = 'anonymous';
     el.append(area);
 
-    const NOFLVJS = new Object();
+    const NOFLVJS = Symbol('NO Flv.JS');
     if (NOFLVJS === await (async function () {
         try {
             const resp = await fetch(url, { headers: { range: 'bytes=0-8' } });
@@ -123,6 +125,8 @@ export function VideoPreviewNative(el) {
     const area = document.createElement('video');
     area.setAttribute('style', 'width: 100%; height: 100%;');
     area.controls = true;
+    area.playsInline = true;
+    area.crossOrigin = 'anonymous';
     area.src = url.href;
     el.append(area);
 }

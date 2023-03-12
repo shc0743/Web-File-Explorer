@@ -63,6 +63,7 @@ function BindMove(el, target = el, options = {
         return false;
     }
     function PointerMoveHandler(ev) {
+        if (ev.pointerId !== el.$__BM_pointerId) return;
         noOverBorder(el, target,
             (options.isFixed ? ev.x : ev.pageX) - el.$__BM_targetX,
             (options.isFixed ? ev.y : ev.pageY) - el.$__BM_targetY,
@@ -75,6 +76,7 @@ function BindMove(el, target = el, options = {
 
         delete el.$__BM_offsetX;
         delete el.$__BM_offsetY;
+        delete el.$__BM_pointerId;
         
         el.removeEventListener('dragstart', DragStartHandler);
         el.removeEventListener('pointermove', PointerMoveHandler);
@@ -82,7 +84,8 @@ function BindMove(el, target = el, options = {
         el.removeEventListener('pointercancel', PointerUpOrCancelHandler);
     }
     el.$__PointerDownHandler = function (ev) {
-        if (!ev.isPrimary) return;
+        // if (!ev.isPrimary) return;
+        if (ev.target.getAttribute('data-exclude-bindmove') != null) return;
 
         el.$__BM_offsetX = ev.x;
         el.$__BM_offsetY = ev.y;
@@ -101,6 +104,7 @@ function BindMove(el, target = el, options = {
         el.classList.add('moving');
         target.classList.add('moving');
 
+        el.$__BM_pointerId = ev.pointerId;
         el.setPointerCapture(ev.pointerId);
 
         el.addEventListener('pointermove', PointerMoveHandler);
@@ -286,8 +290,9 @@ export class HTMLResizableWidgetElement extends HTMLElement {
     #noOverBorder(n, type, tid = 1, ol = false) {
         if (n < 1) return 0;
         if (ol) return n;
+        const computed = getComputedStyle(this);
         const op = (this.offsetParent === document.body) ? document.documentElement : this.offsetParent;
-        const val = tid * (type === 'x' ? parseInt(this.style.left) : (type === 'y' ? parseInt(this.style.top) : 0));
+        const val = tid * (type === 'x' ? parseInt(computed.left) : (type === 'y' ? parseInt(computed.top) : 0));
         if (type === 'x') if (n + val > op.clientWidth) return op.clientWidth - val;
         if (type === 'y') if (n + val > op.clientHeight) return op.clientHeight - val;
         return n;
@@ -302,6 +307,7 @@ export class HTMLResizableWidgetElement extends HTMLElement {
     #sizingStart = null;
     #sizingPointerId = -1;
     #onpointermove(ev) {
+        if (!ev.isPrimary) return;
         if (this.#isSizing) {
             const chk = () => {
                 if (parseInt(this.style.width) < HTMLResizableWidgetElement.MIN_SIZE)
@@ -352,6 +358,7 @@ export class HTMLResizableWidgetElement extends HTMLElement {
         this.style.cursor = cursor;
     }
     #onpointerdown(ev) {
+        if (!ev.isPrimary) return;
         if (ev.composedPath()[0] !== this) return;
         this.setPointerCapture((this.#sizingPointerId = ev.pointerId));
         this.#isSizing = true;

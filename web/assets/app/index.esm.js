@@ -27,7 +27,7 @@ if (pwa === 'true' || pwa === '1' || pwa === 'yes') {
         return window.open.apply(window, args);
     };
     globalThis.addEventListener('pointerdown', function (ev) {
-        if (!(/A/i.test(ev.target?.tagName))) return;
+        if (ev.target?.tagName?.toUpperCase() !== 'A') return;
         if (ev.button !== 1) return;
         const href = ev.target.getAttribute('href');
         if (!href || href.startsWith('javascript:')) return;
@@ -36,7 +36,7 @@ if (pwa === 'true' || pwa === '1' || pwa === 'yes') {
             ev.preventDefault();
             window.w_open(hrefComputed);
         } catch {}
-    }, { capture: true });
+    });
     pwa = true;
 }
 pwa = (pwa === true);
@@ -54,6 +54,7 @@ import { JsCon, register as registerJsCon } from '../js/jscon.js';
 registerJsCon();
 globalThis.appInstance_.con = new JsCon();
 globalThis.appInstance_.con.registerConsoleAPI(globalThis.console);
+globalThis.appInstance_.con.addErrorHandler();
 
 let db_name = null;
 try {
@@ -177,7 +178,10 @@ updateLoadStat('Register shared worker');
 if (globalThis.SharedWorker) {
     let hasTask = false;
     const tasksInQueue = new Map();
-    const worker = new SharedWorker(('assets/app/transfer_worker.js'), { type: 'module' });
+    const worker = new SharedWorker(('assets/app/transfer_worker.js'), {
+        type: 'module',
+        name: 'Web-File-Explorer Transfer Background Worker Service',
+    });
     globalThis.appInstance_.worker = worker;
     worker.port.onmessage = (function (ev) {
         if (!ev.data) return;
