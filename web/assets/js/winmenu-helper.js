@@ -301,10 +301,13 @@
 
 
     function addCSS(text) {
-        let css = document.createElement('style');
-        css.innerHTML = text;
-        document.head.append(css);
-        return css;
+        // let css = document.createElement('style');
+        // css.innerHTML = text;
+        // document.head.append(css);
+        // return css;
+        const css = new CSSStyleSheet;
+        css.replace(text);
+        document.adoptedStyleSheets.push(css);
     }
 
 })(window.exports || window);

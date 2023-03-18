@@ -32,6 +32,13 @@
                     </template>
                 </ElDialog>
             </div>
+        
+            <div data-type="ignoreVerification">
+                <label style="flex-direction: row; align-items: center;">
+                    <ElSwitch v-model="ignoreVerification" size="large" :disabled="formDataLoading" />
+                    <span>&nbsp;{{tr('ui.login.ui/ignoreVerification')}}</span>
+                </label>
+            </div>
         </section>
 
         <section v-if="errorMessage" style="color: red; text-align: initial; padding-left: 5px;">

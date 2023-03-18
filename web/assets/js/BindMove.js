@@ -157,11 +157,18 @@ addCSS(`
 `);
 
 
-function addCSS(css, el = null) {
-    let EL = document.createElement('style');
-    EL.innerHTML = css;
-    (el || document.head || document.documentElement).append(EL);
-    return EL;
+function addCSS(css, el = null, adopt = false) {
+    if (el === null || adopt) {
+        const style = new CSSStyleSheet;
+        style.replace(css);
+        (el || document).adoptedStyleSheets.push(style);
+        return style;
+    } else {
+        let EL = document.createElement('style');
+        EL.innerHTML = css;
+        (el || document.head || document.documentElement).append(EL);
+        return EL;
+    }
 }
 
 
@@ -246,9 +253,7 @@ export class HTMLResizableWidgetElement extends HTMLElement {
         super();
 
         this.#shadowRoot = this.attachShadow({ mode: 'open' });
-        addCSS(ResizableWidgetCSS2, this.#shadowRoot);
-
-        this.tabIndex = 0;
+        addCSS(ResizableWidgetCSS2, this.#shadowRoot, true);
 
         this.#content = document.createElement('resizable-widget-content-container-5e5921c2');
         this.#shadowRoot.append(this.#content);
@@ -277,6 +282,11 @@ export class HTMLResizableWidgetElement extends HTMLElement {
         const uoc = this.#onPointerUpOrCancel.bind(this);
         this.addEventListener('pointerup', uoc);
         this.addEventListener('pointercancel', uoc);
+    }
+
+    connectedCallback() {
+        this.tabIndex = 0;
+        
     }
 
     get open() { return this.getAttribute('open') != null; }

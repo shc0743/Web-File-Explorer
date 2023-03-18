@@ -125,5 +125,7 @@
   "ui.storage.estimate.caches": "Caches",
   "ui.storage.estimate.indexedDB": "IndexedDB",
   "ui.storage.estimate.sw": "Service Worker",
-  "ui.settings.sw": "Service Worker Options"
+  "ui.settings.sw": "Service Worker Options",
+  "ui.login.ui/save": "Save",
+  "ui.login.ui/ignoreVerification": "Do not verify these data"
 }

@@ -2,6 +2,7 @@ import { h, ref } from 'vue';
 import { getHTML } from '@/assets/js/browser_side-compiler.js';
 import { LoadCSS } from '../../assets/js/ResourceLoader.js';
 import { ElMessage, ElMessageBox, ElLoading, ElSwitch } from 'element-plus';
+import ExplorerNavBar from './ExplorerNavBar.js';
 
 
 const componentId = '71fe886e983243d6b23a880127be76f1';
@@ -25,6 +26,7 @@ const data = {
     },
 
     components: {
+        ExplorerNavBar,
 
     },
 

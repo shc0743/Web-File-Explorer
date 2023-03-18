@@ -306,6 +306,8 @@ DWORD Thread_CoreWorker(PVOID dd) {
 				cl += L"--token=Window;" + std::to_wstring((LONG_PTR)hwnd) +
 					L";" + std::to_wstring((int)WM_CHECKAUTHTOKEN) + L" ";
 
+				cl += L"--root-path=\"" + sInstanceDir + L"\" ";
+
 				WCHAR sslOpt[1024]{}; bool bHttpsEnabled = false;
 				GetWindowTextW(data->eSSL, sslOpt, 1024);
 				if (sslOpt[0]) {

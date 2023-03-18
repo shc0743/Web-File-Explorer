@@ -7,6 +7,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerWorkingDirectory>../bin</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>--type=ui --new-instance </LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>--type=server --port="48721" --allow-global-access --token=File;"D:\Users\shc07\Desktop\1.txt"</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

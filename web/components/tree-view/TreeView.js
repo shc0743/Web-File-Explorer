@@ -171,14 +171,14 @@ customElements.define('tree-toggle-button', HTMLTreeToggleButtonElement);
 
 
 {
-    const css = document.createElement('style');
-    css.innerHTML = `
+    const css = new CSSStyleSheet;
+    css.replace(`
     tree-view, tree-node {
         display: block;
     }
 
-    `;
-    (document.head || document.documentElement).append(css);
+    `);
+    document.adoptedStyleSheets.push(css);
 }
 
 

@@ -9,7 +9,7 @@ const data = {
     data() {
         return {
             formDataLoading: false,
-            loginButtonText: globalThis.tr?.call(globalThis, 'ui.login.ui/login'),
+            loginButtonText: globalThis.tr?.('ui.login.ui/login'),
             server: '',
             passwd: '',
             https: true,
@@ -17,6 +17,7 @@ const data = {
             showHttpsConfirm: false,
             enforceNoHttps: false,
             _abortController: null,
+            ignoreVerification: false,
         }
     },
 
@@ -51,6 +52,9 @@ const data = {
                 this.$data.showHttpsConfirm = true;
             }
         },
+        ignoreVerification() {
+            this.loginButtonText = tr('ui.login.ui/' + (this.ignoreVerification ? 'save' : 'login'));
+        },
     },
 
     mounted() {
@@ -69,10 +73,11 @@ async function Login() {
     this.$data.formDataLoading = true;
     this.$data.errorMessage = '';
 
+    const ignoreVerification = this.ignoreVerification;
     const passwd = this.$data.passwd;
     let server = this.$data.server;
 
-    if (!server.startsWith('http')) {
+    if (!ignoreVerification && !server.startsWith('http')) {
         const protocol = this.$data.https ? 'https' : 'http';
 
         if (!server.startsWith('//')) server = protocol + '://' + server;
@@ -83,22 +88,24 @@ async function Login() {
     const _this = this;
 
     try {
-        this.$data._abortController = new AbortController();
-        const resp = await fetch(server + '/auth', {
-            method: 'POST',
-            body: passwd,
-            headers: {
-                "x-auth-token": passwd,
-            },
-            mode: 'cors',
-            cache: 'no-store',
-            redirect: 'follow',
-            referrer: location.origin,
-            signal: this.$data._abortController.signal,
-        });
+        if (!ignoreVerification) {
+            this.$data._abortController = new AbortController();
+            const resp = await fetch(server + '/auth', {
+                method: 'POST',
+                body: passwd,
+                headers: {
+                    "x-auth-token": passwd,
+                },
+                mode: 'cors',
+                cache: 'no-store',
+                redirect: 'follow',
+                referrer: location.origin,
+                signal: this.$data._abortController.signal,
+            });
 
-        if (!resp.ok) {
-            return errHand(resp.status + ' ' + resp.statusText, 'HTTP error');
+            if (!resp.ok) {
+                return errHand(resp.status + ' ' + resp.statusText, 'HTTP error');
+            }
         }
 
 

@@ -138,8 +138,9 @@ addCSS(theme_autoCompute(theme_default, theme_dark));
 
 
 const rowMarginBottom = 6;
-const vListStyle = document.createElement('style');
-vListStyle.textContent = `
+// const vListStyle = document.//////createElement('style');
+// vListStyle.textContent =
+const vListStyleText = `
 #container {
     padding: var(--padding);
     box-sizing: content-box;
@@ -249,7 +250,10 @@ class HTMLVirtualListElement extends HTMLElement {
         this.#divContainer = document.createElement('div');
         this.#divContainer.id = 'container';
         this.#shadowRoot.append(this.#divContainer);
-        this.#shadowRoot.append(vListStyle.cloneNode(true));
+        // this.#shadowRoot.append(vListStyle.cloneNode(true));
+        const vListStyle = new CSSStyleSheet();
+        vListStyle.replace(vListStyleText);
+        this.#shadowRoot.adoptedStyleSheets.push(vListStyle);
         if (!this.#divContainer) throw new Error(`Error in constructor: Failed to find divContainer`);
         this.#resizeObserver = new ResizeObserver(() => {
             globalThis.requestAnimationFrame(() => this.updateOnScroll());
@@ -1377,8 +1381,11 @@ function debounce(fn, delay, thisArg = globalThis) {
 
 
 export function addCSS(text) {
-    const el = document.createElement('style');
-    el.textContent = text;
-    (document.head || document.documentElement).append(el);
+    // const el = document.createElement('style');
+    // el.textContent = text;
+    // (document.head || document.documentElement).append(el);
+    const style = new CSSStyleSheet();
+    style.replace(text);
+    document.adoptedStyleSheets.push(style);
 }
 

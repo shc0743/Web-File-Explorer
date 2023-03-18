@@ -130,5 +130,7 @@
   "ui.storage.estimate.caches": "Caches",
   "ui.storage.estimate.indexedDB": "IndexedDB",
   "ui.storage.estimate.sw": "Service Worker",
-  "ui.settings.sw": "Service Worker 设置"
+  "ui.settings.sw": "Service Worker 设置",
+  "ui.login.ui/save": "保存",
+  "ui.login.ui/ignoreVerification": "不进行验证"
 }

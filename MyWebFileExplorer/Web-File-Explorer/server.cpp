@@ -50,9 +50,23 @@ void InitAuthTokenVerify(CmdLineW& cl) {
 		fstream fp(tok);
 		if (fp) {
 			char* buffer = new char[4096];
+			std::string sbuffer;
+			constexpr const char* whiteSpaces = "\r\n\u0020\t";
+			const auto trimLeft = [](const std::string& s, const char* w) {
+				auto startpos = s.find_first_not_of(w);
+				return (startpos == s.npos) ? string() : s.substr(startpos);
+			};
+			const auto trimRight = [](const std::string& s, const char* w) {
+				auto endpos = s.find_last_not_of(w);
+				return (endpos == s.npos) ? string() : s.substr(0, endpos + 1);
+			};
+			const auto trim = [&trimLeft, &trimRight](const std::string& s, const char* w) {
+				return trimRight(trimLeft(s, w), w);
+			};
 			while ((fp.getline(buffer, 4096))) {
-				// TODO: 此处做法待验证，可能需要去除换行等
-				AuthTokenList.normal.push_back(buffer);
+				sbuffer = trim(buffer, whiteSpaces);
+				if (sbuffer.empty()) continue;
+				AuthTokenList.normal.push_back(sbuffer);
 			}
 		}
 	}
@@ -721,11 +735,13 @@ void server::FileServer::sysShellExecute(const HttpRequestPtr& req, std::functio
 	llvm::ConvertUTF8toWide(sname, wsname);
 	llvm::ConvertUTF8toWide(sparam, wsparam);
 	nShow = atoi(sShow.c_str());
+	str_replace(wsname, L"/", L"\\");
 
 
 	// try to convert GUID path to classic path.
 	// If we don't do this, almost everything cannot work.
 	try {
+		if (!wsname.starts_with(L"\\\\?\\")) throw int(3);
 		wstring guid = wsname.substr(4);
 		guid = guid.substr(0, guid.find(L"\\"));
 		guid = L"\\\\?\\" + guid + L"\\";
@@ -736,6 +752,7 @@ void server::FileServer::sysShellExecute(const HttpRequestPtr& req, std::functio
 		//DebugBreak();
 	}
 	catch (std::exception&) {}
+	catch (int) {}
 	
 	HttpResponsePtr resp = HttpResponse::newHttpResponse();
 	CORSadd(req, resp);
@@ -743,7 +760,8 @@ void server::FileServer::sysShellExecute(const HttpRequestPtr& req, std::functio
 		s2ws(verb).c_str(), wsname.c_str(), wsparam.c_str(),
 		NULL, nShow) <= 32
 	) {
-		if (!Process.StartOnly_HiddenWindow(L"cmd.exe /c start \"\" \"" + wsname + L"\" ")) {
+		//if (!Process.StartOnly_HiddenWindow(L"cmd.exe /c start \"\" \"" + wsname + L"\" ")) 
+		{
 			resp->setContentTypeCode(CT_TEXT_PLAIN);
 			resp->setStatusCode(k500InternalServerError);
 			resp->setBody("Failed, code=" + to_string(GetLastError()));

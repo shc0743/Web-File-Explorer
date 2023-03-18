@@ -96,72 +96,76 @@ ConRoot_Template.innerHTML = `
 
 <div class="jscon-messages-container"></div>
 `;
-addCSS((`
-`+`:root {
+addCSS(`
+:root {
     --font-monospace: consolas, lucida console, courier new, monospace;
 }
-$$$ {
+jscon-console-root {
     --background: #FFFFFF;
 }
-$$$ > resizable-widget, $$$ > dialog > resizable-widget {
+`);
+
+export const jscon_style_text = ((`
+`+`
+[hidden] {
+    display: none!important;
+}
+resizable-widget, dialog > resizable-widget {
     z-index: 1073741823;
     left: 20px; top: 20px;
     width: 60%; height: 60%;
     --padding: 0;
 }
-$$$ > dialog[data-id="top-layer-container"] {
+dialog[data-id="top-layer-container"] {
     overflow: visible;
     margin: 0; padding: 0; border: 0;
 }
-$$$ [hidden] {
-    display: none!important;
-}
-$$$ ::selection {
+::selection {
     background-color: rgb(141 199 248 / 60%);
 }
-`+`$$$ .jscon-btn {
+`+`.jscon-btn {
     border: 0; background: var(--background, inherit);
     transition: .1s;
 }
-$$$ .jscon-btn:hover {
+.jscon-btn:hover {
     --background: var(--color-scheme-background-hover, #dee1e6);
 }
-$$$ .panels {
+.panels {
     flex: 1;
     display: flex;
     flex-direction: column;
     overflow: hidden;
 }
-$$$ .panels > * {
+.panels > * {
     flex: 1;
 }
-`+`$$$ .console-panel {
+`+`.console-panel {
     display: flex; flex-direction: column; 
     flex: 1; overflow: hidden;
 }
-$$$ .console-btns {
+.console-btns {
     display: flex;
     border-bottom: 1px solid;
     padding: 5px;
 }
-$$$ .console-btns * {
+.console-btns * {
     font-family: monospace;
     font-size: small;
 }
-$$$ .console-btns button {
+.console-btns button {
     padding: 0;
 }
-$$$ .console-btns .split {
+.console-btns .split {
     border-right: 1px solid;
     display: inline-block;
     width: 1px;
     margin: 0 5px;
 }
-$$$ .console-messages {
+.console-messages {
     flex: 1;
     cursor: default;
 }
-$$$ .console-messages > .row {
+.console-messages > .row {
     font-family: var(--font-monospace);
     border-bottom: 1px solid #f0f0f0;
     padding: 2px 5px;
@@ -169,7 +173,7 @@ $$$ .console-messages > .row {
     white-space: pre-wrap; word-break: break-all;
     background: var(--background, inherit);
 }
-$$$ .console-content {
+.console-content {
     padding: 10px;
     padding-top: 0;
     flex: 1;
@@ -177,18 +181,18 @@ $$$ .console-content {
     flex-direction: column;
     overflow: auto;
 }
-$$$ .console-input {
+.console-input {
     display: flex;
     margin-top: 5px;
 }
-$$$ .console-input::before {
+.console-input::before {
     content: ">";
     font-family: monospace;
     display: inline-block;
     width: 1em; height: 1em;
     color: #367cf1;
 }
-$$$ .console-input [data-id="cons"] {
+.console-input [data-id="cons"] {
     border: none;
     outline: none;
     resize: none;
@@ -198,27 +202,27 @@ $$$ .console-input [data-id="cons"] {
     white-space: pre;
     font-family: consolas, lucida console, courier new, monospace;
 }
-$$$ .console-input [data-id="cons"]::-webkit-scrollbar {
+.console-input [data-id="cons"]::-webkit-scrollbar {
     width: 0; height: 0;
 }
-$$$ .is-symbol, $$$ .is-regexp { color: #c80000 }
-$$$ .is-number, $$$ .is-boolean { color: #1a1aa6 }
-$$$ .is-null, $$$ .is-undefined { color: #80868b }
-$$$ .is-object, $$$ .is-function { font-style: italic }
-$$$ .is-error { display: block }
-$$$ .row[data-type=error] {
+.is-symbol, .is-regexp { color: #c80000 }
+.is-number, .is-boolean { color: #1a1aa6 }
+.is-null, .is-undefined { color: #80868b }
+.is-object, .is-function { font-style: italic }
+.is-error { display: block }
+.row[data-type=error] {
     --background: #fff0f0;
     color: red;
 }
-$$$ .row[data-type=warn] {
+.row[data-type=warn] {
     --background: #fffbe6;
     color: #5c3c00;
 }
-$$$ .row:focus, $$$ .row:focus-visible {
+.row:focus, .row:focus-visible {
     outline: 0;
     --background: var(--background-row-focus, #ecf1f8);
 }
-$$$ .row[data-repeat-count]::before {
+.row[data-repeat-count]::before {
     content: attr(data-repeat-count);
     border: 1px solid;
     padding: 2px;
@@ -227,28 +231,28 @@ $$$ .row[data-repeat-count]::before {
     display: inline-block;
     width: auto;
 }
-$$$ .row a.ref {
+.row a.ref {
     color: var(--ref-link-color, #5f6368);
 }
-$$$ .row a.ref:focus {
+.row a.ref:focus {
     outline: 2px solid;
 }
-`+`$$$ .source-panel {
+`+`.source-panel {
     display: flex;
 }
-$$$ .source-panel > .panel-right {
+.source-panel > .panel-right {
     flex: 1;
     display: flex;
     flex-direction: column;
     overflow: hidden;
 }
-$$$ .source-panel > .panel-right > .flex-1 {
+.source-panel > .panel-right > .flex-1 {
     flex: 1;
 }
-$$$ .user-settings fieldset+fieldset {
+.user-settings fieldset+fieldset {
     margin-top: 10px;
 }
-`+`$$$ .jscon-messages-container {
+`+`.jscon-messages-container {
     position: fixed;
     right: 0;
     top: 0;
@@ -256,7 +260,7 @@ $$$ .user-settings fieldset+fieldset {
     height: 0;
     overflow: visible;
 }
-$$$ .jscon-message {
+.jscon-message {
     box-sizing: border-box;
     padding: 10px;
     width: 360px;
@@ -274,23 +278,25 @@ $$$ .jscon-message {
     position: relative;
     top: 0;
 }
-$$$ .jscon-message:hover {
+.jscon-message:hover {
     --background: var(--color-scheme-background-hover, #f0f0f0);
 }
-$$$ .jscon-message.not-open {
+.jscon-message.not-open {
     top: -200px;
 }
 @media screen and (max-width: 380px) {
-$$$ .jscon-message {
+.jscon-message {
     width: calc(100vw - 20px);
 }
 }
 
-$$$ .jscon-message.is-error {
+.jscon-message.is-error {
     --title-color: red;
 }
 `+`
-`).replaceAll('$$$', 'jscon-console-root'));
+`));
+export const jscon_style = new CSSStyleSheet;
+jscon_style.replace(jscon_style_text);
 
 export const ConMsg_Template = document.createElement('template');
 ConMsg_Template.innerHTML = `
@@ -581,6 +587,7 @@ export const jscon_data = new DataManager('jscon-web-data');
 
 export class JsCon {
     #el = null;
+    #shadow = null;
     #widget = null;
     #consel = null;
     #consinput = null;
@@ -591,13 +598,16 @@ export class JsCon {
 
     constructor() {
         this.#el = document.createElement('jscon-console-root');
-        this.#el.append(ConRoot_Template.content.cloneNode(true));
-        this.#widget = this.#el.firstElementChild;
+        this.#shadow = this.#el.attachShadow({ mode: 'open' });
+        this.#shadow.append(ConRoot_Template.content.cloneNode(true));
+        this.#shadow.adoptedStyleSheets.push(...document.adoptedStyleSheets);
+        this.#shadow.adoptedStyleSheets.push(jscon_style);
+        this.#widget = this.#shadow.firstElementChild;
         customElements.whenDefined('resizable-widget').then(() => {
             addCSS('#container{overflow:hidden}', this.#widget.shadowRoot);
         });
-        this.#consel = this.#el.querySelector('.console-messages');
-        this.#msgContainer = this.#el.querySelector('.jscon-messages-container');
+        this.#consel = this.#shadow.querySelector('.console-messages');
+        this.#msgContainer = this.#shadow.querySelector('.jscon-messages-container');
         (document.body || document.documentElement).append(this.#el);
 
         this.#initOptions();
@@ -751,8 +761,8 @@ export class JsCon {
         closebtn.addEventListener('click', () => this.close());
         const tabs = this.#widget.querySelector('[data-id=TABS]');
         tabs.addEventListener('change', ev => {
-            this.#el.querySelectorAll('.panels > *').forEach(el => el.hidden = true);
-            (this.#el.querySelector(`.panels > [data-panel="${tabs.currentId}"]`) || {}).hidden = false;
+            this.#shadow.querySelectorAll('.panels > *').forEach(el => el.hidden = true);
+            (this.#shadow.querySelector(`.panels > [data-panel="${tabs.currentId}"]`) || {}).hidden = false;
         });
         const cons = this.#consinput;
         cons.addEventListener('keydown', ev => {
@@ -835,12 +845,12 @@ export class JsCon {
         };
         cons.addEventListener('paste', antipaste);
         cons.addEventListener('drop', antipaste);
-        const clco = this.#el.querySelector('[data-id=ClearConsole]');
+        const clco = this.#shadow.querySelector('[data-id=ClearConsole]');
         clco.addEventListener('click', () => this.doClear());
-        const pc = this.#el.querySelector('[data-id=allowPasteConfirm]');
-        const pcok = this.#el.querySelector('[data-id=doAllowPaste]');
-        const opts_c = this.#el.querySelector('[data-id=con_opts]');
-        const opts = this.#el.querySelector('[data-id=con_opts_label]');
+        const pc = this.#shadow.querySelector('[data-id=allowPasteConfirm]');
+        const pcok = this.#shadow.querySelector('[data-id=doAllowPaste]');
+        const opts_c = this.#shadow.querySelector('[data-id=con_opts]');
+        const opts = this.#shadow.querySelector('[data-id=con_opts_label]');
         opts.onchange = () => {
             const newValue = opts.value;
             const currentVal = this.options.check(newValue);
@@ -866,13 +876,13 @@ export class JsCon {
             pc.showModal();
         });
 
-        const rst = this.#el.querySelector('[data-id=ResetSettings]');
+        const rst = this.#shadow.querySelector('[data-id=ResetSettings]');
         rst.onclick = () => {
             if (!confirm('Are you sure?')) return;
             jscon_data.clear();
             location.reload();
         };
-        const clrch = this.#el.querySelector('[data-id=ClearConHist]');
+        const clrch = this.#shadow.querySelector('[data-id=ClearConHist]');
         clrch.onclick = () => {
             if (clrch.$__CONFIRM__) {
                 this.#showMessage('Console history was cleared', 'User Settings');
@@ -886,10 +896,10 @@ export class JsCon {
             clrch.innerText = 'Confirm';
         };
 
-        const ratl = this.#el.querySelector('[data-id=RenderAsTopLayer]');
-        const tlc = this.#el.querySelector('[data-id="top-layer-container"]');
+        const ratl = this.#shadow.querySelector('[data-id=RenderAsTopLayer]');
+        const tlc = this.#shadow.querySelector('[data-id="top-layer-container"]');
         ratl.onclick = () => {
-            if (this.#widget.parentElement !== this.#el) return;
+            if (this.#widget.parentNode !== this.#shadow) return;
             const cs = getComputedStyle(this.#widget);
             this.#widget.style.width = cs.width,
             this.#widget.style.height = cs.height;
@@ -900,7 +910,7 @@ export class JsCon {
             tlc.before(this.#widget);
         }
 
-        const msgs = this.#el.querySelector('.console-messages');
+        const msgs = this.#shadow.querySelector('.console-messages');
         msgs.addEventListener('keydown', ev => {
             if (ev.key === 'Tab' && ev.isTrusted) {
                 ev.preventDefault();
@@ -973,8 +983,8 @@ export class JsCon {
         msgs.addEventListener('contextmenu', msgs_prevent, true);
         msgs.addEventListener('dragstart', msgs_prevent, true);
 
-        const srcurl = this.#el.querySelector('[data-id=SourceURL]');
-        const opensrc = this.#el.querySelector('[data-id=OpenSource]');
+        const srcurl = this.#shadow.querySelector('[data-id=SourceURL]');
+        const opensrc = this.#shadow.querySelector('[data-id=OpenSource]');
         opensrc.onclick = () => {
             if (!srcurl.value) return;
             try {
