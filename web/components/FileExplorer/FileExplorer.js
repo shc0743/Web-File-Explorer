@@ -140,7 +140,7 @@ const data = {
             return r;
         },
 
-        doFilter: debounce(async function () {
+        async doFilter() {
             const text = this.filterText;
             if (!text) {
                 this.objectCount = this.listdata.length;
@@ -152,7 +152,7 @@ const data = {
                 if (el.includes) return el.includes(text);
                 return false;
             });
-        }, 500),
+        },
 
         async openFile(blank = false) {
             const selection = this.$refs.lst.selection;
@@ -316,7 +316,7 @@ const data = {
                             path: targetdir,
                             filename: i.name,
                             override: override,
-                            blob: i,
+                            blob: new Blob([i]),
                         });
                     }
                     globalThis.appInstance_.addTask({
@@ -474,7 +474,7 @@ const data = {
                 files.push({
                     server: this.server.addr,
                     pswd: this.server.pswd,
-                    path: p + el_data[i].substring(2),
+                    path: p + el_data[i].substring(2) + (el_data[i].substring(0, 2) === 'd|' ? '/' : ''),
                 })
             }
             // console.log(files);

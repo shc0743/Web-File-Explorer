@@ -41,7 +41,7 @@ function messageHandler(ev) {
         case 'disconnect':
             // if (connectedPorts.size < 2) { debugger; console.error('[debug] Error!! No connected port') };
             connectedPorts.delete(ev.currentTarget);
-            console.debug('[Shared Worker] A port has disconnected:', ev.currentTarget, '\nConnected port count:', connectedPorts.size);
+            console.debug('[Shared Worker] A port has disconnected,', 'Connected port count:', connectedPorts.size);
             if (connectedPorts.size < 2) {
                 if (transferTasks.size) notify({ type: 'hasTask', value: true });
             }

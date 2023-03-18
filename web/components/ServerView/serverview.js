@@ -6,11 +6,14 @@ import UploadForm from '../UploadPage/form.js';
 
 
 /*
-[WARNING] 此文件为bug高发地，60%以上的bug都集中在这一块
+[WARNING] 此文件为bug高发地，大多数bug都集中在这一块
 */
 
 
 const componentId = '6f396fb8f6bc431daeaa4a7fb2451c35';
+
+const fallbackElement = document.createElement('div');
+document.createElement('div').append(fallbackElement);
 
 const data = {
     data() {
@@ -104,7 +107,7 @@ const data = {
                 //    console.log('closed loading service in serverview');
                 }
                 if (!!value) {
-                   this.$data.loadingInstance = ElLoading.service({ lock: false, fullscreen: false, target: this.$refs.view });
+                   this.$data.loadingInstance = ElLoading.service({ lock: false, fullscreen: false, target: this.$refs.view || fallbackElement });
                 //    console.log('created loading service in serverview:', this.loadingInstance);
                 } else {
                    this.$data.loadingInstance = false;
@@ -115,7 +118,7 @@ const data = {
 
     mounted() {
         globalThis.appInstance_.serverView = this;
-        setTimeout(hashchangeHandler);
+        this.$nextTick(() => setTimeout(hashchangeHandler));
 
     },
 

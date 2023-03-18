@@ -30,7 +30,11 @@ ConRoot_Template.innerHTML = `
                     
                     </div>
                     <div class="console-input">
-                        <textarea data-id="cons" rows=1></textarea>
+                        <div style="display: inline-flex; flex: 1; flex-direction: column;">
+                            <textarea data-id="cons" rows=1></textarea>
+                            <jscon-scrollbar data-id="cons_sc2" type=horizontal min=0></jscon-scrollbar>
+                        </div>
+                        <jscon-scrollbar data-id="cons_sc" min=0></jscon-scrollbar>
                     </div>
                 </div>
             </div>
@@ -442,6 +446,8 @@ ConTabbar_Template.innerHTML = `
 </style>
 `;
 
+try { await import('./jscon-util.js') } catch {}
+
 
 export function register() {
     registerResizableWidget();
@@ -459,6 +465,7 @@ export const JSCON_INIT_OPTIONS = {
     useStrict: { label: "'use strict'", value: false },
     sandbox: { label: 'Run code in sandbox', enforced: true },
     notifications: true,
+    recordHistory: true,
 };
 
 export class Tracker extends Error {
@@ -576,6 +583,7 @@ export class JsCon {
     #el = null;
     #widget = null;
     #consel = null;
+    #consinput = null;
     #msgContainer = null;
     #history = new Array();
     #histpos = -1;
@@ -670,6 +678,19 @@ export class JsCon {
         }
     }
 
+    #cons_resizeObserver = null;
+    #cons_drawscrollbar() {
+        const cons_sc = this.#widget.querySelector('[data-id=cons_sc]');
+        const cons_sc2 = this.#widget.querySelector('[data-id=cons_sc2]');
+        const max = Math.max(0, this.#consinput.scrollHeight - this.#consinput.offsetHeight);
+        const value = this.#consinput.scrollTop;
+        cons_sc.value = value, cons_sc.max = max;
+        const max2 = Math.max(0, this.#consinput.scrollWidth - this.#consinput.offsetWidth);
+        const value2 = this.#consinput.scrollLeft;
+        cons_sc2.value = value2, cons_sc2.max = max2;
+        
+    }
+
     #initEnv() {
         this.forbiddenConsoleAPIs = {
             has: x => this.#forbiddenConsoleAPIs.has(x),
@@ -706,8 +727,15 @@ export class JsCon {
         const history = jscon_data.get('console-history');
         if (history) this.#history = history;
 
+        this.#consinput = this.#widget.querySelector('[data-id=cons]');
+        this.#cons_resizeObserver = new ResizeObserver(() => {
+            this.#cons_drawscrollbar();
+        });
+        this.#cons_resizeObserver.observe(this.#consinput);
+
 
     }
+
 
     #registerEventHandlers() {
         this.#widget.addEventListener('beforeclose', function (ev) {
@@ -726,9 +754,10 @@ export class JsCon {
             this.#el.querySelectorAll('.panels > *').forEach(el => el.hidden = true);
             (this.#el.querySelector(`.panels > [data-panel="${tabs.currentId}"]`) || {}).hidden = false;
         });
-        const cons = this.#widget.querySelector('[data-id=cons]');
+        const cons = this.#consinput;
         cons.addEventListener('keydown', ev => {
             if (ev.key === 'Enter' && !ev.shiftKey) {
+                if (!ev.isTrusted) return;
                 ev.preventDefault();
                 return queueMicrotask(() => this.#consoleRun(cons));
             }
@@ -790,7 +819,17 @@ export class JsCon {
             const rows = text.split('\n').length;
             const originRows = +cons.rows;
             if (rows !== originRows) cons.rows = rows;
+            this.#cons_drawscrollbar();
         });
+        cons.addEventListener('scroll', () => {
+            this.#cons_drawscrollbar();
+        });
+        const cons_sc = this.#widget.querySelector('[data-id=cons_sc]');
+        const cons_sc2 = this.#widget.querySelector('[data-id=cons_sc2]');
+        const cons_sc_a = () => { cons.scrollTop = cons_sc.value };
+        const cons_sc_b = () => { cons.scrollLeft = cons_sc2.value };
+        cons_sc.addEventListener('scrolling', cons_sc_a); cons_sc.addEventListener('scroll', cons_sc_a);
+        cons_sc2.addEventListener('scrolling', cons_sc_b); cons_sc2.addEventListener('scroll', cons_sc_b);
         const antipaste = ev => {
             if (!this.options.check('allowPaste')) ev.preventDefault();
         };
@@ -1103,7 +1142,10 @@ export class JsCon {
 
         this.log('>', code);
         this.#histpos = -1;
-        if (this.#history[this.#history.length - 1] !== code) {
+        if (
+            (this.#history[this.#history.length - 1] !== code) &&
+            (this.options.check('recordHistory'))
+        ) {
             this.#history.push(code);
             if (this.#history.length > CONSOLE_HISTORY_MAX) {
                 this.#history.splice(0, this.#history.length - CONSOLE_HISTORY_MAX);
@@ -1277,7 +1319,7 @@ export class JsCon {
         let untrusted = !ev.isTrusted;
         let untrusted_str = untrusted ? '[untrusted] ' : '';
         const row = this.#consoleAddRow([(`${untrusted_str}Uncaught ${ev.message}\n(${ev.filename}:${ev.lineno}:${ev.colno})`)], 'error');
-        if (!this.options.get('notifications')) return;
+        if (!this.options.check('notifications')) return;
         if (!untrusted) this.#showMessage(`${untrusted_str}Uncaught ${ev.message}`, 'JavaScript Exception', 'error', () => {
             if (!this.#widget.open) this.#widget.open = true;
             this.#widget.querySelector('[data-id=TABS]').currentTab = 0;
@@ -1288,7 +1330,7 @@ export class JsCon {
         let untrusted = !ev.isTrusted;
         let untrusted_str = untrusted ? '[untrusted] ' : '';
         const row = this.#consoleAddRow([`${untrusted_str}Uncaught (in promise) ${ev.reason} (Promise:`, ev.promise, `)`], 'error');
-        if (!this.options.get('notifications')) return;
+        if (!this.options.check('notifications')) return;
         if (!untrusted) this.#showMessage(`${untrusted_str}Uncaught (in promise) ${ev.reason}`, 'JavaScript Unhandled Rejection', 'error', () => {
             if (!this.#widget.open) this.#widget.open = true;
             this.#widget.querySelector('[data-id=TABS]').currentTab = 0;
@@ -1311,7 +1353,7 @@ export class JsCon {
     }
 
     clear() {
-        if (this.options.get('allowClear')) {
+        if (this.options.check('allowClear')) {
             this.doClear(true);
             return this.#consoleOrigin.clear.apply(this.#consoleThis, arguments);
         }
@@ -1454,12 +1496,12 @@ export class HTMLJsconObjectViewerElement extends HTMLElement {
                     if (prototype === Array.prototype) {
                         objType = `Array (${data.length})`;
                     }
-                    else if (prototype === Promise.prototype) {
-                        objType = `Promise {<Querying State>}`;
-                        const t = {};
-                        Promise.race([data, t]).then(v => (v === t) ? "pending" : "fulfilled", () => "rejected")
-                            .then(state => this.innerHTML = `<span>Promise {<span style="color: var(--color-text-secondary, #5f6368)">&lt;${state}&gt;</span>}</span>`);
-                    }
+                    // else if (prototype === Promise.prototype) {
+                    //     objType = `Promise {<Querying State>}`;
+                    //     const t = {};
+                    //     Promise.race([data, t]).then(v => (v === t) ? "pending" : "fulfilled", () => "rejected")
+                    //         .then(state => this.innerHTML = `<span>Promise {<span style="color: var(--color-text-secondary, #5f6368)">&lt;${state}&gt;</span>}</span>`);
+                    // }
                     else if (prototype) {
                         const name = prototype.constructor?.name;
                         if (data[Symbol.toStringTag]) { objType = data[Symbol.toStringTag] }
@@ -1490,7 +1532,7 @@ export class HTMLJsconObjectViewerElement extends HTMLElement {
         const data = this.data;
         const datatype = typeof data;
         if (!(/(function|object)/.test(datatype))) return;
-        const keys = Reflect.ownKeys(data);
+        const keys = Reflect.ownKeys(data), keysFromPrototypeChain = [];
         const s_key = Symbol(), s_desc = Symbol();
         const symbols2str = {
             [Symbol.toPrimitive]: "Symbol(Symbol.toPrimitive)",
@@ -1509,7 +1551,8 @@ export class HTMLJsconObjectViewerElement extends HTMLElement {
                         typeof desc.value === 'symbol' ||
                         typeof desc.value === 'function'
                     )) continue;
-                    if (i === '__proto__' || i in symbols2str || keys.includes(i)) continue;
+                    if (i === '__proto__' || i in symbols2str || keys.includes(i) || keysFromPrototypeChain.includes(i)) continue;
+                    keysFromPrototypeChain.push(i);
                     keys.push({ [s_key]: i, [s_desc]: desc });
                 } catch { continue }
             }

@@ -51,7 +51,7 @@ const data = {
                 type: 'newdir',
                 server: srv,
                 pswd: pw,
-                pathname: path + name,
+                pathname: path + name + '/',
             }, { wait: true })
             .then(() => {
                 globalThis.appInstance_.explorer?.update();
