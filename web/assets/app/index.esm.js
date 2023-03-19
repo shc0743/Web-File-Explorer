@@ -214,6 +214,10 @@ if (globalThis.SharedWorker) {
                 }
             }
                 break;
+            
+            // case 'hasTask':
+            //     hasTask = ev.data.value;
+            //     break;
         
             default:
                 break;
@@ -294,50 +298,23 @@ globalThis.addEventListener('storage', function (ev) {
 });
 
 
-globalThis.addEventListener('keydown', function (ev) {
-    const key = ev.key.toUpperCase();
-    if (key === 'F5' && !(ev.ctrlKey || ev.shiftKey)) { // F5 only
-        if (!globalThis.location.hash.startsWith('#/s/')) return;
-        ev.preventDefault();
-        return window.dispatchEvent(new HashChangeEvent('hashchange'));
-    }
-    if (key === 'P' && ev.ctrlKey && ev.shiftKey) { // Ctrl_Shift_P
-        ev.preventDefault();
-        return globalThis.commandPanel?.toggle();
-    }
-    if (key === 'K' && ev.ctrlKey && !ev.shiftKey) { // Ctrl_K
-        ev.preventDefault();
-        return globalThis.appInstance_.instance.transferPanel_isOpen =
-            !globalThis.appInstance_.instance.transferPanel_isOpen;
-    }
-    if (key === 'N' && ev.ctrlKey) { // Ctrl_N | Ctrl_Shift_N
-        ev.preventDefault();
-        return globalThis.appInstance_.newFileOp(ev.shiftKey ? 'dir' : 'file');
-    }
-    if (key === 'ENTER' && ev.altKey) { // Alt_Enter
-        ev.preventDefault();
-        return globalThis.appInstance_.showPropertiesDialog?.();
-    }
-    if (key === 'F2' && !(ev.ctrlKey || ev.shiftKey)) { // F2 only
-        ev.preventDefault();
-        return globalThis.appInstance_.renameItem();
-    }
-    if (key === ',' && ev.ctrlKey) { // Ctrl+,
-        return !(location.hash = '#/settings/');
-    }
-    if (key === 'I' && ev.ctrlKey && ev.shiftKey) { // Ctrl_Shift_P
-        ev.preventDefault();
-        return globalThis.appInstance_.con?.open();
-    }
+import('./keyboard_shortcuts.js').then((moduleHandle) => {
+    const { default: ks, NoPrevent } = moduleHandle;
+    globalThis.addEventListener('keydown', function (ev) {
+        const keys = [];
+        if (ev.ctrlKey && ev.key !== 'Control') keys.push('Ctrl');
+        if (ev.altKey && ev.key !== 'Alt') keys.push('Alt');
+        if (ev.shiftKey && ev.key !== 'Shift') keys.push('Shift');
+        keys.push(ev.key.length === 1 ? ev.key.toUpperCase() : ev.key);
+        const key = keys.join('+');
 
-    if (ev.key === 'Alt') {
-        ev.preventDefault();
-        return globalThis.appInstance_.instance
-            .$refs.headerBar
-            .$refs.mainMenuBar
-            .$refs.menubar
-            .querySelector('button')?.focus();
-    }
+        const fn = ks[key];
+        if (fn) {
+            const ret = fn.call(globalThis, ev, key);
+            if (ret !== NoPrevent) ev.preventDefault();
+        }
+        return;
+    });
 });
 
 
@@ -348,7 +325,7 @@ export function canGoDetector() {
         forward: globalThis.navigation?.canGoForward !== false,
     } // let old devices can use go and back
 }
-globalThis.setInterval(canGoDetector, 1000);
+globalThis.setInterval(canGoDetector, 5000);
 
 
 

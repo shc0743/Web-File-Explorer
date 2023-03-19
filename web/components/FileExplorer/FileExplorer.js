@@ -142,19 +142,22 @@ const data = {
             return r;
         },
 
-        async doFilter() {
+        doFilter: antitik(async function () {
             const text = this.filterText;
             if (!text) {
                 this.objectCount = this.listdata.length;
                 return this.$refs.lst.update();
             }
+            const fullTest = (text.startsWith('"') && text.endsWith('"'));
+            const fullTestStr = text.substring(Math.min(1, text.length - 1), text.length - 1);
             this.objectCount = await this.$refs.lst.filter(el => {
                 if (!el) return false;
-                if (Array.isArray(el)) return el[1]?.includes?.(text);
+                if (Array.isArray(el)) return fullTest ? el[1] === fullTestStr : el[1]?.includes?.(text);
+                if (fullTest) return el === fullTestStr;
                 if (el.includes) return el.includes(text);
                 return false;
             });
-        },
+        }),
 
         async openFile(blank = false) {
             const selection = this.$refs.lst.selection;
@@ -602,6 +605,17 @@ function computeHash(item, currentPath, isFolder = false) {
     try { return '#/s/' + btoa(this.server.addr) + '/' + currentPath + encodeURIComponent(item) + (isFolder ? '/' : ''); }
     catch { return null }
 };
+
+
+import { TickManager } from '../VList/TickManager.js';
+const tickManager = new TickManager(500);
+let cancelNextTick = null;
+function antitik(fn) {
+    return function () {
+        cancelNextTick && cancelNextTick();
+        cancelNextTick = tickManager.nextTick(() => fn.apply(this, arguments));
+    };
+}
 
 
 

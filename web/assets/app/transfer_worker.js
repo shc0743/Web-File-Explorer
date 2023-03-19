@@ -26,7 +26,7 @@ globalThis.onconnect = function (ev) {
         port.addEventListener('message', messageHandler);
         port.start();
     }
-    notify({ type: 'hasTask', value: false });
+    // notify({ type: 'hasTask', value: false });
     globalThis.queueMicrotask(notifyTaskUpdate);
 };
 
@@ -43,15 +43,15 @@ function messageHandler(ev) {
             connectedPorts.delete(ev.currentTarget);
             console.debug('[Shared Worker] A port has disconnected,', 'Connected port count:', connectedPorts.size);
             if (connectedPorts.size < 2) {
-                if (transferTasks.size) notify({ type: 'hasTask', value: true });
+                // if (transferTasks.size) notify({ type: 'hasTask', value: true });
             }
             ev.currentTarget.close();
             break;
 
         case 'addTask':
             addTask(ev.data.task, ev.data);
-            if (connectedPorts.size < 2) notify({ type: 'hasTask', value: true });
-            else notify({ type: 'hasTask', value: false });
+            // if (connectedPorts.size < 2) notify({ type: 'hasTask', value: true });
+            // else notify({ type: 'hasTask', value: false });
             break;
         
         case 'deleteTask':
@@ -64,7 +64,7 @@ function messageHandler(ev) {
                     transferTasks.delete(i);
                 }
             }
-            if (transferTasks.size < 1) notify({ type: 'hasTask', value: false });
+            // if (transferTasks.size < 1) notify({ type: 'hasTask', value: false });
             queueMicrotask(notifyTaskUpdate);
             break;
         

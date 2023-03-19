@@ -33,6 +33,8 @@ const data = [
             const creator = globalThis.appInstance_.newFileOp;
             AppendMenu(submenu1, String, {}, r['File'], creator.bind(this, 'file'));
             AppendMenu(submenu1, String, {}, r['Folder'], creator.bind(this, 'dir'));
+            AppendMenu(submenu1, 'separator');
+            AppendMenu(submenu1, String, {}, r['Window'], () => window.w_open(window.location.pathname + window.location.search));
 
             AppendMenu(m, 'separator');
             AppendMenu(m, String, {}, r['Upload File'], function () {

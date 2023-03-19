@@ -65,7 +65,11 @@ export class TickManager {
     }
 
     nextTick(func = undefined) {
-        if (func) return this.#nextTick.add(func);
+        if (func) {
+            this.#nextTick.add(func);
+            const cancelNextTick = () => this.#nextTick.delete(func);
+            return cancelNextTick;
+        }
         return this.#nextTickPromise || (this.#nextTickPromise =
             new Promise(resolve => this.#nextTickPromiseResolve = resolve));
     }

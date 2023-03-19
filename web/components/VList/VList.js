@@ -207,6 +207,9 @@ v-list-row.checked, v-list-row.dragging, v-list-row.dropping {
 v-list-row.checked, v-list-row.dragging {
     outline: var(--v-list-row-focus-outline);
 }
+v-list-row:hover:not(.checked) {
+    outline: var(--v-list-row-hover-outline);
+}
 v-list-row.dragging, v-list-row.dropping,
 #container:has(v-list-row.dragging) v-list-row.checked
 {

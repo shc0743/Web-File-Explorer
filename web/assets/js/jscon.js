@@ -255,7 +255,7 @@ dialog[data-id="top-layer-container"] {
 `+`.jscon-messages-container {
     position: fixed;
     right: 0;
-    top: 0;
+    top: calc(env(titlebar-area-y, 0px) + env(titlebar-area-height, 0px));
     z-index: 1073741823;
     height: 0;
     overflow: visible;

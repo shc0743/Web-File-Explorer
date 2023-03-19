@@ -84,7 +84,6 @@ const data = {
 
     computed: {
         
-
     },
 
     created() {
@@ -93,6 +92,15 @@ const data = {
             if (ah) this.autohide = true;
             else if (ah !== false) await userdata.put('config', false, 'nav.autohide');
         })();
+    },
+
+    mounted() {
+        globalThis.appInstance_.HeaderBar = this;
+        
+    },
+    beforeUnmount() {
+        delete globalThis.appInstance_.HeaderBar;
+
     },
 
     template: await getHTML(import.meta.url, componentId),

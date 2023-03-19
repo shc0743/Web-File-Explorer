@@ -125,7 +125,9 @@ const data = {
         },
 
         reload_content() {
-            window.dispatchEvent(new HashChangeEvent('hashchange'));
+            if (globalThis.location.hash.startsWith('#/s/'))
+                window.dispatchEvent(new HashChangeEvent('hashchange'));
+            else globalThis.location.reload();
         },
 
 

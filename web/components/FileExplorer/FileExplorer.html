@@ -9,7 +9,7 @@
         :customCheckDrag="customCheckDrag"
         :clickToOpen="clickToOpen"
         @open="openFile(false)" @openblank="openFile(true)"
-        @drop="handleObjectDropping" @keydown.delete="deleteSelected"
+        @drop="handleObjectDropping"
     >
         <div class="header" slot="header">
             <span v-for="item in selectedColumns">{{item}}</span>

@@ -126,6 +126,17 @@ void server::AuthFilter::doFilter(const HttpRequestPtr& req, FilterCallback&& fc
 
 
 
+static std::string generate_error_string_from_last_error(std::string description = "") {
+	std::wstring errStr = LastErrorStrW();
+	std::string sErrStr;
+	std::string suffix = description + " (error code: " + std::to_string(GetLastError()) + ")";
+	if (!llvm::convertWideToUTF8(errStr, sErrStr)) {
+		return suffix;
+	}
+	return sErrStr + " - " + suffix;
+}
+
+
 void server::FileServer::auth(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback) const
 {
 	HttpResponsePtr resp = HttpResponse::newHttpResponse();
@@ -184,11 +195,19 @@ void server::FileServer::downloadFile(const HttpRequestPtr& req, std::function<v
 		switch (parseRangeHeader(rangeStr, (size_t)MyGetFileSizeW(wsfile), ranges))
 		{
 		case FileRangeParseResult::SinglePart:
-		case FileRangeParseResult::MultiPart:
 		{
 			auto& firstRange = ranges.front();
 			offset = firstRange.start;
 			length = firstRange.end - firstRange.start;
+		}
+		break;
+		case FileRangeParseResult::MultiPart:
+		{
+			auto resp = HttpResponse::newHttpResponse();
+			CORSadd(req, resp);
+			resp->setStatusCode(k500InternalServerError);
+			resp->setBody("FileRangeParseResult::MultiPart is not supported");
+			return callback(resp);
 		}
 		break;
 		case FileRangeParseResult::NotSatisfiable:
@@ -290,7 +309,7 @@ openFile:
 		}
 		else {
 			resp->setStatusCode(k500InternalServerError);
-			resp->setBody("Failed to CreateFileW, error code " + to_string(GetLastError()));
+			resp->setBody(generate_error_string_from_last_error("Error at CreateFileW"));
 		}
 		return resp;
 	}
@@ -378,7 +397,7 @@ void server::FileServer::delFile(const HttpRequestPtr& req, std::function<void(c
 			return callback(resp);
 		}
 		else {
-			resp->setBody("Failed to DeleteFileW, error code " + to_string(GetLastError()));
+			resp->setBody(generate_error_string_from_last_error("Error at DeleteFileW"));
 			resp->setStatusCode(k500InternalServerError);
 			return callback(resp);
 		}
@@ -392,12 +411,13 @@ void server::FileServer::delFile(const HttpRequestPtr& req, std::function<void(c
 		}
 		else if (r == 1) {
 			resp->setStatusCode(k500InternalServerError);
-			resp->setBody("tried to delete the directory, but something went wrong");
+			resp->setBody(generate_error_string_from_last_error(
+				"tried to delete the directory, but something went wrong"));
 			return callback(resp);
 		}
 		else {
 			resp->setStatusCode(k500InternalServerError);
-			resp->setBody("failed");
+			resp->setBody(generate_error_string_from_last_error("failed to FileDeleteTreeW"));
 			return callback(resp);
 		}
 	}
@@ -418,7 +438,6 @@ void server::FileServer::getFileList(const HttpRequestPtr& req, std::function<vo
 		resp->setBody(body);
 		return callback(resp);
 	};
-	const auto errcode = [] {return to_string(GetLastError()); };
 	auto fstat = IsFileOrDirectory(wsfile);
 	if (fstat != -1) return (fstat == 0 ? err(k404NotFound, file + " not found") : (
 		fstat == 1 ? err(k400BadRequest, "Cannot list files in a file") : err(k500InternalServerError)
@@ -438,7 +457,7 @@ void server::FileServer::getFileList(const HttpRequestPtr& req, std::function<vo
 
 		if (INVALID_HANDLE_VALUE == hFind) {
 			return err(k500InternalServerError,
-				"Failed to FindFirstFile, error: " + errcode());
+				generate_error_string_from_last_error("Failed to FindFirstFileW"));
 		}
 
 		do {
@@ -456,7 +475,7 @@ void server::FileServer::getFileList(const HttpRequestPtr& req, std::function<vo
 
 		dwError = GetLastError();
 		if (dwError != ERROR_NO_MORE_FILES) {
-			return err(k500InternalServerError, errcode());
+			return err(k500InternalServerError, generate_error_string_from_last_error("Unknown Error"));
 		}
 
 		FindClose(hFind);
@@ -525,7 +544,8 @@ void server::FileServer::getVolumeList(const HttpRequestPtr& req, std::function<
 	WCHAR buffer1[128]{}, buffer2[256]{}, buffer4[128]{}, buffer7[32]{};
 	DWORD buffer3 = 0, buffer5 = 0, buffer6 = 0;
 	HANDLE hFind = FindFirstVolumeW(buffer1, 128);
-	if (INVALID_HANDLE_VALUE == hFind) return err(k500InternalServerError, "Failed to FindFirstVolumeW");
+	if (INVALID_HANDLE_VALUE == hFind) return err(k500InternalServerError,
+		generate_error_string_from_last_error("Failed to FindFirstVolumeW"));
 
 	do {
 		result1 += (buffer1 + L"\n"s);
@@ -610,6 +630,10 @@ void server::FileServer::getFileInfo(const HttpRequestPtr& req, std::function<vo
 
 bool static sys_copy_or_move(std::wstring& src, std::wstring& dest, int type) {
 	auto srcType = IsFileOrDirectory(src);
+	if (srcType == -1) {
+		if (src.ends_with(L"..")) src.append(L"\\");
+		if (dest.ends_with(L"..")) dest.append(L"\\");
+	}
 
 	if (type == 1)
 		return srcType == -1 ?
@@ -640,7 +664,7 @@ HttpResponsePtr static sys_func(const HttpRequestPtr& req, const string& src, co
 			r = "File not found"; code = k404NotFound;
 		}
 		else {
-			r = "Failed, code=" + to_string(err); code = k500InternalServerError;
+			r = generate_error_string_from_last_error("Failed"); code = k500InternalServerError;
 		}
 	}
 
@@ -676,7 +700,7 @@ void server::FileServer::newDir(const HttpRequestPtr& req, std::function<void(co
 	resp->setContentTypeCode(CT_TEXT_PLAIN);
 	if (!CreateDirectoryW(wsname.c_str(), NULL)) {
 		resp->setStatusCode(k500InternalServerError);
-		resp->setBody("Failed, code=" + to_string(GetLastError()));
+		resp->setBody(generate_error_string_from_last_error("Failed to CreateDirectoryW"));
 	}
 	callback(resp);
 }
@@ -764,7 +788,7 @@ void server::FileServer::sysShellExecute(const HttpRequestPtr& req, std::functio
 		{
 			resp->setContentTypeCode(CT_TEXT_PLAIN);
 			resp->setStatusCode(k500InternalServerError);
-			resp->setBody("Failed, code=" + to_string(GetLastError()));
+			resp->setBody(generate_error_string_from_last_error("Error at ShellExecuteW"));
 		}
 	}
 	callback(resp);
@@ -803,7 +827,7 @@ void server::FileServer::sysCreateProcess(const HttpRequestPtr& req, std::functi
 	}
 	else {
 		resp->setStatusCode(k500InternalServerError);
-		resp->setBody("Failed, error code=" + to_string(GetLastError()));
+		resp->setBody(generate_error_string_from_last_error("Error at CreateProcessW"));
 	}
 	delete[] pwCl;
 
