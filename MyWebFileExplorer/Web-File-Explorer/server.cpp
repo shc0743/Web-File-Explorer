@@ -758,7 +758,7 @@ void server::FileServer::sysShellExecute(const HttpRequestPtr& req, std::functio
 	verb = req->getParameter("verb");
 	llvm::ConvertUTF8toWide(sname, wsname);
 	llvm::ConvertUTF8toWide(sparam, wsparam);
-	nShow = atoi(sShow.c_str());
+	nShow = sShow.empty() ? SW_NORMAL : atoi(sShow.c_str());
 	str_replace(wsname, L"/", L"\\");
 
 

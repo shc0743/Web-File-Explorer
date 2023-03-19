@@ -132,5 +132,6 @@
   "ui.storage.estimate.sw": "Service Worker",
   "ui.settings.sw": "Service Worker 设置",
   "ui.login.ui/save": "保存",
-  "ui.login.ui/ignoreVerification": "不进行验证"
+  "ui.login.ui/ignoreVerification": "不进行验证",
+  "ui.fo.cfl.err.failed": "复制失败"
 }

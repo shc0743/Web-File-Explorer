@@ -22,6 +22,35 @@ globalThis.appInstance_.renameItem = () => {
     if (appInstance_.fileView) return appInstance_.fileView.getFileNameEditor()?.doEdit();
     return ElMessage.error(tr('ui.fo.new.err.noexpl'));
 };
+globalThis.appInstance_.cfl = function () {
+    if (globalThis.appInstance_.explorer) return (function () {
+        const selection = this.$refs.lst.selection;
+        let el_data = this.listdata;
+        if (!el_data) return;
+        if (this.$refs.lst.getFilter())
+            el_data = this.listdata.filter(this.$refs.lst.getFilter());
+        const result = [];
+        const prefix = (this.path.endsWith('/') || this.path.endsWith('\\')) ? this.path : this.path + '/';
+
+        for (const i of selection) {
+            const val = el_data[i];
+            if (!val) continue;
+            if (!(val.startsWith('f|') || val.startsWith('d|'))) continue;
+            result.push(prefix + val.substring(2));
+        }
+
+        return navigator.clipboard.writeText(result.join('\r\n'))
+        .then(() => {})
+        .catch(() => ElMessage.error(tr('ui.fo.cfl.err.failed')));
+    }).call(globalThis.appInstance_.explorer);
+
+    if (globalThis.appInstance_.fileView) {
+        return navigator.clipboard.writeText(globalThis.appInstance_.fileView.path)
+        .then(() => { })
+        .catch(() => ElMessage.error(tr('ui.fo.cfl.err.failed')));
+    }
+
+};
 
 let r = {};
 
@@ -76,6 +105,9 @@ const data = [
             AppendMenu(m, String, {}, r['Remote CreateProcess'], function () {
                 globalThis.appInstance_.remoteSOCDialog?.show('c');
             });
+
+            AppendMenu(m, 'separator');
+            AppendMenu(m, String, {}, r['Copy File Location'], globalThis.appInstance_.cfl);
 
             AppendMenu(m, 'separator');
             AppendMenu(m, String, {}, r['Command Panel'], function () {

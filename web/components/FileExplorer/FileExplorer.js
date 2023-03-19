@@ -153,7 +153,7 @@ const data = {
             this.objectCount = await this.$refs.lst.filter(el => {
                 if (!el) return false;
                 if (Array.isArray(el)) return fullTest ? el[1] === fullTestStr : el[1]?.includes?.(text);
-                if (fullTest) return el === fullTestStr;
+                if (fullTest) return el.substring ? el.substring(2) === fullTestStr : false;
                 if (el.includes) return el.includes(text);
                 return false;
             });
@@ -191,7 +191,7 @@ const data = {
                     continue; // 未知项目
                 }
                 const isDir = val.startsWith('d|');
-                val = val.split('|')[1];
+                val = val.substring(2);
                 const hash = computeHash.call(this, val, currentPath, isDir);
                 if (!hash) continue;
 
