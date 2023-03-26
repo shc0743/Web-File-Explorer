@@ -32,12 +32,14 @@ globalThis.appInstance_.cfl = function () {
         const result = [];
         const prefix = (this.path.endsWith('/') || this.path.endsWith('\\')) ? this.path : this.path + '/';
 
+        if (selection.size)
         for (const i of selection) {
             const val = el_data[i];
             if (!val) continue;
             if (!(val.startsWith('f|') || val.startsWith('d|'))) continue;
             result.push(prefix + val.substring(2));
         }
+        else result.push(this.path);
 
         return navigator.clipboard.writeText(result.join('\r\n'))
         .then(() => {})

@@ -490,7 +490,7 @@ const data = {
             });
         },
 
-        async rename(ev) {
+        async rename() {
 
             let el_data = this.listdata;
             if (!el_data) return;

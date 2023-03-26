@@ -56,9 +56,17 @@
                 });
             }
             else if (event) sub.addEventListener('pointerup', event);
-            sub.onkeydown = function (ev) {
-                if (ev.key.includes('Enter')) {
-                    ev.target.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+            {
+                let flags = false;
+                sub.onblur = function () { flags = false };
+                sub.onkeydown = function (ev) {
+                    if (ev.key.includes('Enter')) flags = true;
+                }
+                sub.onkeyup = function (ev) {
+                    if (!flags) return;
+                    if (ev.key.includes('Enter')) {
+                        ev.target.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+                    }
                 }
             }
             if (config && config.disabled) {
@@ -301,13 +309,15 @@
 
 
     function addCSS(text) {
-        // let css = document.createElement('style');
-        // css.innerHTML = text;
-        // document.head.append(css);
-        // return css;
-        const css = new CSSStyleSheet;
-        css.replace(text);
-        document.adoptedStyleSheets.push(css);
+        if ('adoptedStyleSheets' in document) {
+            const css = new CSSStyleSheet;
+            css.replace(text);
+            document.adoptedStyleSheets.push(css);
+        }
+        let css = document.createElement('style');
+        css.innerHTML = text;
+        document.head.append(css);
+        return css;
     }
 
 })(window.exports || window);

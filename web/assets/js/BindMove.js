@@ -139,7 +139,7 @@ function UnBindMove(el) {
 
 
 
-addCSS(`
+export const BindMove_css = addCSS(`
 .${ProductId}-el {
     user-select: none;
     touch-action: none;
@@ -158,7 +158,7 @@ addCSS(`
 
 
 function addCSS(css, el = null, adopt = false) {
-    if (el === null || adopt) {
+    if ((el === null || adopt) && ('adoptedStyleSheets' in document)) {
         const style = new CSSStyleSheet;
         style.replace(css);
         (el || document).adoptedStyleSheets.push(style);
@@ -219,13 +219,6 @@ resizable-widget-content-container-5e5921c2 {
     touch-action: revert;
     border-radius: 5px;
 }
-.${ProductId}-el {
-    user-select: none;
-    touch-action: none;
-}
-.${ProductId}-el.moving {
-    cursor: move;
-}
 #caption {
     user-select: none;
     padding: 5px;
@@ -254,6 +247,12 @@ export class HTMLResizableWidgetElement extends HTMLElement {
 
         this.#shadowRoot = this.attachShadow({ mode: 'open' });
         addCSS(ResizableWidgetCSS2, this.#shadowRoot, true);
+
+        if (this.#shadowRoot.adoptedStyleSheets) {
+            this.#shadowRoot.adoptedStyleSheets.push(BindMove_css);
+        } else {
+            this.#shadowRoot.append(BindMove_css);
+        }
 
         this.#content = document.createElement('resizable-widget-content-container-5e5921c2');
         this.#shadowRoot.append(this.#content);

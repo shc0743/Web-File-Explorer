@@ -204,7 +204,7 @@ v-list-row.checked, v-list-row.dragging, v-list-row.dropping {
     color: var(--v-list-row-focus-color);
     background: var(--v-list-row-focus-bg);
 }
-v-list-row.checked, v-list-row.dragging {
+v-list-row.current, v-list-row.dragging {
     outline: var(--v-list-row-focus-outline);
 }
 v-list-row:hover:not(.checked) {
@@ -214,6 +214,9 @@ v-list-row.dragging, v-list-row.dropping,
 #container:has(v-list-row.dragging) v-list-row.checked
 {
     color: var(--v-list-row-dragging-color);
+}
+#container:has(v-list-row.pfocus) v-list-row.current:not(.pfocus) {
+    outline: var(--v-list-row-outline);
 }
 `;
 
@@ -411,14 +414,16 @@ class HTMLVirtualListElement extends HTMLElement {
 
         if (ev.key === ' ') {
             ev.preventDefault();
-            const el = this.#divContainer.querySelector('v-list-row.pfocus');
+            const el = this.#divContainer.querySelector('v-list-row.pfocus') || this.#divContainer.querySelector('v-list-row.current');
             if (el) {
-                el.classList.remove('pfocus');
-                this.#lastSelection = el.dataset.n;
+                el.classList.contains('current') && el.classList.remove('current');
+                // el.classList.contains('pfocus') && el.classList.remove('pfocus');
+                // this.#lastSelection = el.dataset.n;
                 this.selection.toggle(+el.dataset.n);
             } else {
+                const el = this.#divContainer.querySelector(`v-list-row[data-n="${this.#lastSelection}"]`);
+                el && el.classList.add('pfocus'); el && el.classList.contains('current') && el.classList.remove('current');
                 this.selection.delete(this.#lastSelection);
-                this.#divContainer.querySelector(`v-list-row[data-n="${this.#lastSelection}"]`)?.classList.add('pfocus');
             }
             return;
         }
@@ -430,10 +435,10 @@ class HTMLVirtualListElement extends HTMLElement {
                     this.#divContainer.querySelector('v-list-row.current') ||
                     this.#divContainer.querySelector('v-list-row.checked,v-list-row.pfocus') ||
                     this.#divContainer.querySelector('v-list-row');
-                else if (ev.shiftKey) {
-                    el = this.#divContainer.querySelectorAll(`v-list-row.checked`);
-                    el = ev.key === 'ArrowUp' ? el[0] : el[el.length - 1];
-                }
+                // else if (ev.shiftKey) {
+                //     el = this.#divContainer.querySelectorAll(`v-list-row.checked`);
+                //     el = ev.key === 'ArrowUp' ? el[0] : el[el.length - 1];
+                // }
                 else if (ev.ctrlKey) {
                     let newEl = this.#divContainer.querySelectorAll(`v-list-row.pfocus`);
                     if (!newEl.length) newEl = [el];
@@ -458,13 +463,15 @@ class HTMLVirtualListElement extends HTMLElement {
                 if (ev.ctrlKey) {
                     this.#clearPfocus();
                     elTarget.classList.add('pfocus');
+                    this.#lastSelection = +elTarget.dataset.n;
                 }
                 else if (ev.shiftKey) {
+                    this.#clearPfocus();
                     this.selection.add(elTarget.dataset.n);
-                    this.#lastSelection = elTarget.dataset.n;
+                    // this.#lastSelection = elTarget.dataset.n;
                 }
                 else {
-                    this.#lastSelection = this.selection = elTarget.dataset.n;
+                    this.selection = elTarget.dataset.n;
                 }
             };
             return handler(false);
@@ -507,7 +514,7 @@ class HTMLVirtualListElement extends HTMLElement {
                 this.selection.add(shouldSelection);
             }
             else this.selection = shouldSelection;
-            this.#lastSelection = shouldSelection;
+            // this.#lastSelection = shouldSelection;
             return;
         }
         // console.log(ev.key);
@@ -543,7 +550,7 @@ class HTMLVirtualListElement extends HTMLElement {
                 if (ev.ctrlKey || ev.shiftKey) {
                     if (ev.ctrlKey) {
                         this.selection.toggle(i.dataset.n);
-                        this.#lastSelection = (this.selection.has(i.dataset.n) ? i.dataset.n : null);
+                        // this.#lastSelection = (this.selection.has(i.dataset.n) ? i.dataset.n : null);
                     }
                     else if (ev.shiftKey && this.#lastSelection != null) {
                         const rangeStart = this.#lastSelection, rangeEnd = i.dataset.n;
@@ -551,7 +558,7 @@ class HTMLVirtualListElement extends HTMLElement {
                     }
                     return;
                 }
-                this.#lastSelection = this.selection = i.dataset.n;
+                this.selection = i.dataset.n;
                 if ((!_internal_just_test_dont_open) && this.clickToOpen) {
                     this.dispatchEvent(new CustomEvent('open', { target: i }));
                 }
@@ -777,6 +784,7 @@ class HTMLVirtualListElement extends HTMLElement {
     }
     clearSelection(clearPfocus = false) {
         this.#selection.clear();
+        this.#divContainer.querySelectorAll('v-list-row.current').forEach(el => el.classList.remove('current'));
         this.#divContainer.querySelectorAll('v-list-row.checked').forEach(el => el.classList.remove('checked'));
         this.#divContainer.querySelectorAll('v-list-row.pfocus').forEach(el => el.classList.remove('pfocus'));
         if (!clearPfocus) this.#setPfocus();
@@ -787,6 +795,9 @@ class HTMLVirtualListElement extends HTMLElement {
         if (this.noMultiple) this.clearSelection(true);
         i = +i;
         this.#selection._add.call(this.#selection, i);
+        this.#divContainer.querySelector(`v-list-row.current`)?.classList.remove('current');
+        this.#lastSelection = i;
+        this.#divContainer.querySelector(`v-list-row[data-n="${i}"]`)?.classList.add('current');
         this.#updateSelectionElement();
         if (!this.#isRectInView(i * this.#line_height, (i + 1) * this.#line_height)) {
             this.scrollTop = i * this.#line_height;
@@ -811,6 +822,7 @@ class HTMLVirtualListElement extends HTMLElement {
     #selectionAddRange(start, end) {
         if (isNaN(start) || isNaN(end)) return false;
         start = Number(start), end = Number(end);
+        const raw_end = end;
         if (start > end) [start, end] = [end, start];
         if (this.noMultiple) {
             if (end - start > 0) return false;
@@ -819,6 +831,9 @@ class HTMLVirtualListElement extends HTMLElement {
         for (let i = start, j = end + 1; i < j; ++i){
             this.#selection._add.call(this.#selection, Number(i));
         }
+        this.#divContainer.querySelector(`v-list-row.current`)?.classList.remove('current');
+        this.#lastSelection = raw_end;
+        this.#divContainer.querySelector(`v-list-row[data-n="${raw_end}"]`)?.classList.add('current');
         this.#updateSelectionElement();
         return true;
     }
@@ -840,6 +855,7 @@ class HTMLVirtualListElement extends HTMLElement {
     }
     #clearPfocus() {
         this.#divContainer.querySelectorAll('v-list-row.pfocus').forEach(el => el.classList.remove('pfocus'));
+        // this.#divContainer.querySelectorAll('v-list-row.current').forEach(el => el.classList.remove('current'));
     }
 
 
@@ -1384,11 +1400,14 @@ function debounce(fn, delay, thisArg = globalThis) {
 
 
 export function addCSS(text) {
-    // const el = document.createElement('style');
-    // el.textContent = text;
-    // (document.head || document.documentElement).append(el);
-    const style = new CSSStyleSheet();
-    style.replace(text);
-    document.adoptedStyleSheets.push(style);
+    if ('adoptedStyleSheets' in document) {
+        const style = new CSSStyleSheet();
+        style.replace(text);
+        document.adoptedStyleSheets.push(style);
+    } else {
+        const el = document.createElement('style');
+        el.textContent = text;
+        (document.head || document.documentElement).append(el);
+    }
 }
 

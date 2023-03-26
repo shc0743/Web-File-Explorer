@@ -17,16 +17,18 @@ export class TickManager {
     #nextTickPromise = null;
     #nextTickPromiseResolve = null;
     #tickHandlers = new Set;
+    #destroyed = false;
 
     constructor(tickSpeed = 1000, type = Map) {
         this.#map = new type; // can be Map or WeakMap
 
-        this.#timerId = globalThis.setInterval(() => this.#tickIt(), tickSpeed);
+        this.#timerId = globalThis.setInterval(this.#tickIt.bind(this), tickSpeed);
 
     }
 
     destroy() {
-        return globalThis.clearInterval(this.#timerId);
+        globalThis.clearInterval(this.#timerId);
+        return (this.#destroyed = true);
     }
 
     static get maxTickCount() { return Number.MAX_SAFE_INTEGER - 1 }
@@ -48,6 +50,7 @@ export class TickManager {
     }
 
     add(data) {
+        if (this.#destroyed) throw new TypeError('the object has been destroyed');
         return this.#map.set(data, 0);
     }
 
@@ -65,6 +68,7 @@ export class TickManager {
     }
 
     nextTick(func = undefined) {
+        if (this.#destroyed) throw new TypeError('the object has been destroyed');
         if (func) {
             this.#nextTick.add(func);
             const cancelNextTick = () => this.#nextTick.delete(func);
@@ -75,6 +79,7 @@ export class TickManager {
     }
 
     ontick(cb) {
+        if (this.#destroyed) throw new TypeError('the object has been destroyed');
         if (typeof cb !== 'function') return false;
         this.#tickHandlers.add(cb);
         return this.cancel_ontick.bind(this, cb);

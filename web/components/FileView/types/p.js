@@ -60,7 +60,7 @@ export function PicturePreview(el) {
     const mime = mimeTypes[this.fileinfo.ext];
     mime && url.searchParams.set('m', mime);
     const area = document.createElement('img');
-    area.setAttribute('style', 'width: 100%; height: 100%; box-sizing: border-box;');
+    area.setAttribute('style', 'max-width: 100%; max-height: 100%; box-sizing: border-box;');
     area.src = url.href;
     el.append(area);
 }

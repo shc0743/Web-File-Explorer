@@ -170,15 +170,14 @@ customElements.define('tree-node', HTMLTreeNodeElement);
 customElements.define('tree-toggle-button', HTMLTreeToggleButtonElement);
 
 
-{
+if (Reflect.has(document, 'adoptedStyleSheets')) {
     const css = new CSSStyleSheet;
-    css.replace(`
-    tree-view, tree-node {
-        display: block;
-    }
-
-    `);
+    css.replace(`tree-view, tree-node { display: block; }`);
     document.adoptedStyleSheets.push(css);
+} else {
+    const style = document.createElement('style');
+    style.innerHTML = `tree-view, tree-node { display: block; }`;
+    (document.head || document.documentElement).append(style);
 }
 
 

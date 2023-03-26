@@ -5,9 +5,13 @@ export default {
     'Ctrl+N'() { this.appInstance_.newFileOp('file') },
     'Ctrl+Shift+N'() { this.appInstance_.newFileOp('dir') },
     'Alt+Enter'() { this.appInstance_.showPropertiesDialog?.() },
-    'Ctrl+Shift+C'() { this.appInstance_.cfl?.() },
     'Ctrl+,'() { this.location.hash = '#/settings/' },
     'Ctrl+Shift+I'() { this.appInstance_.con?.open() },
+    'Ctrl+Shift+C'() {
+        const cfl = this.appInstance_.cfl
+        if (!cfl) return NoPrevent
+        return (cfl() instanceof Promise) ? 0 : NoPrevent;
+    },
     'F2'() { this.appInstance_.renameItem() },
     'F5'() {
         if (!this.location.hash.startsWith('#/s/')) return NoPrevent;
@@ -27,10 +31,10 @@ export default {
 
 function p_Delete(ev) {
     const test = v => (v instanceof HTMLInputElement || v instanceof HTMLTextAreaElement || v.contentEditable === 'true') ? NoPrevent : 0;
-    let _St = ev.target;
+    let _St = ev.composedPath()[0] || ev.target;
     while (_St) {
         if (test(_St) === NoPrevent) return NoPrevent;
-        _St = _St.parentElement;
+        _St = _St.parentElement || _St.parentNode;
     }
     this.appInstance_.explorer?.deleteSelected(ev);
 }

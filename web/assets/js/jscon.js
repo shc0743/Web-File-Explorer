@@ -295,8 +295,16 @@ dialog[data-id="top-layer-container"] {
 }
 `+`
 `));
-export const jscon_style = new CSSStyleSheet;
-jscon_style.replace(jscon_style_text);
+export const jscon_style = (function () {
+    if ('adoptedStyleSheets' in document) {
+        const _ = new CSSStyleSheet;
+        _.replace(jscon_style_text);
+        return _;
+    }
+    const _ = document.createElement('style');
+    _.innerHTML = jscon_style_text;
+    return _;
+})();
 
 export const ConMsg_Template = document.createElement('template');
 ConMsg_Template.innerHTML = `
@@ -600,8 +608,13 @@ export class JsCon {
         this.#el = document.createElement('jscon-console-root');
         this.#shadow = this.#el.attachShadow({ mode: 'open' });
         this.#shadow.append(ConRoot_Template.content.cloneNode(true));
-        this.#shadow.adoptedStyleSheets.push(...document.adoptedStyleSheets);
-        this.#shadow.adoptedStyleSheets.push(jscon_style);
+        if ('adoptedStyleSheets' in document) {
+            this.#shadow.adoptedStyleSheets.push(...document.adoptedStyleSheets);
+            this.#shadow.adoptedStyleSheets.push(jscon_style);
+        } else {
+            document.head.querySelectorAll('style,link[rel=stylesheet]').forEach(el => this.#shadow.append(el.cloneNode(true)));
+            this.#shadow.append(jscon_style.cloneNode(true));
+        }
         this.#widget = this.#shadow.firstElementChild;
         customElements.whenDefined('resizable-widget').then(() => {
             addCSS('#container{overflow:hidden}', this.#widget.shadowRoot);
@@ -1186,6 +1199,7 @@ export class JsCon {
 
         let preps = [];
         if (this.options.check('useStrict')) preps.push("'use strict'");
+        preps.push('var $ = globalThis.document.querySelector.bind(globalThis.document)');
 
         const forbiddens = ['// Forbidden APIs\n'];
         for (const i of this.#forbiddenConsoleAPIs) {
