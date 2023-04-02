@@ -1,4 +1,5 @@
-import { getHTML } from '@/assets/js/browser_side-compiler.js';
+import { getHTML, compile } from '@/assets/js/browser_side-compiler.js';
+import { addCSS } from '@/assets/js/BindMove.js';
 import TextEdit from '../TextEdit/TextEdit.js';
 
 
@@ -88,4 +89,45 @@ const data = {
 
 
 export default data;
+
+
+addCSS(compile(`
+table>>> {
+    box-sizing: border-box;
+    width: calc(100% - 2 * var(--margin));
+    margin: var(--margin);
+    font-family: monospace;
+
+    --margin: 5px;
+}
+table>>>, table>>> tr, table>>> td {
+    border: 1px solid gray;
+    border-collapse: collapse;
+}
+table>>> td {
+    padding: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+table>>> td.name {
+    font-weight: bold;
+    width: 1px;
+    background-color: #f4f7fc;
+}
+table>>> td.operation {
+    width: 1px;
+}
+table>>> .TextEdit {
+    display: inline-block;
+    width: 100%;
+    min-width: 120px;
+    white-space: pre;
+    --el-component-size: 24px;
+}
+table>>> .TextEdit > * {
+    width: 100%;
+    box-sizing: border-box;
+}
+`, componentId));
 

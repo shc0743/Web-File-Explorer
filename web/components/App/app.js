@@ -1,22 +1,22 @@
 import { getHTML } from '@/assets/js/browser_side-compiler.js';
-import { computed } from 'vue';
+import { computed, defineAsyncComponent } from 'vue';
 import { db_name } from '@/assets/app/userdata.js';
 import '../tree-view/TreeView.js';
 import '../VList/VList.js';
-import MainView from './main-view.js';
-import AsideView from './AsideView.js';
-import LoginComponent from '../Login/login.js';
 import HeaderBar from '../HeaderBar/HeaderBar.js';
-import ServerView from '../ServerView/serverview.js';
-import ServerList from '../ServerList/ServerList.js';
-import UploadPage from '../UploadPage/upload.js';
-import FileOps from '../FileOps/FileOps.js';
-import AppSettings from '../AppSettings/AppSettings.js';
-import MobileNavTool from './MobileNavTool.js';
-import TransferPanel from '../TransferPanel/TransferPanel.js';
-import RenameDialog from '../RenameDialog/RenameDialog.js';
-import RemoteSOCDialog from '../RemoteSOCDialog/RemoteSOCDialog.js';
-import TerminalUI from '../Terminal/terminal-ui.js';
+const MainView = defineAsyncComponent(() => import('./main-view.js'));
+const AsideView = defineAsyncComponent(() => import('./AsideView.js'));
+const MobileNavTool = defineAsyncComponent(() => import('./MobileNavTool.js'));
+const LoginComponent = defineAsyncComponent(() => import('../Login/login.js'));
+const ServerView = defineAsyncComponent(() => import('../ServerView/serverview.js'));
+const ServerList = defineAsyncComponent(() => import('../ServerList/ServerList.js'));
+const UploadPage = defineAsyncComponent(() => import('../UploadPage/upload.js'));
+const FileOps = defineAsyncComponent(() => import('../FileOps/FileOps.js'));
+const AppSettings = defineAsyncComponent(() => import('../AppSettings/AppSettings.js'));
+const TransferPanel = defineAsyncComponent(() => import('../TransferPanel/TransferPanel.js'));
+const RenameDialog = defineAsyncComponent(() => import('../RenameDialog/RenameDialog.js'));
+const RemoteSOCDialog = defineAsyncComponent(() => import('../RemoteSOCDialog/RemoteSOCDialog.js'));
+const TerminalUI = defineAsyncComponent(() => import('../Terminal/terminal-ui.js'));
 
 
 const componentId = '65ea71a404e947c0b8d52896ca5837eb';

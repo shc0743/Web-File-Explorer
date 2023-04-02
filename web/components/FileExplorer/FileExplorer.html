@@ -1,5 +1,6 @@
 <div v-deep ref="app">
-    <ExplorerNavBar :path="path" />
+    <ExplorerNavBar :server="server" :path="path"
+        @drop="handleObjectDropping" />
     <v-list-view
         ref="lst"
         :data="renderList"

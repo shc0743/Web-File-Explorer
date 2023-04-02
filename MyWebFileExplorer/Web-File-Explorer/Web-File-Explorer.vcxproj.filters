@@ -59,6 +59,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="generate_ssl_cert.cmd" />
+    <None Include="7za.exe" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Web-File-Explorer.rc">

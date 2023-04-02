@@ -1,6 +1,5 @@
 import { getHTML } from '@/assets/js/browser_side-compiler.js';
 
-import FileExplorerComponent from '../FileExplorer/FileExplorer.js';
 import WelcomePage from '../WelcomePage/WelcomePage.js';
 
 
@@ -14,7 +13,6 @@ const data = {
     },
 
     components: {
-        FileExplorerComponent,
         WelcomePage,
     },
 

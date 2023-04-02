@@ -561,6 +561,73 @@ LRESULT WndProc_CommandHandler_Main(HWND hwnd, WPARAM wParam, LPARAM lParam, Wnd
 
 		break;
 
+	case ID_MENU_TOOL_COMMANDPROMOT:
+		Process.StartOnly(L"cmd");
+		break;
+
+	case ID_MENU_SERVER_INSTWEP:
+	{
+		if (file_exists(sInstanceDir + L"/webroot/.webroot"))
+			if (IDCANCEL == MessageBoxW(hwnd, L"Web Experience Pack is already installed.\n"
+				"Do you want to update or re-install it?", L"Web Experience Pack Installer",
+				MB_ICONQUESTION | MB_OKCANCEL)) break;
+		if (!FreeResFile(IDR_BIN_7zA, L"BIN", sInstanceDir + L"/7za.exe")) {
+			return MessageBoxW(hwnd, L"Decompress program is missing", NULL, MB_ICONERROR);
+		}
+		HWND progress = CreateWindowExW(WS_EX_TOPMOST, L"Static", L"Preparing",
+			WS_POPUP | WS_DLGFRAME | SS_CENTER | SS_CENTERIMAGE,
+			0, 0, 240, 30, NULL, NULL, NULL, NULL);
+		CenterWindow(progress);
+		ShowWindow(progress, SW_NORMAL);
+
+		SetWindowTextW(progress, L"Collecting required informations");
+
+		WCHAR wsFile[1024]{};
+		OPENFILENAMEW ofn{};
+		ofn.lStructSize = sizeof ofn;
+		ofn.hwndOwner = hwnd;
+		ofn.lpstrFile = wsFile;
+		ofn.nMaxFile = 1024;
+		ofn.Flags = OFN_EXPLORER;
+		ofn.lpstrTitle = L"Please choose Web Experience Pack";
+		ofn.lpstrFilter = L"Web Experience Pack\0*.zip\0All Files\0*.*\0\0";
+
+		if (!GetOpenFileNameW(&ofn)) {
+			DestroyWindow(progress);
+			break;
+		}
+
+		SetCurrentDirectoryW(sInstanceDir.c_str());
+
+		SetWindowTextW(progress, L"Deleting old version");
+		if (file_exists(sInstanceDir + L"/webroot/"))
+		if (0 != FileDeleteTreeW(sInstanceDir + L"/webroot/")) {
+			MessageBoxW(hwnd, LastErrorStrW().c_str(), NULL, MB_ICONERROR);
+			DestroyWindow(progress);
+			break;
+		}
+
+		SetWindowTextW(progress, L"Unziping");
+		CreateDirectoryW((sInstanceDir + L"/webroot/").c_str(), NULL);
+		SetCurrentDirectoryW((sInstanceDir + L"/webroot/").c_str());
+		Process.StartAndWait(L"\"" + sInstanceDir + L"\\7za.exe\" x -y \"" + wsFile + L"\"");
+
+		DestroyWindow(progress);
+
+		if (!file_exists(sInstanceDir + L"/webroot/.webroot")) {
+			SetWindowTextW(progress, L"Rollbacking");
+			FileDeleteTreeW(sInstanceDir + L"/webroot/");
+			MessageBoxW(hwnd, L"ERROR! File is missing or broken", NULL, MB_ICONERROR);
+		}
+		else MessageBoxW(hwnd, L"Web Experience Pack is installed.",
+			L"Web Experience Pack Installer", MB_ICONINFORMATION);
+	}
+		break;
+
+	case ID_MENU_ABOUT:
+		ShellAboutW(hwnd, L"Web File Explorer", L"", NULL);
+		break;
+
 	case 1:
 		EnableWindow(data->bToggleServer, FALSE);
 		NotifyCoreWorker(0x10001);

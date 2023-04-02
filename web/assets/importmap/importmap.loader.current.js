@@ -40,4 +40,4 @@
       currentScript.after(el);
     });
   globalThis.importMapLoader.catch(error => console.error('[importmap]', 'FATAL: Failed to get import map:', error));
-})(true);
+})(false);

@@ -26,10 +26,10 @@ ConRoot_Template.innerHTML = `
                     <input placeholder="Filter..." disabled style="flex:1;min-width:1px" data-id="ConsoleFilter" />
                 </div>
                 <div class="console-content" tabindex=0>
-                    <div class="console-messages">
+                    <div class="console-messages" aria-label="Console Messages">
                     
                     </div>
-                    <div class="console-input">
+                    <div class="console-input" aria-label="Input code to evalute it">
                         <div style="display: inline-flex; flex: 1; flex-direction: column;">
                             <textarea data-id="cons" rows=1></textarea>
                             <jscon-scrollbar data-id="cons_sc2" type=horizontal min=0></jscon-scrollbar>

@@ -302,8 +302,8 @@ export class HTMLResizableWidgetElement extends HTMLElement {
         const computed = getComputedStyle(this);
         const op = (this.offsetParent === document.body) ? document.documentElement : this.offsetParent;
         const val = tid * (type === 'x' ? parseInt(computed.left) : (type === 'y' ? parseInt(computed.top) : 0));
-        if (type === 'x') if (n + val > op.clientWidth) return op.clientWidth - val;
-        if (type === 'y') if (n + val > op.clientHeight) return op.clientHeight - val;
+        if (type === 'x') if (op.clientWidth > 0 && n + val > op.clientWidth) return op.clientWidth - val;
+        if (type === 'y') if (op.clientHeight > 0 && n + val > op.clientHeight) return op.clientHeight - val;
         return n;
     }
 

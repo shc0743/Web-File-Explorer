@@ -37,6 +37,8 @@
     <ClInclude Include="ui.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="7za.exe" />
+    <None Include="generate_ssl_cert.cmd" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

@@ -392,6 +392,7 @@ void server::FileServer::delFile(const HttpRequestPtr& req, std::function<void(c
 		return callback(resp);
 	}
 	else if (ftype == 1) {
+		SetFileAttributesW(wsfile.c_str(), FILE_ATTRIBUTE_NORMAL);
 		if (DeleteFileW(wsfile.c_str())) {
 			resp->setStatusCode(k204NoContent);
 			return callback(resp);

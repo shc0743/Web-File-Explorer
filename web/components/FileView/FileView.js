@@ -195,7 +195,7 @@ const data = {
             url.searchParams.set('t', this.server.pswd);
             url.searchParams.set('f', this.path);
             url.searchParams.set('m', mime);
-            window.w_open(url);
+            window.open(url);
         },
 
         async modifyFav() {

@@ -252,20 +252,25 @@ const data = {
             const dataTransfer = ev.dataTransfer;
             let targetElem;
             for (let i of ev.composedPath()) {
-                if (i?.tagName?.toLowerCase() === 'v-list-row' || i?.tagName?.toLowerCase() === 'v-list-view') {
+                if (i?.tagName?.toLowerCase() === 'v-list-row' ||
+                    i?.tagName?.toLowerCase() === 'v-list-view' ||
+                    i?.classList?.contains?.('explorer-nav-pathblock')) {
                     targetElem = i;
                     break;
                 }
             }
             if (!targetElem) return;
             let targetdir;
-            let target = this.$refs.lst.$data?.[targetElem.dataset.n];
+            let target = targetElem.dataset.path || this.$refs.lst.$data?.[targetElem.dataset.n];
             if (targetElem === this.$refs.lst) {
                 targetdir = this.path;
             }
             else if (!target) {
                 console.warn('[FileExplorer][Warn] handleObjectDropping:', 'targetElem found but target not found');
                 return;
+            }
+            else if (typeof target === 'string') {
+                targetdir = target;
             }
             else {
                 targetdir = target[0]._path;
