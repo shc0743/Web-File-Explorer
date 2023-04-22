@@ -6,6 +6,13 @@ import ExplorerNavBar from './ExplorerNavBar.js';
 
 
 const componentId = '71fe886e983243d6b23a880127be76f1';
+export function customCheckDrag(types) {
+    for (let i of types) {
+        if (i === 'application/x-web-file-explorer-item') return true;
+        if (i === 'Files') return { dropEffect: 'copy' };
+    }
+    return false;
+};
 
 const data = {
     data() {
@@ -240,13 +247,7 @@ const data = {
         customDragData(i) {
             return this.$refs.lst.$data[i];
         },
-        customCheckDrag(types) {
-            for (let i of types) {
-                if (i === 'application/x-web-file-explorer-item') return true;
-                if (i === 'Files') return { dropEffect: 'copy' };
-            }
-            return false;
-        },
+        customCheckDrag,
 
         async handleObjectDropping(ev) {
             const dataTransfer = ev.dataTransfer;
@@ -362,9 +363,10 @@ const data = {
             }
 
             // 处理内部文件操作
-            let lastDropEffect = this.$refs.lst.lastDropEffect;
+            let lastDropEffect = window.appInstance_.lastDropEffect || this.$refs.lst.lastDropEffect;
             try { data = JSON.parse(data) } catch { return console.warn('Failed to parse application data') };
             // console.log(lastDropEffect, data);
+            if ('lastDropEffect' in window.appInstance_) delete window.appInstance_.lastDropEffect;
 
             const files = [];
             let isCORS = false;

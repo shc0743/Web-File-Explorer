@@ -143,9 +143,12 @@ const data = {
             if (this.type !== 'preview') return;
             this.isPreview = true;
             this.$nextTick(() => {
-                for (const el of this.$refs.previewArea.children)
-                    el.remove();
-                previews[String(this.fileinfo.ext).toLowerCase()]?.call(this, this.$refs.previewArea);
+                queueMicrotask(() => {
+                    if (!this.$refs.previewArea) return;
+                    for (const el of this.$refs.previewArea.children)
+                        el.remove();
+                    previews[String(this.fileinfo.ext).toLowerCase()]?.call(this, this.$refs.previewArea);
+                })
             })
         },
 

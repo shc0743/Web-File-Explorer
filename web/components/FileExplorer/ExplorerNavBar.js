@@ -1,4 +1,5 @@
 import { getHTML } from '@/assets/js/browser_side-compiler.js';
+import { customCheckDrag } from './FileExplorer.js';
 
 
 const componentId = 'd3a0b5f14eea4d39ac26082a1dacfd24';
@@ -25,14 +26,17 @@ const data = {
     methods: {
         onitemdragover(ev) {
             if (!ev.target.classList.contains('explorer-nav-pathblock')) return;
+            const checkedDropEffect = customCheckDrag(ev.dataTransfer.types);
+            if (!checkedDropEffect) return;
             ev.preventDefault();
             ev.target.classList.add('hover');
             let dropEffect = "none";
-            if (ev.shiftKey) dropEffect = "move";
+            if (checkedDropEffect && checkedDropEffect.dropEffect) dropEffect = checkedDropEffect.dropEffect;
+            else if (ev.shiftKey) dropEffect = "move";
             else if (ev.ctrlKey) dropEffect = "copy";
             else if (ev.altKey) dropEffect = "link";
             else dropEffect = "move";
-            ev.dataTransfer.dropEffect = dropEffect;
+            window.appInstance_.lastDropEffect = ev.dataTransfer.dropEffect = dropEffect;
         },
         onitemdragleave(ev) {
             if (!ev.target.classList.contains('explorer-nav-pathblock')) return;
@@ -40,6 +44,9 @@ const data = {
         },
         onitemdrop(ev) {
             if (!ev.target.classList.contains('explorer-nav-pathblock')) return;
+            const checkedDropEffect = customCheckDrag(ev.dataTransfer.types);
+            if (!checkedDropEffect) return;
+            ev.preventDefault();
             ev.target.classList.remove('hover');
         },
         onwheel(ev) {

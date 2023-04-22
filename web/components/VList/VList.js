@@ -256,10 +256,15 @@ class HTMLVirtualListElement extends HTMLElement {
         this.#divContainer = document.createElement('div');
         this.#divContainer.id = 'container';
         this.#shadowRoot.append(this.#divContainer);
-        // this.#shadowRoot.append(vListStyle.cloneNode(true));
-        const vListStyle = new CSSStyleSheet();
-        vListStyle.replace(vListStyleText);
-        this.#shadowRoot.adoptedStyleSheets.push(vListStyle);
+        if ('adoptedStyleSheets' in this.#shadowRoot) {
+            const vListStyle = new CSSStyleSheet();
+            vListStyle.replace(vListStyleText);
+            this.#shadowRoot.adoptedStyleSheets.push(vListStyle);
+        } else {
+            const vListStyle = document.createElement('style');
+            vListStyle.innerHTML = vListStyleText;
+            this.#shadowRoot.append(vListStyle);
+        }
         if (!this.#divContainer) throw new Error(`Error in constructor: Failed to find divContainer`);
         this.#resizeObserver = new ResizeObserver(() => {
             globalThis.requestAnimationFrame(() => this.updateOnScroll());

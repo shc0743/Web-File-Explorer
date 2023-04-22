@@ -65,6 +65,32 @@ export function PicturePreview(el) {
     el.append(area);
 }
 
+function canplayHandler(el, area) {
+    const canPlayPromise = new Promise((resolve, reject) => {
+        area.addEventListener('error', reject, { once: true });
+        area.addEventListener('canplay', resolve, { once: true });
+        el.append(area);
+    });
+
+    canPlayPromise
+    .then(() => globalThis.userdata.get('config', 'file.preview.media.autoplay'))
+    .then(value => {
+        if (value !== true && value !== false) return userdata.put('config', false, 'file.preview.media.autoplay');
+        if (value) area.play();
+    })
+    .catch(console.warn);
+}
+function rememberVolume(area) {
+    let pendingDBrequest = null;
+    area.addEventListener('volumechange', () => {
+        const f = () => userdata.put('config', area.volume, 'file.preview.media.defaultVolume').finally(() => pendingDBrequest = null);
+        if (pendingDBrequest) pendingDBrequest.then(f); else pendingDBrequest = f();
+    });
+    pendingDBrequest = userdata.get('config', 'file.preview.media.defaultVolume').then(value => {
+        if (!isNaN(+value)) area.volume = +value;
+    }).finally(() => pendingDBrequest = null);
+}
+
 export function AudioPreview(el) {
     const url = new URL('/dl', this.server.addr);
     url.searchParams.set('t', this.server.pswd);
@@ -75,7 +101,8 @@ export function AudioPreview(el) {
     area.setAttribute('style', 'width: 100%; height: 100%;');
     area.src = url.href;
     area.controls = true;
-    el.append(area);
+    canplayHandler(el, area);
+    rememberVolume(area);
 }
 
 export async function VideoPreviewFlv(el) {
@@ -115,6 +142,12 @@ export async function VideoPreviewFlv(el) {
     this.preview__data.attachMediaElement(area);
     this.preview__data.load();
     // this.preview__data.play();
+
+    rememberVolume(area);
+    globalThis.userdata.get('config', 'file.preview.media.autoplay').then(value => {
+        if (value !== true && value !== false) return userdata.put('config', false, 'file.preview.media.autoplay');
+        if (value) this.preview__data.play();
+    }).catch(console.warn);
 }
 export function VideoPreviewNative(el) {
     const url = new URL('/dl', this.server.addr);
@@ -128,7 +161,8 @@ export function VideoPreviewNative(el) {
     area.playsInline = true;
     area.crossOrigin = 'anonymous';
     area.src = url.href;
-    el.append(area);
+    canplayHandler(el, area);
+    rememberVolume(area);
 }
 export function PdfPreview(el) {
     const url = new URL('/dl', this.server.addr);
