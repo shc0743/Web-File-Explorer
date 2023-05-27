@@ -4,7 +4,7 @@ const data = {};
 assoc(data, 'txt,log,c,cpp,cxx,cc,h,hpp,asm,htm,html,js,css,py,pyw,java,go,sh,bat,cmd,vbs,ini,inf,ps1,xml,xaml,scss,reg,json,cs,md,php,yaml', PlainTextPreview, "Plain Text Viewer");
 assoc(data, 'bmp,jpg,jpeg,png,tiff,webp', PicturePreview, "Picture Viewer");
 assoc(data, 'mp3', AudioPreview, "Audio Player");
-assoc(data, 'mp4,webm,ogg', VideoPreviewNative, "Video Player (native)");
+assoc(data, 'mp4,webm,ogg,mov', VideoPreviewNative, "Video Player (native)");
 assoc(data, 'flv,mkv', VideoPreviewFlv, "Video Player (flv.js)");
 assoc(data, 'pdf', PdfPreview, "PDF Viewer (native)");
 export default data;
@@ -21,6 +21,7 @@ export const mimeTypes = {
     'mp4': 'video/mp4',
     'ogg': 'video/ogg',
     'webm': 'video/webm',
+    'mov': 'video/mov',
     'flv': 'video/x-flv',
     'mp3': 'audio/mpeg',
     'png': 'image/png',
@@ -57,7 +58,7 @@ export function PicturePreview(el) {
     const url = new URL('/dl', this.server.addr);
     url.searchParams.set('t', this.server.pswd);
     url.searchParams.set('f', this.path);
-    const mime = mimeTypes[this.fileinfo.ext];
+    const mime = mimeTypes[this.fileinfo.ext?.toLowerCase?.()];
     mime && url.searchParams.set('m', mime);
     const area = document.createElement('img');
     area.setAttribute('style', 'max-width: 100%; max-height: 100%; box-sizing: border-box;');
@@ -95,7 +96,7 @@ export function AudioPreview(el) {
     const url = new URL('/dl', this.server.addr);
     url.searchParams.set('t', this.server.pswd);
     url.searchParams.set('f', this.path);
-    const mime = mimeTypes[this.fileinfo.ext];
+    const mime = mimeTypes[this.fileinfo.ext?.toLowerCase?.()];
     mime && url.searchParams.set('m', mime);
     const area = document.createElement('audio');
     area.setAttribute('style', 'width: 100%; height: 100%;');
@@ -109,7 +110,7 @@ export async function VideoPreviewFlv(el) {
     const url = new URL('/dl', this.server.addr);
     url.searchParams.set('t', this.server.pswd);
     url.searchParams.set('f', this.path);
-    const mime = mimeTypes[this.fileinfo.ext];
+    const mime = mimeTypes[this.fileinfo.ext?.toLowerCase?.()];
     mime && url.searchParams.set('m', mime);
     const area = document.createElement('video');
     area.setAttribute('style', 'width: 100%; height: 100%;');
@@ -153,7 +154,7 @@ export function VideoPreviewNative(el) {
     const url = new URL('/dl', this.server.addr);
     url.searchParams.set('t', this.server.pswd);
     url.searchParams.set('f', this.path);
-    const mime = mimeTypes[this.fileinfo.ext];
+    const mime = mimeTypes[this.fileinfo.ext?.toLowerCase?.()];
     mime && url.searchParams.set('m', mime);
     const area = document.createElement('video');
     area.setAttribute('style', 'width: 100%; height: 100%;');

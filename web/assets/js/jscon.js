@@ -593,7 +593,7 @@ export class DataManager {
 
 export const jscon_data = new DataManager('jscon-web-data');
 
-export class JsCon {
+export class JsCon extends EventTarget {
     #el = null;
     #shadow = null;
     #widget = null;
@@ -605,6 +605,7 @@ export class JsCon {
     #options = new Map();
 
     constructor() {
+        super();
         this.#el = document.createElement('jscon-console-root');
         this.#shadow = this.#el.attachShadow({ mode: 'open' });
         this.#shadow.append(ConRoot_Template.content.cloneNode(true));

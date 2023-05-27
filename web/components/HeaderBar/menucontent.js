@@ -53,6 +53,44 @@ globalThis.appInstance_.cfl = function () {
     }
 
 };
+globalThis.appInstance_.cfdl = function () {
+    if (globalThis.appInstance_.explorer) return (function () {
+        const selection = this.$refs.lst.selection;
+        let el_data = this.listdata;
+        if (!el_data) return;
+        if (this.$refs.lst.getFilter())
+            el_data = this.listdata.filter(this.$refs.lst.getFilter());
+        const result = [];
+        const prefix = (this.path.endsWith('/') || this.path.endsWith('\\')) ? this.path : this.path + '/';
+
+        if (selection.size)
+        for (const i of selection) {
+            const val = el_data[i];
+            if (!val) continue;
+            if (!(val.startsWith('f|') || val.startsWith('d|'))) continue;
+            const url = new URL('/dl', this.server.addr);
+            url.searchParams.set('t', this.server.pswd);
+            url.searchParams.set('f', prefix + val.substring(2));
+            url.searchParams.set('a', (val.substring(val.replaceAll('\\', '/').lastIndexOf('/'))).substring(2));
+            result.push(url.href);
+        }
+        else result.push(this.path);
+
+        return navigator.clipboard.writeText(result.join('\r\n'))
+        .then(() => {})
+        .catch(() => ElMessage.error(tr('ui.fo.cfl.err.failed')));
+    }).call(globalThis.appInstance_.explorer);
+
+    if (globalThis.appInstance_.fileView) return (function () {
+        const url = new URL('/dl', this.server.addr);
+        url.searchParams.set('t', this.server.pswd);
+        url.searchParams.set('f', this.path);
+        url.searchParams.set('a', this.fileinfo.name);
+        return navigator.clipboard.writeText(url.href)
+        .then(() => {}).catch(() => ElMessage.error(tr('ui.fo.cfl.err.failed')));
+    }).call(globalThis.appInstance_.fileView);
+
+};
 
 let r = {};
 
@@ -110,6 +148,7 @@ const data = [
 
             AppendMenu(m, 'separator');
             AppendMenu(m, String, {}, r['Copy File Location'], globalThis.appInstance_.cfl);
+            AppendMenu(m, String, {}, r['Copy File Download URL'], globalThis.appInstance_.cfdl);
 
             AppendMenu(m, 'separator');
             AppendMenu(m, String, {}, r['Command Panel'], function () {

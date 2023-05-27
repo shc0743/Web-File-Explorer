@@ -178,6 +178,7 @@ v-list-row {
     color: var(--v-list-row-color);
     background: var(--v-list-row-bg);
     outline: var(--v-list-row-outline);
+    white-space: /*break-spaces*/pre;
 }
 .click-to-open v-list-row {
     cursor: pointer;

@@ -68,12 +68,13 @@ int __stdcall UIEntry(CmdLineW& cl) {
 				if (targetPID != pid && !cl.getopt(L"force")) {
 					HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, targetPID);
 					if (hProcess && (MessageBoxW(NULL,
-						L"A instance in the directory is still running.\n"
+						(std::wstring(L"A instance in the directory is still running [PID=].\n"
 						"If you run a new instance in the same directory, "
 						"it may cause unpredictable consequences.\n"
 						"If you want to run a new instance without conflict, "
 						"please use --instance-dir command-line option.\n"
-						"\nStill continue?", L"Instance Conflict",
+						"\nStill continue?").insert(50, std::to_wstring(targetPID))).c_str(),
+						L"Instance Conflict",
 						MB_ICONQUESTION | MB_OKCANCEL | MB_DEFBUTTON2) != IDOK)) {
 						CloseHandle(hProcess);
 						CloseHandle(hLockFile);

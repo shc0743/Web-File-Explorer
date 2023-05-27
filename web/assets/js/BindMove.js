@@ -107,6 +107,8 @@ function BindMove(el, target = el, options = {
         el.$__BM_pointerId = ev.pointerId;
         el.setPointerCapture(ev.pointerId);
 
+        target.style.right = target.style.bottom = '';
+
         el.addEventListener('pointermove', PointerMoveHandler);
         el.addEventListener('pointerup', PointerUpOrCancelHandler);
         el.addEventListener('pointercancel', PointerUpOrCancelHandler);
@@ -225,7 +227,7 @@ resizable-widget-content-container-5e5921c2 {
     border-bottom: 1px solid var(--border-color, currentColor);
     display: var(--no-caption, revert);
 }
-#caption::before {
+:host:not([no-focus-box]) #caption::before {
     content: var(--focus-visible, "");
     font-family: monospace;
 }

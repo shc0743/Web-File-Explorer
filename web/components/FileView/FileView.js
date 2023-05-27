@@ -28,6 +28,7 @@ const data = {
             moreOptionList: [],
             openWithDialog: false,
             isFav: false,
+            rseLoading: false,
 
         }
     },
@@ -55,6 +56,8 @@ const data = {
             this.isPreview = false;
             this.moreOptionValue = null;
             this.openWithDialog = false;
+            this.isFav = false;
+            this.rseLoading = false;
         },
 
         update() {
@@ -273,6 +276,8 @@ const data = {
 
         async remoteExecute() {
             try {
+                if (this.rseLoading) throw 'Please wait a bit; the task is still running!';
+                this.rseLoading = true;
                 const url = new URL('/sys/ShellExecute', this.server.addr);
                 const fd = new URLSearchParams();
                 fd.append('appName', this.path);
@@ -282,6 +287,7 @@ const data = {
                     headers: { 'content-type': 'application/x-www-form-urlencoded', 'x-auth-token': this.server.pswd },
                     body: fd.toString()
                 });
+                this.rseLoading = false;
                 if (!resp.ok) throw 'HTTP ERROR ' + resp.status + " : " + await resp.text();
                 ElMessage.success('');
             } catch (error) {

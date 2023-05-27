@@ -20,7 +20,7 @@
                 <ElIcon style="color:white"><Download /></ElIcon>
                 <span>{{tr('Download')}}</span>
             </ElButton>
-            <ElButton size="large" @click="remoteExecute">
+            <ElButton size="large" @click="remoteExecute" :disabled="rseLoading" :loading="rseLoading">
                 <span>{{tr('ui.file.o/rse.s')}}</span>
             </ElButton>
             <ElButton size="large" @click="modifyFav">
