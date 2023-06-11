@@ -604,6 +604,10 @@ export class JsCon extends EventTarget {
     #histpos = -1;
     #options = new Map();
 
+    get [Symbol.toStringTag]() {
+        return 'JsCon';
+    }
+
     constructor() {
         super();
         this.#el = document.createElement('jscon-console-root');

@@ -6,13 +6,8 @@ import ExplorerNavBar from './ExplorerNavBar.js';
 
 
 const componentId = '71fe886e983243d6b23a880127be76f1';
-export function customCheckDrag(types) {
-    for (let i of types) {
-        if (i === 'application/x-web-file-explorer-item') return true;
-        if (i === 'Files') return { dropEffect: 'copy' };
-    }
-    return false;
-};
+import { customCheckDrag } from './public.js';
+
 
 const data = {
     data() {
@@ -532,6 +527,10 @@ const data = {
             else if (file.size > 1) {
                 globalThis.appInstance_.renameDialog?.rename(file, el_data, p, srv, pw);
             }
+        },
+
+        navbar_open(path) {
+            location.hash = '#/s/' + btoa(this.server.addr) + '/' + path;
         },
 
 

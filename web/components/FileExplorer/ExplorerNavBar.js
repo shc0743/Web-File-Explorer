@@ -1,5 +1,5 @@
 import { getHTML } from '@/assets/js/browser_side-compiler.js';
-import { customCheckDrag } from './FileExplorer.js';
+import { customCheckDrag } from './public.js';
 
 
 const componentId = 'd3a0b5f14eea4d39ac26082a1dacfd24';
@@ -19,9 +19,15 @@ const data = {
     },
 
     props: {
-        server: Object,
+        // server: Object,
         path: String,
+        iconUrl: {
+            type: String,
+            default: "assets/img/shell/folder.png"
+        },
     },
+
+    emits: ['openPath'],
 
     methods: {
         onitemdragover(ev) {
@@ -54,7 +60,7 @@ const data = {
             if (root) root.scrollLeft += ev.deltaX || ev.deltaY;
         },
         open(path) {
-            location.hash = '#/s/' + btoa(this.server.addr) + '/' + path;
+            this.$emit('openPath', path);
         },
         enterEditMode() {
             this.cachedPath = this.path;

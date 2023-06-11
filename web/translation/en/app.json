@@ -4,6 +4,9 @@
   "dialog.ok": "OK",
   "dialog.cancel": "Cancel",
   "dialog.close": "Close",
+  "Edit": "Edit", "Modify": "Modify", "Open": "Open", "Delete": "Delete",
+  "Remarks": "Remarks", "Download": "Download", "Information": "Information", "Preview": "Preview",
+  "Retry": "Retry",
   "doctitle$=404": "404",
   "doctitle$=main": "Start",
   "doctitle$=login": "Login",
@@ -28,6 +31,7 @@
   "ui.string:chooseServer": "Choose a server",
   "ui.string:Help": "Help",
   "ui.login.ui/httpsConfirmText": "Are you sure not to use HTTPS? It is not safe.",
+  "No Server": "No Server",
   "ui.string:serverAddr": "Server address",
   "ui.string:allServers": "All Servers",
   "ui.string:reload": "Reload",
@@ -58,6 +62,8 @@
   "ui.file.openwith.once": "Once",
   "ui.file.choose": "Choose a file",
   "ui.file.choosedir": "Choose a directory",
+  "Open directly": "Open directly",
+  "Open with...": "Open with...",
   "ui.file.upload.remote": "Remote directory",
   "ui.file.upload.local": "Local File",
   "ui.file.upload.do": "Upload now",
@@ -128,5 +134,9 @@
   "ui.settings.sw": "Service Worker Options",
   "ui.login.ui/save": "Save",
   "ui.login.ui/ignoreVerification": "Do not verify these data",
-  "ui.fo.cfl.err.failed": "Failed to copy"
+  "ui.fo.cfl.err.failed": "Failed to copy",
+  "ui.mp.mp0.playPolicy": "Play Policy (what to do when the playback is completed)",
+  "ui.mp.mp0.playPolicy/pause": "Pause the current item",
+  "ui.mp.mp0.playPolicy/play": "Play the next item",
+  "ui.mp.mp0.playSpeed": "Play Speed"
 }

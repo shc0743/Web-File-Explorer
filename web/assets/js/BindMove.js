@@ -244,6 +244,10 @@ export class HTMLResizableWidgetElement extends HTMLElement {
     #caption = null;
     #content = null;
 
+    get [Symbol.toStringTag]() {
+        return 'HTMLResizableWidgetElement';
+    }
+
     constructor() {
         super();
 
@@ -269,7 +273,7 @@ export class HTMLResizableWidgetElement extends HTMLElement {
         this.#content.append(contentContainer);
         contentContainer.append(document.createElement('slot'));
 
-        BindMove(this.#caption, this, { container: this.offsetParent });
+        queueMicrotask(() => BindMove(this.#caption, this, { container: this.offsetParent }));
 
         this.#content.addEventListener('pointermove', ev => {
             ev.stopPropagation();

@@ -12,5 +12,6 @@
   "Select All": "全选", 
   "Terminal": "终端", "New Terminal": "新建终端", "Open in terminal": "在当前位置打开终端",
   "Remote ShellExecute": "远程 ShellExecute", "Remote CreateProcess": "远程 CreateProcess",
-  "Copy File Location": "复制文件地址"
+  "Copy File Location": "复制文件地址",
+  "Open in Media Player": "在媒体播放器中打开"
 }

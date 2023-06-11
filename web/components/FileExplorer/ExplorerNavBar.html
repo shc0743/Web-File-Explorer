@@ -11,7 +11,7 @@
         @keydown.esc="discardChanges"
     >
     <template v-else>
-        <img class="no-pointer-event" src="assets/img/shell/folder.png" alt="Folder" style="height: 1em; width: 1em; margin: 0 0.5em;">
+        <img class="no-pointer-event" :src="iconUrl" alt="Folder" style="height: 1em; width: 1em; margin: 0 0.5em;">
         <template v-for="(item, index) in computedPath">
             <div v-if="index !== 0" class="ui-btn explorer-nav-pathsplit" inert>&gt;</div>
             <div tabindex="0" class="ui-btn explorer-nav-pathblock"

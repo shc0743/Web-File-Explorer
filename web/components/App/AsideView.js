@@ -31,6 +31,10 @@ const data = {
             this.$emit('toggleServer', ev.target.dataset.addr)
         },
 
+        safeCheckLinkHref(addr) {
+            try { btoa(addr); return !0 } catch { return !1 }
+        },
+
         computeLinkHref(addr) {
             return '#/s/' + btoa(addr);
         },

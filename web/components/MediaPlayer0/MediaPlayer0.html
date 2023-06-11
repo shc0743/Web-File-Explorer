@@ -1,0 +1,130 @@
+<div v-deep class="component-root" v-bind="$attrs">
+    <div v-deep :inert="isLoading">
+        <ExplorerNavBar :path="path" iconUrl="assets/img/play_fill.png"
+            @openPath="navbar_open" />
+    </div>
+    <div v-deep class="content">
+        <v-list-view ref="lst" v-deep class="content-left"
+            v-on:pointermove.self.passive="aside_onPointerMove" v-on:pointerdown.self="aside_onPointerDown" v-on:pointerup="aside_onPointerUp" v-bind:style="asideStyle" v-bind:data-resizing="asideResizing"
+            no-multiple 
+            @change="onSelChange" @open="invoke_open(true)"
+            :data="getVlistData"></v-list-view>
+        <div v-deep class="content-main">
+            <div v-deep class="plain-content-wrapper">
+                <div v-if="isLoading">Loading, please wait a bit...</div>
+                <div v-if="loadError">
+                    <div style="text-align: center;"><b>Failed to load data</b></div>
+                    <div style="color: gray; margin: 1em 0" v-text="loadError"></div>
+                    <div style="text-align: center;">
+                        <ElButton type="primary" plain @click="update">{{tr('Retry')}}</ElButton>
+                        <ElButton type="danger" plain @click="reloadPage">{{tr('ui.string:reload')}}</ElButton>
+                    </div>
+                </div>
+                <div v-if="!current_file && !(isLoading) && !(loadError)">
+                    <div>Choose a file and click Preview button to preview it.</div>
+                </div>
+
+                <div v-if="current_file && !(isLoading) && !(loadError)" v-deep class="preview-area-wrapper">
+                    <div v-deep class="file-info" style="border-bottom: 1px solid; padding-bottom: 0.5em; margin-bottom: 1em;">{{current_file}}</div>
+                    <div v-if="!isPreview" v-deep class="preview-area">
+                        <ElButton type="primary" size="large" @click="do_preview">{{tr('Preview')}}</ElButton>
+                    </div>
+                    <div v-else v-deep class="preview-area" ref="previewArea"></div>
+                </div>
+            </div>
+
+            <div v-deep class="mp0-ending mp0-options">
+                <label>
+                    <span>{{tr('ui.mp.mp0.playSpeed')}}&nbsp;</span>
+                    <input type="number" v-model="playSpeed" min="-5" max="99" step="0.5">
+                </label>
+                <span>&nbsp;&nbsp;&nbsp;</span>
+                <label>
+                    <span>{{tr('ui.mp.mp0.playPolicy')}}&nbsp;</span>
+                    <select v-model="playPolicy" disabled><!-- TODO -->
+                        <option value="1">{{tr('ui.mp.mp0.playPolicy/pause')}}</option>
+                        <option value="2">{{tr('ui.mp.mp0.playPolicy/play')}}</option>
+                    </select>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <resizable-widget v-show="false" open no-focus-box id="playctl" class="active" style="left: 0; top: 0; min-width: 300px; min-height: 200px; width: 300px; height: 260px;">
+        <widget-caption slot=widget-caption>
+            <span>Play Control</span>
+        </widget-caption>
+
+        <div>
+            <div class="is-flex"><a href="javascript:" class="ui-btn flex-1" onclick="window.dispatchEvent(new KeyboardEvent('keydown',{bubbles:true,cancelable:true,key:'F6'}))">Playlist</a><button class="ui-btn" id="playctl_fixed">Fixed</button></div>
+            <div class="is-flex mg-top-05em"><button class="ui-btn flex-1" id="startPlay"></button><button class="ui-btn" onclick="video_container.focus()">Hide</button></div>
+            <div class="is-flex mg-top-05em flex-alit-c"><span id="p_progress" class="mg-right-05em"></span><button id="pause" class="ui-btn flex-1">Pause/Play</button></div>
+            <div class="is-flex mg-top-05em"><input type="range" id="p_pbar" class="flex-1" min="0" max="1" value="0" disabled></div>
+            <div class="is-flex mg-top-05em"><button class="ui-btn flex-1" id="prev" title="Previous" aria-label="Previous media" disabled>&lt;</button><button class="ui-btn flex-1" id="next" title="Next" aria-label="Next media" disabled>&gt;</button></div>
+            <div class="is-flex mg-top-05em"><span>Play Speed:&nbsp;</span><input type="number" id="playSpeed" class="flex-1" min="-5" max="100" value="1" step="0.5"></div>
+        </div>
+
+    </resizable-widget>
+</div>
+
+<style>
+.component-root>>> {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    width: 100%; height: 100%;
+    overflow: hidden;
+}
+[inert]>>> {
+    opacity: 0.5;
+}
+.content>>> {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+.content-left>>> {
+    --padding: 10px;
+    font-family: var(--font-monospace);
+    font-size: x-small;
+    border-right: 1px solid;
+    max-width: 50%;
+}
+.content-left>>>[data-resizing="true"] {
+    cursor: e-resize;
+}
+.content-main>>> {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.plain-content-wrapper>>> {
+    padding: 10px;
+    overflow: auto;
+    flex: 1;
+    display: grid;
+    place-items: center;
+}
+.mp0-options>>> {
+    border-top: 1px solid;
+    padding: 5px;
+    display: flex;
+    justify-content: flex-end;
+}
+.preview-area-wrapper>>> {
+    box-sizing: border-box;
+    width: 100%; height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.preview-area>>> {
+    flex: 1;
+    width: 100%;
+    display: /*grid*/flex;
+    place-items: center;
+    place-content: center;
+    overflow: hidden;
+}
+</style>

@@ -6,6 +6,7 @@
   "dialog.close": "关闭",
   "Edit": "编辑", "Modify": "修改", "Open": "打开", "Delete": "删除",
   "Remarks": "备注", "Download": "下载", "Information": "信息", "Preview": "预览",
+  "Retry": "重试",
   "doctitle$=404": "404",
   "doctitle$=main": "开始",
   "doctitle$=login": "登录",
@@ -133,5 +134,9 @@
   "ui.settings.sw": "Service Worker 设置",
   "ui.login.ui/save": "保存",
   "ui.login.ui/ignoreVerification": "不进行验证",
-  "ui.fo.cfl.err.failed": "复制失败"
+  "ui.fo.cfl.err.failed": "复制失败",
+  "ui.mp.mp0.playPolicy": "播放策略",
+  "ui.mp.mp0.playPolicy/pause": "播完暂停",
+  "ui.mp.mp0.playPolicy/play": "自动播放下一个",
+  "ui.mp.mp0.playSpeed": "播放速度"
 }

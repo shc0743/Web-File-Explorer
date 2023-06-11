@@ -5,27 +5,39 @@
         <tree-text>{{tr("ui.string:myServer")}}</tree-text>
         <tree-content>
             <tree-node collapsed="true" v-for="item in servers">
-                <tree-text><a :href="computeLinkHref(item.addr)" class="fileLink" :title="item.addr">{{ item.name }}</a></tree-text>
-                <tree-content style="font-size: small; min-width: max-content;">
-                    <div>Click the above link to enter</div>
-                    <div>
-                        <tree-node>
-                            <tree-text>{{tr('Information')}}</tree-text>
+                <template v-if="safeCheckLinkHref(item.addr)">
+                    <tree-text slot="title"><a :href="computeLinkHref(item.addr)" class="fileLink" :title="item.addr">{{ item.name }}</a></tree-text>
+                    <tree-content style="font-size: small; min-width: max-content;">
+                        <div>Click the above link to enter</div>
+                        <div>
                             <tree-node>
-                                <tree-text>{{tr('ui.string:serverAddr')}}</tree-text>
-                                <div>{{item.addr}}</div>
+                                <tree-text>{{tr('Information')}}</tree-text>
+                                <tree-node>
+                                    <tree-text>{{tr('ui.string:serverAddr')}}</tree-text>
+                                    <div>{{item.addr}}</div>
+                                </tree-node>
+                                <tree-node>
+                                    <tree-text>{{tr('ui.login.ui/pswd')}}</tree-text>
+                                    <span tabindex="0" class="pswdview" :data-real="item.pswd"></span>
+                                </tree-node>
+                                <tree-node collapsed>
+                                    <tree-text>{{tr('Remarks')}}</tree-text>
+                                    <div>{{item.remarks}}</div>
+                                </tree-node>
                             </tree-node>
-                            <tree-node>
-                                <tree-text>{{tr('ui.login.ui/pswd')}}</tree-text>
-                                <span tabindex="0" class="pswdview" :data-real="item.pswd"></span>
-                            </tree-node>
-                            <tree-node collapsed>
-                                <tree-text>{{tr('Remarks')}}</tree-text>
-                                <div>{{item.remarks}}</div>
-                            </tree-node>
-                        </tree-node>
-                    </div>
-                </tree-content>
+                        </div>
+                    </tree-content>
+                </template>
+                <template v-else>
+                    <tree-text slot="title">
+                        <b style="color: red">Error!</b><br>
+                        <div style="margin-left: 2em;">Security check failed while loading data for <i><b v-text="item.name"></b></i></div>
+                        <div style="margin-left: 2em;">Please go to <a href="#/servers/">Server List</a> to fix the problem.</div>
+                    </tree-text>
+                    <tree-content>
+                        Please edit Server Address to avoid the problem.
+                    </tree-content>
+                </template>
             </tree-node>
         </tree-content>
     </tree-node>

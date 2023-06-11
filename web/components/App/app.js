@@ -17,6 +17,7 @@ const TransferPanel = defineAsyncComponent(() => import('../TransferPanel/Transf
 const RenameDialog = defineAsyncComponent(() => import('../RenameDialog/RenameDialog.js'));
 const RemoteSOCDialog = defineAsyncComponent(() => import('../RemoteSOCDialog/RemoteSOCDialog.js'));
 const TerminalUI = defineAsyncComponent(() => import('../Terminal/terminal-ui.js'));
+const MediaPlayer0 = defineAsyncComponent(() => import('../MediaPlayer0/MediaPlayer0.js'));
 
 
 const componentId = '65ea71a404e947c0b8d52896ca5837eb';
@@ -57,6 +58,7 @@ const data = {
         RenameDialog,
         RemoteSOCDialog,
         TerminalUI,
+        MediaPlayer0,
     },
 
     computed: {

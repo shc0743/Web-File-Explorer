@@ -2,7 +2,7 @@
 
 // config
 export const db_name = 'Web-File-Explorer_web-data_' + globalThis.location.pathname.replace(/(\/|\\|\:|\;|\"|\'|\+|\=|\[|\]|\(|\)|\,|\.)/g, '_');
-export const version = 8;
+export const version = 9;
 
 
 import { openDB } from '../../modules/idb/idb.esm.js';
@@ -42,6 +42,9 @@ const dbUpgrade = {
     7(db, t, old) {
         db.createObjectStore('favlist', { keyPath: 'fullpathname' });
         db.createObjectStore('recents', { autoIncrement: true });
+    },
+    8(db, t, old) {
+        db.createObjectStore('extdata');
     },
 };
 

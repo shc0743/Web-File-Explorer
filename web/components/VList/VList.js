@@ -242,6 +242,10 @@ class HTMLVirtualListElement extends HTMLElement {
     #mutationObserver = null;
     #resizeObserver = null;
 
+    get [Symbol.toStringTag]() {
+        return 'HTMLVirtualListElement';
+    }
+
     constructor() {
         super();
 
@@ -420,6 +424,7 @@ class HTMLVirtualListElement extends HTMLElement {
 
         if (ev.key === ' ') {
             ev.preventDefault();
+            if (!this.dispatchEvent(new CustomEvent('beforechange', { target: this, bubbles: true, cancelable: true }))) return;
             const el = this.#divContainer.querySelector('v-list-row.pfocus') || this.#divContainer.querySelector('v-list-row.current');
             if (el) {
                 el.classList.contains('current') && el.classList.remove('current');
@@ -431,10 +436,12 @@ class HTMLVirtualListElement extends HTMLElement {
                 el && el.classList.add('pfocus'); el && el.classList.contains('current') && el.classList.remove('current');
                 this.selection.delete(this.#lastSelection);
             }
+            this.dispatchEvent(new CustomEvent('change', { target: this }));
             return;
         }
         if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
             ev.preventDefault();
+            if (!this.dispatchEvent(new CustomEvent('beforechange', { target: this, bubbles: true, cancelable: true }))) return;
             const handler = nocall => {
                 let el = this.#divContainer.querySelector(`v-list-row[data-n="${this.#lastSelection}"]`);
                 if (!el) el =
@@ -479,11 +486,13 @@ class HTMLVirtualListElement extends HTMLElement {
                 else {
                     this.selection = elTarget.dataset.n;
                 }
+                this.dispatchEvent(new CustomEvent('change', { target: this }));
             };
             return handler(false);
         }
         if (ev.key === 'PageDown' || ev.key === 'PageUp') {
             ev.preventDefault();
+            if (!this.dispatchEvent(new CustomEvent('beforechange', { target: this, bubbles: true, cancelable: true }))) return;
             let currentSelection = this.#lastSelection || this.#selection.values().next().value;
             if (!currentSelection) currentSelection = 0;
             const _fix = this.#header.offsetHeight;
@@ -493,7 +502,8 @@ class HTMLVirtualListElement extends HTMLElement {
             if (ev.ctrlKey || ev.shiftKey)
                 this.selection[ev.ctrlKey ? 'add' : 'extend'](newSelection);
             else this.selection = newSelection;
-            
+            this.dispatchEvent(new CustomEvent('change', { target: this }));
+
             return;
         }
         if (ev.key === 'Enter' && this.selection.size) {
@@ -503,16 +513,21 @@ class HTMLVirtualListElement extends HTMLElement {
         }
         if (ev.key === 'Escape') {
             ev.preventDefault();
+            if (!this.dispatchEvent(new CustomEvent('beforechange', { target: this, bubbles: true, cancelable: true }))) return;
             this.selection = null;
+            this.dispatchEvent(new CustomEvent('change', { target: this }));
             return;
         }
         if ((ev.key === 'a' || ev.key === 'A') && ev.ctrlKey) {
             ev.preventDefault();
+            if (!this.dispatchEvent(new CustomEvent('beforechange', { target: this, bubbles: true, cancelable: true }))) return;
             this.selection = 'all';
+            this.dispatchEvent(new CustomEvent('change', { target: this }));
             return;
         }
         if ((ev.key === 'Home' || ev.key === 'End') && (this.#data.length)) {
             ev.preventDefault();
+            if (!this.dispatchEvent(new CustomEvent('beforechange', { target: this, bubbles: true, cancelable: true }))) return;
             const shouldSelection = (ev.key === 'Home') ? 0 : this.#data.length - 1;
             if (ev.shiftKey) {
                 this.selection.extend(shouldSelection);
@@ -521,6 +536,7 @@ class HTMLVirtualListElement extends HTMLElement {
             }
             else this.selection = shouldSelection;
             // this.#lastSelection = shouldSelection;
+            this.dispatchEvent(new CustomEvent('change', { target: this }));
             return;
         }
         // console.log(ev.key);
@@ -544,7 +560,9 @@ class HTMLVirtualListElement extends HTMLElement {
             if (last !== this && last !== this.#divContainer) break;
             if (ev.ctrlKey) return;
             // clear selection
+            if (!this.dispatchEvent(new CustomEvent('beforechange', { target: this, bubbles: true, cancelable: true }))) return;
             this.selection = null;
+            this.dispatchEvent(new CustomEvent('change', { target: this }));
             return;
         } while (0);
 
@@ -553,6 +571,7 @@ class HTMLVirtualListElement extends HTMLElement {
         const path = ev.composedPath();
         for (const i of path) {
             if (i?.tagName?.toLowerCase() === 'v-list-row') {
+                if (!this.dispatchEvent(new CustomEvent('beforechange', { target: this, bubbles: true, cancelable: true }))) return;
                 if (ev.ctrlKey || ev.shiftKey) {
                     if (ev.ctrlKey) {
                         this.selection.toggle(i.dataset.n);
@@ -562,9 +581,11 @@ class HTMLVirtualListElement extends HTMLElement {
                         const rangeStart = this.#lastSelection, rangeEnd = i.dataset.n;
                         this.selection.addRange(rangeStart, rangeEnd);
                     }
+                    this.dispatchEvent(new CustomEvent('change', { target: this }));
                     return;
                 }
                 this.selection = i.dataset.n;
+                this.dispatchEvent(new CustomEvent('change', { target: this }));
                 if ((!_internal_just_test_dont_open) && this.clickToOpen) {
                     this.dispatchEvent(new CustomEvent('open', { target: i }));
                 }
@@ -616,8 +637,10 @@ class HTMLVirtualListElement extends HTMLElement {
         if (this.clickToOpen && this.#hovern != null && !isNaN(this.#hovert)) {
             const currentTick = tickManager.get(this);
             if (currentTick - this.#hovert > 1) {
+                if (!this.dispatchEvent(new CustomEvent('beforechange', { target: this, bubbles: true, cancelable: true }))) return;
                 this.selection = this.#hovern;
                 this.#hovern = this.#hovert = null;
+                this.dispatchEvent(new CustomEvent('change', { target: this }));
             }
         }
 
@@ -755,6 +778,7 @@ class HTMLVirtualListElement extends HTMLElement {
                 this.#selection.add(i);
             }
             this.#updateSelectionElement();
+            this.#selectionCleanup();
             return true;
         }
         if (!isNaN(newSelection)) {
@@ -765,6 +789,7 @@ class HTMLVirtualListElement extends HTMLElement {
                 (newSelection + 1) * this.#line_height)) {
                 this.scrollTop = newSelection * this.#line_height;
             }
+            this.#selectionCleanup();
             return true;
         }
 
@@ -774,6 +799,7 @@ class HTMLVirtualListElement extends HTMLElement {
             for (let i = 0; i < datalen; ++i) this.#selection.add(i);
             this.#updateSelectionElement();
             this.scrollTop = scrollTop;
+            this.#selectionCleanup();
             return true;
         }
 
@@ -788,6 +814,9 @@ class HTMLVirtualListElement extends HTMLElement {
             }
         }
     }
+    #selectionCleanup() {
+        this.dispatchEvent(new CustomEvent('changedbycode', { target: this }));
+    }
     clearSelection(clearPfocus = false) {
         this.#selection.clear();
         this.#divContainer.querySelectorAll('v-list-row.current').forEach(el => el.classList.remove('current'));
@@ -795,6 +824,7 @@ class HTMLVirtualListElement extends HTMLElement {
         this.#divContainer.querySelectorAll('v-list-row.pfocus').forEach(el => el.classList.remove('pfocus'));
         if (!clearPfocus) this.#setPfocus();
         this.#lastSelection = null;
+        this.#selectionCleanup();
     }
     #addSelection(i) {
         if (isNaN(i)) return false;
@@ -808,12 +838,14 @@ class HTMLVirtualListElement extends HTMLElement {
         if (!this.#isRectInView(i * this.#line_height, (i + 1) * this.#line_height)) {
             this.scrollTop = i * this.#line_height;
         }
+        this.#selectionCleanup();
         return true;
     }
     #deleteSelection(i) {
         if (isNaN(i)) return false;
         if (!this.#selection._delete.call(this.#selection, Number(i))) return false;
         this.#updateSelectionElement();
+        this.#selectionCleanup();
         return true;
     }
     #toggleSelection(i) {
@@ -841,6 +873,7 @@ class HTMLVirtualListElement extends HTMLElement {
         this.#lastSelection = raw_end;
         this.#divContainer.querySelector(`v-list-row[data-n="${raw_end}"]`)?.classList.add('current');
         this.#updateSelectionElement();
+        this.#selectionCleanup();
         return true;
     }
     #extendSelection(i) {

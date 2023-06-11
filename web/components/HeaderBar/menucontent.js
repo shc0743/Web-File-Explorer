@@ -151,6 +151,25 @@ const data = [
             AppendMenu(m, String, {}, r['Copy File Download URL'], globalThis.appInstance_.cfdl);
 
             AppendMenu(m, 'separator');
+            AppendMenu(m, String, {}, r['Open in Media Player'], function () {
+                const hash = location.hash || '';
+                if (!globalThis.appInstance_.explorer || !hash.startsWith('#/s/')) return ElMessage.error(tr('ui.fo.new.err.noexpl'));
+                const playUrl = new URL('/media/player0/play', location.href);
+                playUrl.searchParams.append('t', globalThis.appInstance_.defaultPlayType || 'auto');
+                playUrl.searchParams.append('srv', btoa(globalThis.appInstance_.explorer.server?.addr));
+                playUrl.searchParams.append('path', globalThis.appInstance_.explorer.path);
+                try {
+                    const s = globalThis.appInstance_.explorer.$refs.lst.selection;
+                    if (s.size < 1) throw 1;
+                    const n = s.toArray()[s.size - 1];
+                    const szFileName = globalThis.appInstance_.explorer.$refs.lst.$data[n][1];
+                    playUrl.hash = '#' + szFileName;
+                } catch {}
+                const newHash = '#' + playUrl.pathname + playUrl.search + playUrl.hash;
+                location.hash = newHash;
+            });
+
+            AppendMenu(m, 'separator');
             AppendMenu(m, String, {}, r['Command Panel'], function () {
                 globalThis.commandPanel?.toggle();
             });
@@ -196,6 +215,7 @@ const data = [
             AppendMenu(m, String, {}, r['FullScreen (Esc to cancel)'], function () {
                 document.documentElement.requestFullscreen();
             });
+            AppendMenu(m, 'separator');
 
             return m;
         }

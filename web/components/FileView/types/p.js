@@ -33,7 +33,7 @@ export const mimeTypes = {
     'pdf': 'application/pdf',
 };
 
-export async function PlainTextPreview(el) {
+export async function PlainTextPreview(el, _opt_FileName = '') {
     const area = document.createElement('textarea');
     area.setAttribute('style', 'width: 100%; height: 100%; box-sizing: border-box;');
     area.value = tr('Loading Preview');
@@ -41,7 +41,7 @@ export async function PlainTextPreview(el) {
     el.append(area);
 
     const url = new URL('/file', this.server.addr);
-    url.searchParams.set('name', this.path);
+    url.searchParams.set('name', this.path + _opt_FileName);
     try {
         if (this.serverSideFileInfo.size > 1048576) {
             return area.value = tr('ui.file.preview.fail.toolarge');
@@ -54,10 +54,10 @@ export async function PlainTextPreview(el) {
     }
 }
 
-export function PicturePreview(el) {
+export function PicturePreview(el, _opt_FileName = '') {
     const url = new URL('/dl', this.server.addr);
     url.searchParams.set('t', this.server.pswd);
-    url.searchParams.set('f', this.path);
+    url.searchParams.set('f', this.path + _opt_FileName);
     const mime = mimeTypes[this.fileinfo.ext?.toLowerCase?.()];
     mime && url.searchParams.set('m', mime);
     const area = document.createElement('img');
@@ -92,10 +92,10 @@ function rememberVolume(area) {
     }).finally(() => pendingDBrequest = null);
 }
 
-export function AudioPreview(el) {
+export function AudioPreview(el, _opt_FileName = '') {
     const url = new URL('/dl', this.server.addr);
     url.searchParams.set('t', this.server.pswd);
-    url.searchParams.set('f', this.path);
+    url.searchParams.set('f', this.path + _opt_FileName);
     const mime = mimeTypes[this.fileinfo.ext?.toLowerCase?.()];
     mime && url.searchParams.set('m', mime);
     const area = document.createElement('audio');
@@ -106,10 +106,10 @@ export function AudioPreview(el) {
     rememberVolume(area);
 }
 
-export async function VideoPreviewFlv(el) {
+export async function VideoPreviewFlv(el, _opt_FileName = '') {
     const url = new URL('/dl', this.server.addr);
     url.searchParams.set('t', this.server.pswd);
-    url.searchParams.set('f', this.path);
+    url.searchParams.set('f', this.path + _opt_FileName);
     const mime = mimeTypes[this.fileinfo.ext?.toLowerCase?.()];
     mime && url.searchParams.set('m', mime);
     const area = document.createElement('video');
@@ -150,10 +150,10 @@ export async function VideoPreviewFlv(el) {
         if (value) this.preview__data.play();
     }).catch(console.warn);
 }
-export function VideoPreviewNative(el) {
+export function VideoPreviewNative(el, _opt_FileName = '') {
     const url = new URL('/dl', this.server.addr);
     url.searchParams.set('t', this.server.pswd);
-    url.searchParams.set('f', this.path);
+    url.searchParams.set('f', this.path + _opt_FileName);
     const mime = mimeTypes[this.fileinfo.ext?.toLowerCase?.()];
     mime && url.searchParams.set('m', mime);
     const area = document.createElement('video');
@@ -165,10 +165,10 @@ export function VideoPreviewNative(el) {
     canplayHandler(el, area);
     rememberVolume(area);
 }
-export function PdfPreview(el) {
+export function PdfPreview(el, _opt_FileName = '') {
     const url = new URL('/dl', this.server.addr);
     url.searchParams.set('t', this.server.pswd);
-    url.searchParams.set('f', this.path);
+    url.searchParams.set('f', this.path + _opt_FileName);
     url.searchParams.set('m', mimeTypes.pdf);
     const area = document.createElement('iframe');
     area.setAttribute('style', 'width: 100%; height: 100%;');
