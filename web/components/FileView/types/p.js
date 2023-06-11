@@ -79,7 +79,8 @@ function canplayHandler(el, area) {
         if (value !== true && value !== false) return userdata.put('config', false, 'file.preview.media.autoplay');
         if (value) area.play();
     })
-    .catch(console.warn);
+    .catch(() => { });
+    // .catch(console.warn);
 }
 function rememberVolume(area) {
     let pendingDBrequest = null;

@@ -83,7 +83,8 @@ const data = {
         navbar_open(path) {
             const url = new URL((location.hash || '').substring(1), location.href);
             url.searchParams.set('path', path);
-            history.replaceState({}, '', '#' + url.pathname + url.search + url.hash);
+            history.replaceState({}, '', '#' + url.pathname + url.search);
+            this.dep__cf = (new Date()).getTime()
             queueMicrotask(() => this.update());
 
         },
@@ -295,6 +296,9 @@ const data = {
             if (!val) {
                 this.$nextTick(() => this.checkAutoPrev());
             }
+        },
+        path() {
+            this.dep__cf = (new Date()).getTime()
         },
         weNeedToSetADepSoThatWeCanUpdateComponentContent() {
             this.isPreview = false;
