@@ -256,6 +256,15 @@ const data = {
 
         },
 
+        processPlayPolicyOptChanged(ev) {
+            const el = ev.target;
+            el.disabled = true;
+            el.checked = false;
+            setTimeout(() => {
+                el.disabled = el.checked = false;
+            }, 500);
+        },
+
     },
 
     computed: {
@@ -274,6 +283,7 @@ const data = {
         path() {
             try {
                 void (this.weNeedToSetADepSoThatWeCanUpdateComponentContent);
+                this.dep__cf = (new Date()).getTime();
                 const url = new URL((location.hash || '').substring(1), location.href);
                 return url.searchParams.get('path') || '/';
             }

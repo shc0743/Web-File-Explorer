@@ -25,7 +25,7 @@
                 </div>
 
                 <div v-if="current_file && !(isLoading) && !(loadError)" v-deep class="preview-area-wrapper">
-                    <div v-deep class="file-info" style="border-bottom: 1px solid; padding-bottom: 0.5em; margin-bottom: 1em;">{{current_file}}</div>
+                    <div v-deep class="file-info">{{current_file}}</div>
                     <div v-if="!isPreview" v-deep class="preview-area">
                         <ElButton type="primary" size="large" @click="do_preview">{{tr('Preview')}}</ElButton>
                     </div>
@@ -41,10 +41,12 @@
                 <span>&nbsp;&nbsp;&nbsp;</span>
                 <label>
                     <span>{{tr('ui.mp.mp0.playPolicy')}}&nbsp;</span>
-                    <select v-model="playPolicy" disabled><!-- TODO -->
+                    <select v-model="playPolicy">
                         <option value="1">{{tr('ui.mp.mp0.playPolicy/pause')}}</option>
                         <option value="2">{{tr('ui.mp.mp0.playPolicy/play')}}</option>
+                        <option value="3">{{tr('ui.mp.mp0.playPolicy/loop')}}</option>
                     </select>
+                    <input type="checkbox" @change="processPlayPolicyOptChanged" :title="tr('ui.mp.mp0.playPolicyOpts')">
                 </label>
             </div>
         </div>
@@ -125,6 +127,14 @@
     display: /*grid*/flex;
     place-items: center;
     place-content: center;
+    overflow: hidden;
+}
+.file-info>>> {
+    border-bottom: 1px solid;
+    padding-bottom: 0.5em;
+    margin-bottom: 1em;
+    white-space: nowrap;
+    text-overflow: ellipsis;
     overflow: hidden;
 }
 </style>

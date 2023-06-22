@@ -138,5 +138,7 @@
   "ui.mp.mp0.playPolicy": "Play Policy (what to do when the playback is completed)",
   "ui.mp.mp0.playPolicy/pause": "Pause the current item",
   "ui.mp.mp0.playPolicy/play": "Play the next item",
-  "ui.mp.mp0.playSpeed": "Play Speed"
+  "ui.mp.mp0.playPolicy/loop": "Loop the current item",
+  "ui.mp.mp0.playSpeed": "Play Speed",
+  "ui.mp.mp0.playPolicyOpts": "Save the current policy"
 }
