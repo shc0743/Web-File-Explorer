@@ -8,7 +8,7 @@ import { fileinfo, prettyPrintFileSize } from '../../modules/util/fileinfo.js';
 import previews from '../FileView/types/p.js';
 import { mimeTypes } from '../FileView/types/p.js';
 
-const componentId = 'b65776a7-67d3-43c2-936b-991298b7f948';
+const componentId = 'b65776a767d343c2936b991298b7f948';
 
 const testMedia = document.createElement('video');
 
@@ -83,10 +83,11 @@ const data = {
         navbar_open(path) {
             const url = new URL((location.hash || '').substring(1), location.href);
             url.searchParams.set('path', path);
-            history.replaceState({}, '', '#' + url.pathname + url.search);
-            this.dep__cf = (new Date()).getTime()
+            const oldHash = location.hash, newHash = '#' + url.pathname + url.search;
+            if (oldHash === newHash) return;
+            history.replaceState({}, '', newHash);
+            this.dep__cf = (new Date()).getTime();
             queueMicrotask(() => this.update());
-
         },
 
 
@@ -154,6 +155,7 @@ const data = {
                     return;
                 }
                 this.listdata.splice(0, 0, [{ html: '<span hidden>/</span>Reload List', action: 'reload' }]);
+                this.listdata.push([{ html: '<span hidden>/</span>Reset Cursor Position', action: 'reset' }]);
 
                 this.isLoading = 'Processing';
 
@@ -171,13 +173,17 @@ const data = {
                     const url = new URL((location.hash || '').substring(1), location.href);
                     const newHash = decodeURIComponent(url.hash || '').substring(1);
                     if (newHash) this.$nextTick(() => this.$nextTick(() => {
-                        for (let I = 0, L = this.listdata.length; I < L; ++I) {
-                            const i = this.listdata[I];
-                            if (i?.substring?.(2) === newHash) this.$refs.lst.selection = I;
-                        }
+                        this.resetCursorPos(newHash);
                     }));
                 });
             });
+        },
+
+        async resetCursorPos(name) {
+            for (let I = 0, L = this.listdata.length; I < L; ++I) {
+                const i = this.listdata[I];
+                if (i?.substring?.(2) === name) this.$refs.lst.selection = I;
+            }
         },
 
         async invoke_open(isHard = false) {
@@ -212,6 +218,11 @@ const data = {
                 if (!val) continue;
                 if (Array.isArray(val)) {
                     if (val[0]?.action === 'reload') queueMicrotask(() => this.update());
+                    if (val[0]?.action === 'reset') queueMicrotask(() => {
+                        const url = new URL((location.hash || '').substring(1), location.href);
+                        const newHash = decodeURIComponent(url.hash || '').substring(1);
+                        newHash && this.resetCursorPos(newHash);
+                    });
                     continue;
                 }
                 if (!(val.startsWith('f|') || val.startsWith('d|'))) {
@@ -226,6 +237,8 @@ const data = {
             }
 
             if (__result && !(isHard === false && needUpdate)) {
+                const oldHash = globalThis.location.hash;
+                // if (oldHash === __result) return;
                 (history.replaceState({}, '', __result));
                 this.dep__cf = (new Date()).getTime();
                 if (needUpdate) queueMicrotask(() => this.update());
@@ -240,7 +253,7 @@ const data = {
                     for (const el of this.$refs.previewArea.children)
                         el.remove();
                     this.fileinfo = fileinfo(this.current_file);
-                    previews[String(this.fileinfo.ext).toLowerCase()]?.call(this, this.$refs.previewArea, this.current_file);
+                    previews[String(this.fileinfo.ext).toLowerCase()]?.call(this, this.$refs.previewArea, this.current_file, this.onPlayEnd.bind(this));
                     (this.$refs.previewArea?.querySelector('video,audio') || {}).playbackRate = this.playSpeed;
                 })
             })
@@ -256,13 +269,46 @@ const data = {
 
         },
 
+        onPlayEnd(ev) {
+            switch (this.playPolicy) {
+                case '1':
+                    break;
+                
+                case '3':
+                    ev.target.play();
+                    break;
+                
+                case '2': {
+                    let selection = +(this.$refs.lst?.selection.toArray()[0]);
+                    if (isNaN(selection)) break;
+                    ++selection;
+                    const itemcount = this.listdata?.length;
+                    if (isNaN(itemcount)) break;
+                    if (selection + 2 > itemcount) selection = 1; // reserved items: ['Reload List', ... , 'Reset Cursor Position']
+                    this.$refs.lst.selection = selection;
+                    setTimeout(() => this.invoke_open(), 500);
+                }
+                    break;
+            
+                default:
+                    console.warn('[MediaPlayer0]', 'Unable to resolve playPolicy value', this.playPolicy, ':', 'invalid value');
+            }
+        },
         processPlayPolicyOptChanged(ev) {
             const el = ev.target;
+            const type = el.checked;
             el.disabled = true;
             el.checked = false;
-            setTimeout(() => {
-                el.disabled = el.checked = false;
-            }, 500);
+            if (type) userdata.put('config', this.playPolicy, 'file.preview.media.playPolicy').then(() => {
+                el.checked = true;
+            }).catch(() => { }).finally(() => {
+                el.disabled = false;
+            });
+            else userdata.delete('config', 'file.preview.media.playPolicy').catch(() => {
+                el.checked = true;
+            }).finally(() => {
+                el.disabled = false;
+            });
         },
 
     },
@@ -331,6 +377,10 @@ const data = {
                 userdata.put('config', 1, 'file.preview.media.playbackRate');
             }
         },
+        async playPolicy() {
+            const playPolicy = await userdata.get('config', 'file.preview.media.playPolicy') || 1;
+            (this.$refs.playPolicyOpts || {}).checked = (this.playPolicy === playPolicy);
+        },
     },
 
     async mounted() {
@@ -361,6 +411,9 @@ const data = {
         const pbs = await userdata.get('config', 'file.preview.media.playbackRate') || 1;
         if (pbs < 0) pbs = 1;
         this.playSpeed = pbs;
+        const playPolicy = await userdata.get('config', 'file.preview.media.playPolicy') || 1;
+        // if (![1, 2, 3].includes(playPolicy)) playPolicy = 1;
+        this.playPolicy = playPolicy;
     },
 
     beforeUnmount() {

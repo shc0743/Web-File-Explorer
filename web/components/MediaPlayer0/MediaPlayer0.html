@@ -6,8 +6,8 @@
     <div v-deep class="content">
         <v-list-view ref="lst" v-deep class="content-left"
             v-on:pointermove.self.passive="aside_onPointerMove" v-on:pointerdown.self="aside_onPointerDown" v-on:pointerup="aside_onPointerUp" v-bind:style="asideStyle" v-bind:data-resizing="asideResizing"
-            no-multiple 
-            @change="onSelChange" @open="invoke_open(true)"
+            no-multiple click-to-open allow-drag
+            @open="onSelChange" @open__deprecated="invoke_open(true)"
             :data="getVlistData"></v-list-view>
         <div v-deep class="content-main">
             <div v-deep class="plain-content-wrapper">
@@ -46,7 +46,7 @@
                         <option value="2">{{tr('ui.mp.mp0.playPolicy/play')}}</option>
                         <option value="3">{{tr('ui.mp.mp0.playPolicy/loop')}}</option>
                     </select>
-                    <input type="checkbox" @change="processPlayPolicyOptChanged" :title="tr('ui.mp.mp0.playPolicyOpts')">
+                    <input type="checkbox" @change="processPlayPolicyOptChanged" :title="tr('ui.mp.mp0.playPolicyOpts')" ref="playPolicyOpts">
                 </label>
             </div>
         </div>
@@ -77,7 +77,7 @@
     width: 100%; height: 100%;
     overflow: hidden;
 }
-[inert]>>> {
+[v-deep] [inert] {
     opacity: 0.5;
 }
 .content>>> {
@@ -133,8 +133,9 @@
     border-bottom: 1px solid;
     padding-bottom: 0.5em;
     margin-bottom: 1em;
-    white-space: nowrap;
+    white-space: pre;
     text-overflow: ellipsis;
     overflow: hidden;
+    font-family: var(--font-monospace);
 }
 </style>

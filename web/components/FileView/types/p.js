@@ -33,7 +33,7 @@ export const mimeTypes = {
     'pdf': 'application/pdf',
 };
 
-export async function PlainTextPreview(el, _opt_FileName = '') {
+export async function PlainTextPreview(el, _opt_FileName = '', onended = null) {
     const area = document.createElement('textarea');
     area.setAttribute('style', 'width: 100%; height: 100%; box-sizing: border-box;');
     area.value = tr('Loading Preview');
@@ -54,7 +54,7 @@ export async function PlainTextPreview(el, _opt_FileName = '') {
     }
 }
 
-export function PicturePreview(el, _opt_FileName = '') {
+export function PicturePreview(el, _opt_FileName = '', onended = null) {
     const url = new URL('/dl', this.server.addr);
     url.searchParams.set('t', this.server.pswd);
     url.searchParams.set('f', this.path + _opt_FileName);
@@ -65,6 +65,9 @@ export function PicturePreview(el, _opt_FileName = '') {
     area.src = url.href;
     el.append(area);
 }
+
+
+export let audio_or_video__Mutex = null;
 
 function canplayHandler(el, area) {
     const canPlayPromise = new Promise((resolve, reject) => {
@@ -92,8 +95,21 @@ function rememberVolume(area) {
         if (!isNaN(+value)) area.volume = +value;
     }).finally(() => pendingDBrequest = null);
 }
+function endedHandler(area, onended) {
+    if (onended) area.addEventListener('ended', onended);
+}
+function checkVideoMutex(area) {
+    if (audio_or_video__Mutex && (!audio_or_video__Mutex.paused)) {
+        audio_or_video__Mutex.pause();
+        audio_or_video__Mutex.innerHTML = '';
+        audio_or_video__Mutex.src = '';
+        audio_or_video__Mutex.load();
+    }
+    audio_or_video__Mutex = area;
+}
 
-export function AudioPreview(el, _opt_FileName = '') {
+
+export function AudioPreview(el, _opt_FileName = '', onended = null) {
     const url = new URL('/dl', this.server.addr);
     url.searchParams.set('t', this.server.pswd);
     url.searchParams.set('f', this.path + _opt_FileName);
@@ -105,9 +121,11 @@ export function AudioPreview(el, _opt_FileName = '') {
     area.controls = true;
     canplayHandler(el, area);
     rememberVolume(area);
+    checkVideoMutex(area);
+    endedHandler(area, onended);
 }
 
-export async function VideoPreviewFlv(el, _opt_FileName = '') {
+export async function VideoPreviewFlv(el, _opt_FileName = '', onended = null) {
     const url = new URL('/dl', this.server.addr);
     url.searchParams.set('t', this.server.pswd);
     url.searchParams.set('f', this.path + _opt_FileName);
@@ -150,8 +168,11 @@ export async function VideoPreviewFlv(el, _opt_FileName = '') {
         if (value !== true && value !== false) return userdata.put('config', false, 'file.preview.media.autoplay');
         if (value) this.preview__data.play();
     }).catch(console.warn);
+
+    checkVideoMutex(area);
+    endedHandler(area, onended);
 }
-export function VideoPreviewNative(el, _opt_FileName = '') {
+export function VideoPreviewNative(el, _opt_FileName = '', onended = null) {
     const url = new URL('/dl', this.server.addr);
     url.searchParams.set('t', this.server.pswd);
     url.searchParams.set('f', this.path + _opt_FileName);
@@ -165,8 +186,11 @@ export function VideoPreviewNative(el, _opt_FileName = '') {
     area.src = url.href;
     canplayHandler(el, area);
     rememberVolume(area);
+    checkVideoMutex(area);
+    endedHandler(area, onended);
 }
-export function PdfPreview(el, _opt_FileName = '') {
+
+export function PdfPreview(el, _opt_FileName = '', onended = null) {
     const url = new URL('/dl', this.server.addr);
     url.searchParams.set('t', this.server.pswd);
     url.searchParams.set('f', this.path + _opt_FileName);
