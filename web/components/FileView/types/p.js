@@ -67,7 +67,22 @@ export function PicturePreview(el, _opt_FileName = '', onended = null) {
 }
 
 
-export let audio_or_video__Mutex = null;
+export let audio_or_video__Mutex = {
+    __data__: null,
+    get accessor() {
+        return this.__data__;
+    },
+    set accessor(value) {
+        if (this.__data__ && (!this.__data__.paused)) {
+            this.__data__.pause();
+            this.__data__.innerHTML = '';
+            this.__data__.src = '';
+            this.__data__.load();
+        }
+        this.__data__ = value;
+        return true;
+    },
+}, audio_or_video__MutexObj = Promise.resolve();
 
 function canplayHandler(el, area) {
     const canPlayPromise = new Promise((resolve, reject) => {
@@ -98,14 +113,12 @@ function rememberVolume(area) {
 function endedHandler(area, onended) {
     if (onended) area.addEventListener('ended', onended);
 }
-function checkVideoMutex(area) {
-    if (audio_or_video__Mutex && (!audio_or_video__Mutex.paused)) {
-        audio_or_video__Mutex.pause();
-        audio_or_video__Mutex.innerHTML = '';
-        audio_or_video__Mutex.src = '';
-        audio_or_video__Mutex.load();
-    }
-    audio_or_video__Mutex = area;
+async function checkVideoMutex(area) {
+    await audio_or_video__MutexObj;
+    audio_or_video__MutexObj = new Promise((resolve) => {
+        audio_or_video__Mutex.accessor = area;
+        resolve();
+    });
 }
 
 

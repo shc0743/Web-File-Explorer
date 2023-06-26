@@ -236,9 +236,10 @@ const data = {
                 __result = hash; if (!needUpdate) needUpdate = isDir;
             }
 
-            if (__result && !(isHard === false && needUpdate)) {
+            // if (__result && !(isHard === false && needUpdate)) 
+            if (__result) {
                 const oldHash = globalThis.location.hash;
-                // if (oldHash === __result) return;
+                if (oldHash === __result) return;
                 (history.replaceState({}, '', __result));
                 this.dep__cf = (new Date()).getTime();
                 if (needUpdate) queueMicrotask(() => this.update());
