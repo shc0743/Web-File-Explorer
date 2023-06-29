@@ -262,8 +262,14 @@ import('./hashchange.js').then(function (data) {
         
         let hash = location.hash;
 
+        if (hash.startsWith('#'))
         for (const i in data.default) {
-            if (hash.startsWith(i)) return data.default[i].apply(globalThis.appInstance_.instance, [hash, app, ev]);
+            if (i.endsWith('/') ? hash.startsWith(i) : (function () {
+                if (!i.startsWith('#')) return false;
+                const url = new URL(i.substring(1), location),
+                    hurl = new URL(hash.substring(1), location);
+                return url.pathname === hurl.pathname;
+            }())) return data.default[i].apply(globalThis.appInstance_.instance, [hash, app, ev]);
         }
 
         // check if it's the default app

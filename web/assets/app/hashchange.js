@@ -33,7 +33,7 @@ export default {
         globalThis.appInstance_.con?.open();
     },
 
-    "#/media/player0/"(hash) {
+    "#/media/player0/play"(hash) {
         this.$data.current_page = 'mp/player0';
         queueMicrotask(() => {
             globalThis.appInstance_.mp0?.update?.();

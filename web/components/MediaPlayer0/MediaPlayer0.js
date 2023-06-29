@@ -182,8 +182,12 @@ const data = {
         async resetCursorPos(name) {
             for (let I = 0, L = this.listdata.length; I < L; ++I) {
                 const i = this.listdata[I];
-                if (i?.substring?.(2) === name) this.$refs.lst.selection = I;
+                if (i?.substring?.(2) === name) {
+                    this.$refs.lst.selection = I;
+                    return true;
+                }
             }
+            return false; // 增加返回值，便于判断执行结果
         },
 
         async invoke_open(isHard = false) {
@@ -270,7 +274,7 @@ const data = {
 
         },
 
-        onPlayEnd(ev) {
+        async onPlayEnd(ev) {
             switch (this.playPolicy) {
                 case '1':
                     break;
@@ -280,6 +284,11 @@ const data = {
                     break;
                 
                 case '2': {
+                    // 先重置选择位置，否则会出现选择相关bug
+                    const url = new URL((location.hash || '').substring(1), location.href);
+                    const newHash = decodeURIComponent(url.hash || '').substring(1);
+                    if (newHash) await this.resetCursorPos(newHash);
+
                     let selection = +(this.$refs.lst?.selection.toArray()[0]);
                     if (isNaN(selection)) break;
                     ++selection;
@@ -408,7 +417,8 @@ const data = {
             `, this.$refs.lst.shadowRoot);
         });
 
-        if (await userdata.get('config', 'file.preview.auto') == true) this.autoPreview = true;
+        const fpa = await userdata.get('config', 'file.preview.auto');
+        if (fpa === true) this.autoPreview = true; else if (fpa !== false) await userdata.put('config', false, 'file.preview.auto');
         const pbs = await userdata.get('config', 'file.preview.media.playbackRate') || 1;
         if (pbs < 0) pbs = 1;
         this.playSpeed = pbs;

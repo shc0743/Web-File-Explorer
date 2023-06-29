@@ -140,5 +140,10 @@
   "ui.mp.mp0.playPolicy/play": "自动播放下一个",
   "ui.mp.mp0.playPolicy/loop": "单曲循环",
   "ui.mp.mp0.playSpeed": "播放速度",
-  "ui.mp.mp0.playPolicyOpts": "存储当前的播放策略"
+  "ui.mp.mp0.playPolicyOpts": "存储当前的播放策略",
+  "ui.settings.generic": "通用设置",
+  "ui.settings.item/file.preview.auto": "文件: 自动预览文件",
+  "ui.settings.item/nav.autohide": "导航: 自动隐藏导航栏 (按 Alt 以显示)",
+  "ui.settings.mediaplayers": "播放设置",
+  "ui.settings.item/file.preview.media.autoplay": "播放器: 自动播放"
 }

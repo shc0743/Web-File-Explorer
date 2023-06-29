@@ -140,5 +140,10 @@
   "ui.mp.mp0.playPolicy/play": "Play the next item",
   "ui.mp.mp0.playPolicy/loop": "Loop the current item",
   "ui.mp.mp0.playSpeed": "Play Speed",
-  "ui.mp.mp0.playPolicyOpts": "Save the current policy"
+  "ui.mp.mp0.playPolicyOpts": "Save the current policy",
+  "ui.settings.generic": "Generic Settings",
+  "ui.settings.item/file.preview.auto": "File: Preview file automatically",
+  "ui.settings.item/nav.autohide": "Navigation: Hide navigate bar automatically (Press Alt to show)",
+  "ui.settings.mediaplayers": "Media Players Settings",
+  "ui.settings.item/file.preview.media.autoplay": "Player: autoplay"
 }

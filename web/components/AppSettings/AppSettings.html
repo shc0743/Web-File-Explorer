@@ -48,6 +48,32 @@
         </div>
     </details>
 
+    <details v-deep>
+        <summary>{{tr('ui.settings.generic')}}</summary>
+
+        <div style="padding: 10px;">
+            <label class="settings-item" v-deep>
+                <input type="checkbox" >
+                {{tr('ui.settings.item/file.preview.auto')}}
+            </label>
+            <label class="settings-item" v-deep>
+                <input type="checkbox" >
+                {{tr('ui.settings.item/nav.autohide')}}
+            </label>
+        </div>
+    </details>
+
+    <details v-deep>
+        <summary>{{tr('ui.settings.mediaplayers')}}</summary>
+
+        <div style="padding: 10px;">
+            <label class="settings-item" v-deep>
+                <input type="checkbox" >
+                {{tr('ui.settings.item/file.preview.media.autoplay')}}
+            </label>
+        </div>
+    </details>
+
     <details v-deep open>
         <summary>{{tr('ui.settings.all')}}</summary>
 
@@ -95,5 +121,10 @@ details>>>>summary {
     white-space: nowrap;
     overflow: auto;
 }
-
+.settings-item>>> {
+    display: block;
+}
+.settings-item[v-deep]+.settings-item>>> {
+    margin-top: 0.5em;
+}
 </style>

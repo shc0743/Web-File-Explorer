@@ -29,11 +29,12 @@ const data = {
     emits: ['update:modelValue', 'changed'],
 
     methods: {
-        update_value() {
+        update_value(item) {
             const filter = (val) => {
                 if (String(val).startsWith('String:')) return String(val).substring(7);
-                if (val === 'true' || val === true) return true;
-                if (val === 'false' || val === false) return false;
+                for (const i of [true, false, null, undefined].filter(el => val === el || val === String(el))) {
+                    return i;
+                }
                 if (val === '') return '';
                 if (!isNaN(val)) return Number(val);
                 return val;
@@ -41,8 +42,9 @@ const data = {
             this.listarr = this.listarr.filter(el => !!el[0]);
             const newModelValue = new Object;
             for (const i of this.listarr) try {
-                newModelValue[i[0]] = filter(i[1]);
-            } catch { }
+                if (item === i) newModelValue[i[0]] = filter(i[1]);
+                else newModelValue[i[0]] = (i[1]);
+            } catch {}
             this.$emit('update:modelValue', newModelValue);
             this.$emit('changed', newModelValue);
         },

@@ -116,10 +116,11 @@ const data = {
                 }
                 this.updateLock = false;
 
-                if (await userdata.get('config', 'file.preview.auto') === true)
-                this.$nextTick(() => {
+                const fpa = await userdata.get('config', 'file.preview.auto');
+                if (fpa === true) this.$nextTick(() => {
                     this.preview();
-                })
+                }); else if (fpa !== false) await userdata.put('config', false, 'file.preview.auto');
+
                 
             }).call(this)
             .catch(error => {
