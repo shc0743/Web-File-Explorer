@@ -29,7 +29,8 @@ globalThis.addEventListener('fetch', function (e) {
         try {
             const resp = await fetch(e.request);
             if (/GET/i.test(e.request.method) && resp.status === 200 && (
-                e.request.url.startsWith(globalThis.location.origin)
+                e.request.url.startsWith(globalThis.location.origin) &&
+                (!e.request.url.startsWith(globalThis.location.origin + '/dl?'))
             )) try {
                 const cache = await caches.open(cacheName);
                 cache.put(e.request, resp.clone());
