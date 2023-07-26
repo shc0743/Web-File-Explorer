@@ -27,10 +27,10 @@ globalThis.sw_replaces = {
         '/file/new/': nativeFileApiFilter,
     },
     regexp: {
-        '^\/(dl|file|files|isFileOrDirectory|fileinfo)\?([\s\S]*)=([\s\S]*)$': nativeFileApiFilter,
-        '^\/(auth|volumes)$': nativeFileApiFilter,
-        '^\/file\/(copy|move|link)?([\s\S]*)=([\s\S]*)$': nativeFileApiFilter,
-        '^\/sys\/([A-z0-9]*)$': nativeFileApiFilter,
+        '^\\/(dl|file|files|isFileOrDirectory|fileinfo)\?([\\s\\S]*)=([\\s\\S]*)$': nativeFileApiFilter,
+        '^\\/(auth|volumes)$': nativeFileApiFilter,
+        '^\\/file\\/(copy|move|link)?([\\s\\S]*)=([\\s\\S]*)$': nativeFileApiFilter,
+        '^\\/sys\\/([A-z0-9]*)$': nativeFileApiFilter,
     }
 };
 
