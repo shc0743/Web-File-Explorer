@@ -967,7 +967,7 @@ class HTMLVirtualListElement extends HTMLElement {
             this.#updating = false;
             throw new TypeError(`data function returned an incorrect result`);
         }
-        function f(data) {
+        const f = (data) => {
             this.#updating = false;
             if (this.#data !== data) this.#data = data;
             if (!(this.#data instanceof Array)) {
