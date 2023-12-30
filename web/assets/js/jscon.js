@@ -729,7 +729,9 @@ export class JsCon extends EventTarget {
             },
             add: x => {
                 // if (this.#forbiddenConsoleAPIs_locked) throw new TypeError('locked');
-                return this.#forbiddenConsoleAPIs.add(x);
+                // return this.#forbiddenConsoleAPIs.add(x);   /// 绝对不能直接return！！！
+                this.#forbiddenConsoleAPIs.add(x);
+                return true;
             },
             /*delete: x => {
                 if (this.#forbiddenConsoleAPIs_locked) throw new TypeError('locked');
