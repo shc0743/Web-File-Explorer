@@ -68,8 +68,8 @@ const data = {
             history.go(n);
         },
 
-        reload() {
-            this.$emit('requestreload');
+        reload(ev) {
+            this.$emit('requestreload', ev);
         },
 
         goHome() { location.hash = '#/' },

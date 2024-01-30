@@ -126,8 +126,10 @@ const data = {
             globalThis.notifyDataUpdate();
         },
 
-        reload_content() {
-            if (globalThis.location.hash.startsWith('#/s/'))
+        reload_content(ev) {
+            if (globalThis.location.hash.startsWith('#/s/') && !(
+                ev.ctrlKey || ev.altKey || ev.shiftKey
+            ))
                 window.dispatchEvent(new HashChangeEvent('hashchange'));
             else globalThis.location.reload();
         },
