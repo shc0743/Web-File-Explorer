@@ -796,7 +796,8 @@ class HTMLVirtualListElement extends HTMLElement {
         if (newSelection === 'all') {
             let scrollTop = this.scrollTop;
             let datalen = this.#data.length;
-            for (let i = 0; i < datalen; ++i) this.#selection.add(i);
+            // for (let i = 0; i < datalen; ++i) this.#selection.add(i);
+            this.selection.addRange(0, datalen - 1); // better performance
             this.#updateSelectionElement();
             this.scrollTop = scrollTop;
             this.#selectionCleanup();
@@ -880,7 +881,7 @@ class HTMLVirtualListElement extends HTMLElement {
         if (isNaN(i)) return false;
         i = Number(i);
         const currentSelection = this.#lastSelection || this.#selection.values().next().value;
-        if (!currentSelection) return this.selection = i;
+        if (null == currentSelection) return this.selection = i;
         let start = currentSelection, end = i;
         if (end < start) [start, end] = [end, start];
         this.selection.addRange(start, end);

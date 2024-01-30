@@ -376,7 +376,8 @@ const data = {
                 catch { return console.warn('Failed to resolve application data') };
             
                 if (src === dist) return;
-                try {
+                // 去掉过于低效的代码
+                /*try {
                     const r2 = await get(src, i[0]._srv, i[0]._pswd);
                     if (r2 === '0') {
                         return ElMessage.error(tr('ui.fo.error/fileNotFound'));
@@ -384,7 +385,7 @@ const data = {
                 }
                 catch {
                     return ElMessage.error(tr('ui.fo.error/cantLoadDataFromRemote'));
-                }
+                }*/
 
                 if (i[0]._srv !== this.server.addr) {
                     isCORS = true;
