@@ -29,13 +29,22 @@ if (pwa === 'true' || pwa === '1' || pwa === 'yes') {
     globalThis.addEventListener('pointerdown', function (ev) {
         if (ev.target?.tagName?.toUpperCase() !== 'A') return;
         if (ev.button !== 1) return;
-        const href = ev.target.getAttribute('href');
+        const href = ev.target.getAttribute('href') || ev.target.dataset.hrefD7b2e4d9;
         if (!href || href.startsWith('javascript:')) return;
         try {
-            const hrefComputed = new URL(ev.target.href, location.href);
+            const hrefComputed = new URL(href, location.href);
+            ev.target.removeAttribute('href');
+            ev.target.dataset.hrefD7b2e4d9 = href;
             ev.preventDefault();
             window.w_open(hrefComputed);
         } catch {}
+    });
+    globalThis.addEventListener('pointerover', function (ev) {
+        if (ev.target?.tagName !== 'A' && ev.target?.tagName !== 'a') return;
+        const href = ev.target.getAttribute('href') || ev.target.dataset.hrefD7b2e4d9;
+        if (!href) return;
+        ev.target.setAttribute('href', href);
+        delete ev.target.dataset.hrefD7b2e4d9;
     });
     pwa = true;
 }
