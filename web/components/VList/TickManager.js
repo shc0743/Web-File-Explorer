@@ -54,6 +54,10 @@ export class TickManager {
         return this.#map.set(data, 0);
     }
 
+    reset(data) {
+        return this.add.apply(this, arguments);
+    }
+
     get(data) {
         return this.#map.get(data);
     }
