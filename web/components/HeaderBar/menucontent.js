@@ -173,7 +173,9 @@ const data = [
             AppendMenu(m, String, {}, r['Command Panel'], function () {
                 globalThis.commandPanel?.toggle();
             });
-            AppendMenu(m, String, {}, r['JavaScript Console'], function () {
+            AppendMenu(m, String, {}, r['JavaScript Console'], async function () {
+                const disableJsCon = await userdata.get('config', 'dev.disableJsCon');
+                if (disableJsCon) return ElMessage.error('Console is disabled');
                 globalThis.appInstance_.con.open();
             });
 

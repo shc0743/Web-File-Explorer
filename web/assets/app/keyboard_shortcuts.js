@@ -91,5 +91,6 @@ function p_Inspect(ev) {
     p_Inspect.__time__ = now;
     p_Inspect.__tip__.hidden = false;
     p_Inspect.__timeid__ = setTimeout(() => { p_Inspect.__tip__.hidden = true; delete p_Inspect.__timeid__ }, 5000);
-    this.appInstance_.con?.open();
+    userdata.get('config', 'dev.disableJsCon').then(ds => (!ds) &&
+        this.appInstance_.con?.open());
 }

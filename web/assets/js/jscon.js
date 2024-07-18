@@ -603,6 +603,7 @@ export class JsCon extends EventTarget {
     #history = new Array();
     #histpos = -1;
     #options = new Map();
+    #disabled = false;
 
     get [Symbol.toStringTag]() {
         return 'JsCon';
@@ -1015,6 +1016,15 @@ export class JsCon extends EventTarget {
         };
     }
 
+    disableObject() {
+        if (this.#disabled) throw new TypeError('object is already disabled');
+        this.#disabled = true;
+        this.#consoleAddRow(['<hr><div style="color: red; font-size: x-large; text-align: center;"><b>!!</b>CONSOLE IS DISABLED<b>!!</b></div>'], 'info', true);
+        this.#consoleAddRow(['<div style="text-align: center;"><b>Type "close" or "x" to close the console</b></div><hr>'], 'info', true);
+
+        this.#widget.querySelectorAll('.console-btns,jscon-tabbar,[data-panel][hidden]').forEach(el => el.remove());
+    }
+
     get options() { return this.#options }
     set options(value) { throw new DOMException('Cannot set readonly property', 'SecurityError') }
 
@@ -1026,7 +1036,7 @@ export class JsCon extends EventTarget {
         return el;
     }
 
-    #consoleAddRow(content, type = 'log') {
+    #consoleAddRow(content, type = 'log', __rich = false) {
         const el = document.createElement('div');
         el.tabIndex = 0;
         el.classList.add('row');
@@ -1045,7 +1055,7 @@ export class JsCon extends EventTarget {
                 switch (itemtype) {
                     case 'string':
                         node.classList.add('is-string');
-                        node.innerText = node._text = item;
+                        node[__rich ? 'innerHTML' : 'innerText'] = node._text = item;
                         break;
                 
                     case 'number':
@@ -1217,6 +1227,13 @@ export class JsCon extends EventTarget {
         preps.push('');
         this.#forbiddenConsoleAPIs_locked = true;
         try {
+            if (this.#disabled) {
+                if (code === 'close' || code === 'x') {
+                    this.close();
+                    throw 'Console is closed'
+                }
+                throw new TypeError('[SecurityError] !!CONSOLE IS DISABLED!!\nwhile trying to execute:\n\t' + code);
+            }
             const fn = new (Function)(
                 'window', 'globalThis', 'self', 'top', 'parent',
                 'setTimeout', 'setInterval',
@@ -1329,6 +1346,7 @@ export class JsCon extends EventTarget {
     #consoleOrigin = null;
     #consoleThis = null;
     registerConsoleAPI(console) {
+        if (this.#disabled) throw new TypeError('Object is disabled');
         if (!console) throw new TypeError('Invalid paramater');
         if (this.#consoleOrigin) throw new Error('Console API already registered');
         this.#consoleOrigin = {};
@@ -1372,6 +1390,8 @@ export class JsCon extends EventTarget {
     #bound_onunhandledrejection = null;
 
     addErrorHandler() {
+        if (this.#disabled) throw new TypeError('Object is disabled');
+        
         if (!this.#bound_onerror) this.#bound_onerror = this.#onerror.bind(this);
         if (!this.#bound_onunhandledrejection) this.#bound_onunhandledrejection = this.#onunhandledrejection.bind(this);
 

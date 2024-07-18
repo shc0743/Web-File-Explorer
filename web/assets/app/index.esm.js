@@ -58,13 +58,6 @@ await new Promise(resolve => setTimeout(resolve));
 import { registerResizableWidget } from '../js/BindMove.js';
 registerResizableWidget();
 
-updateLoadStat('Creating JSCon');
-import { JsCon, register as registerJsCon } from '../js/jscon.js';
-registerJsCon();
-globalThis.appInstance_.con = new JsCon();
-globalThis.appInstance_.con.registerConsoleAPI(globalThis.console);
-globalThis.appInstance_.con.addErrorHandler();
-
 let db_name = null;
 try {
     updateLoadStat('Loading userdata');
@@ -76,6 +69,27 @@ try {
 catch (error) {
     throw reportFatalError(error, 'main');
 }
+
+// break long tasks
+await delay();
+
+updateLoadStat('Creating JSCon');
+import { JsCon, register as registerJsCon } from '../js/jscon.js';
+registerJsCon();
+globalThis.appInstance_.con = new JsCon();
+do {
+    const disableJsCon = await userdata.get('config', 'dev.disableJsCon');
+    if (disableJsCon) {
+        globalThis.appInstance_.con.error('Console is disabled!');
+        // globalThis.appInstance_.con.error('Type "location.reload()" to reload the page');
+
+        globalThis.appInstance_.con.disableObject();
+        break;
+    }
+    if(typeof disableJsCon !== 'boolean') await userdata.put('config', false, 'dev.disableJsCon')
+    globalThis.appInstance_.con.registerConsoleAPI(globalThis.console);
+    globalThis.appInstance_.con.addErrorHandler();
+} while (0);
 
 // break long tasks
 await delay();

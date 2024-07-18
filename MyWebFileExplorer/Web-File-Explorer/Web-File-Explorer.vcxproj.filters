@@ -18,9 +18,6 @@
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\..\..\..\..\Program\source\VSProjects\resource\tool.cpp">
-      <Filter>资源文件</Filter>
-    </ClCompile>
     <ClCompile Include="server.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -34,6 +31,9 @@
       <Filter>资源文件</Filter>
     </ClCompile>
     <ClCompile Include="..\includes\RangeParser.cc">
+      <Filter>资源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\..\software\Program\source\VSProjects\resource\tool.cpp">
       <Filter>资源文件</Filter>
     </ClCompile>
   </ItemGroup>

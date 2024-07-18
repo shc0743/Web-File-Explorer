@@ -1,0 +1,128 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\webserver\\4307\\www\\Web-File-Explorer\\MyWebFileExplorer\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{150DEA80-65CC-472F-BE34-02CA68314ADC}|Web-File-Explorer\\Web-File-Explorer.vcxproj|D:\\webserver\\4307\\www\\Web-File-Explorer\\MyWebFileExplorer\\Web-File-Explorer\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{150DEA80-65CC-472F-BE34-02CA68314ADC}|Web-File-Explorer\\Web-File-Explorer.vcxproj|solutionrelative:Web-File-Explorer\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{150DEA80-65CC-472F-BE34-02CA68314ADC}|Web-File-Explorer\\Web-File-Explorer.vcxproj|D:\\webserver\\4307\\www\\Web-File-Explorer\\MyWebFileExplorer\\Web-File-Explorer\\ui.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{150DEA80-65CC-472F-BE34-02CA68314ADC}|Web-File-Explorer\\Web-File-Explorer.vcxproj|solutionrelative:Web-File-Explorer\\ui.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{150DEA80-65CC-472F-BE34-02CA68314ADC}|Web-File-Explorer\\Web-File-Explorer.vcxproj|D:\\webserver\\4307\\www\\Web-File-Explorer\\MyWebFileExplorer\\Web-File-Explorer\\ui.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{150DEA80-65CC-472F-BE34-02CA68314ADC}|Web-File-Explorer\\Web-File-Explorer.vcxproj|solutionrelative:Web-File-Explorer\\ui.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{150DEA80-65CC-472F-BE34-02CA68314ADC}|Web-File-Explorer\\Web-File-Explorer.vcxproj|D:\\webserver\\4307\\www\\Web-File-Explorer\\MyWebFileExplorer\\Web-File-Explorer\\server.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{150DEA80-65CC-472F-BE34-02CA68314ADC}|Web-File-Explorer\\Web-File-Explorer.vcxproj|solutionrelative:Web-File-Explorer\\server.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\software\\Program\\source\\VSProjects\\resource\\tool.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{150DEA80-65CC-472F-BE34-02CA68314ADC}|Web-File-Explorer\\Web-File-Explorer.vcxproj|D:\\webserver\\4307\\www\\Web-File-Explorer\\MyWebFileExplorer\\Web-File-Explorer\\server.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{150DEA80-65CC-472F-BE34-02CA68314ADC}|Web-File-Explorer\\Web-File-Explorer.vcxproj|solutionrelative:Web-File-Explorer\\server.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 8,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{d3750d8a-574b-4fb3-b7e2-aa8af40e8231}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "ui.h",
+              "DocumentMoniker": "D:\\webserver\\4307\\www\\Web-File-Explorer\\MyWebFileExplorer\\Web-File-Explorer\\ui.h",
+              "RelativeDocumentMoniker": "Web-File-Explorer\\ui.h",
+              "ToolTip": "D:\\webserver\\4307\\www\\Web-File-Explorer\\MyWebFileExplorer\\Web-File-Explorer\\ui.h",
+              "RelativeToolTip": "Web-File-Explorer\\ui.h",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAcAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2024-02-01T19:10:42.794Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "ui.cpp",
+              "DocumentMoniker": "D:\\webserver\\4307\\www\\Web-File-Explorer\\MyWebFileExplorer\\Web-File-Explorer\\ui.cpp",
+              "RelativeDocumentMoniker": "Web-File-Explorer\\ui.cpp",
+              "ToolTip": "D:\\webserver\\4307\\www\\Web-File-Explorer\\MyWebFileExplorer\\Web-File-Explorer\\ui.cpp",
+              "RelativeToolTip": "Web-File-Explorer\\ui.cpp",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAANAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2023-11-25T12:24:02.795Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "server.cpp",
+              "DocumentMoniker": "D:\\webserver\\4307\\www\\Web-File-Explorer\\MyWebFileExplorer\\Web-File-Explorer\\server.cpp",
+              "RelativeDocumentMoniker": "Web-File-Explorer\\server.cpp",
+              "ToolTip": "D:\\webserver\\4307\\www\\Web-File-Explorer\\MyWebFileExplorer\\Web-File-Explorer\\server.cpp",
+              "RelativeToolTip": "Web-File-Explorer\\server.cpp",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAJsBAAADAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2023-11-25T12:24:03.295Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "tool.h",
+              "DocumentMoniker": "D:\\software\\Program\\source\\VSProjects\\resource\\tool.h",
+              "RelativeDocumentMoniker": "..\\..\\..\\..\\..\\software\\Program\\source\\VSProjects\\resource\\tool.h",
+              "ToolTip": "D:\\software\\Program\\source\\VSProjects\\resource\\tool.h",
+              "RelativeToolTip": "..\\..\\..\\..\\..\\software\\Program\\source\\VSProjects\\resource\\tool.h",
+              "ViewState": "AQIAAB0GAAAAAAAAAAAEwC8GAAAfAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2023-11-25T12:24:03.498Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "server.h",
+              "DocumentMoniker": "D:\\webserver\\4307\\www\\Web-File-Explorer\\MyWebFileExplorer\\Web-File-Explorer\\server.h",
+              "RelativeDocumentMoniker": "Web-File-Explorer\\server.h",
+              "ToolTip": "D:\\webserver\\4307\\www\\Web-File-Explorer\\MyWebFileExplorer\\Web-File-Explorer\\server.h",
+              "RelativeToolTip": "Web-File-Explorer\\server.h",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAQAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2023-11-25T12:24:03.498Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "main.cpp",
+              "DocumentMoniker": "D:\\webserver\\4307\\www\\Web-File-Explorer\\MyWebFileExplorer\\Web-File-Explorer\\main.cpp",
+              "RelativeDocumentMoniker": "Web-File-Explorer\\main.cpp",
+              "ToolTip": "D:\\webserver\\4307\\www\\Web-File-Explorer\\MyWebFileExplorer\\Web-File-Explorer\\main.cpp",
+              "RelativeToolTip": "Web-File-Explorer\\main.cpp",
+              "ViewState": "AQIAADEAAAAAAAAAAAAiwD4AAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2023-11-25T12:24:03.498Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -7,17 +7,29 @@ export function fileinfo(fullpath) {
         ext: fullpath.substring((fullpath.lastIndexOf('.') + 1) || (fullpath.length)),
     }
 }
-export function prettyPrintFileSize(size) {
-    if (isNaN(size)) return size;
-    size = +size;
-    const units = ['Byte', 'KB', 'MB', 'GB', 'TB', 'EB'], n = 1024, d = 6;
-    let newSize = size, unit = units[0];
-    for (let i = 0, unitslen = units.length; i < unitslen; ++i) {
-        unit = units[i];
-        let _val = Math.floor((newSize / n) * (10 ** d)) / (10 ** d);
-        if (_val < 1 || i + 2 > unitslen) break;
-        newSize = _val;
-        unit = units[i + 1];
+const prettyPrintFileSize = await (async function () {
+    const isMac = /mac|iphone/i.test(navigator.userAgent);
+    const userdec = await userdata.get('config', 'file.size.unittype.dec');
+    if (userdec == null) {
+        await userdata.put('config', 'value should be "true" or "false"', 'file.size.unittype.dec')
     }
-    return newSize + ' ' + unit + (unit !== units[0] ? (` (${size} ${units[0]})`) : '');
-}
+    const usedec = ('boolean' === typeof userdec) ? userdec : isMac;
+    const units = usedec ?
+        ['Byte', 'KB', 'MB', 'GB', 'TB', 'EB'] :
+        ['Byte', 'KiB', 'MiB', 'GiB', 'TiB', 'EiB'],
+        n = usedec ? 1000 : 1024, d = 6;
+    return function prettyPrintFileSize(size) {
+        if (isNaN(size)) return size;
+        size = +size;
+        let newSize = size, unit = units[0];
+        for (let i = 0, unitslen = units.length; i < unitslen; ++i) {
+            unit = units[i];
+            let _val = Math.floor((newSize / n) * (10 ** d)) / (10 ** d);
+            if (_val < 1 || i + 2 > unitslen) break;
+            newSize = _val;
+            unit = units[i + 1];
+        }
+        return newSize + ' ' + unit + (unit !== units[0] ? (` (${size} ${units[0]})`) : '');
+    }
+})();
+export { prettyPrintFileSize };

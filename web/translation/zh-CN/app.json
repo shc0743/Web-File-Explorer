@@ -145,5 +145,11 @@
   "ui.settings.item/file.preview.auto": "文件: 自动预览文件",
   "ui.settings.item/nav.autohide": "导航: 自动隐藏导航栏 (按 Alt 以显示)",
   "ui.settings.mediaplayers": "播放设置",
-  "ui.settings.item/file.preview.media.autoplay": "播放器: 自动播放"
+  "ui.settings.item/file.preview.media.autoplay": "播放器: 自动播放",
+  "ui.settings.changesTakeEffectAfterPageReload": "某些更改在重新加载页面后才能生效。",
+  "ui.settings.changesTakeEffectAfterPageReloadnow": "立即重新加载",
+  "ui.settings.changesTakeEffectAfterPageReloadno": "稍后重新加载",
+  "ui.settings.hasCommonChanges": "数据已过时。",
+  "ui.settings.hasAdvancedChanges": "提示：您已经使用高级配置编辑器编辑了配置信息，因此，在您刷新该页面前，普通配置编辑器将被禁用，以避免一些异常行为的出现。",
+  "ui.settings.hasAdvancedChangesg": "带我去刷新 >>"
 }
