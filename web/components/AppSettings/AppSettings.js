@@ -61,7 +61,7 @@ const data = {
             else {
                 this.showChangesTip = true;
                 this.hasAdvancedChanges = true;
-                this.$nextTick(() => this.$nextTick(() => this.$refs.allSettingsSummary?.focus()));
+                // this.$nextTick(() => this.$nextTick(() => this.$refs.allSettingsSummary?.focus()));
             }
         },
         prettyPrintFileSize() {

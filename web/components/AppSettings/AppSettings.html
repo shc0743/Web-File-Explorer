@@ -96,16 +96,18 @@
             </ol>
         </details>
 
-        <style>.f5877732cfbf45c8a91f019c71e1aa6b-core {height: revert !important;}.f5877732cfbf45c8a91f019c71e1aa6b {height: 5em !important;}</style>
-        <ElDrawer v-model="showChangesTip" direction="ttb" :with-header="false" :modal="false" modal-class="f5877732cfbf45c8a91f019c71e1aa6b" class="f5877732cfbf45c8a91f019c71e1aa6b-core" :lock-scroll="false">
+        <!-- <style>.f5877732cfbf45c8a91f019c71e1aa6b-core {height: revert !important;}.f5877732cfbf45c8a91f019c71e1aa6b {height: 5em !important;}</style> -->
+        <!-- <ElDrawer v-model="showChangesTip" direction="ttb" :with-header="false" :modal="false" modal-class="f5877732cfbf45c8a91f019c71e1aa6b" class="f5877732cfbf45c8a91f019c71e1aa6b-core" :lock-scroll="false"> -->
+        <div v-show="showChangesTip" style="position: fixed; z-index: 999; background: var(--background, #fff); box-shadow: 0 0 10px 0 gray; inset: 0; bottom: unset; padding: 1em;">
             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                <div style="display: flex; align-items: center; justify-content: center; font-size: x-large;"><ElIcon><Warning /></ElIcon><b v-text="tr('ui.settings.changesTakeEffectAfterPageReload')" style="margin-left: 0.5em;"></b></div>
+                <div style="display: flex; align-items: center; justify-content: center; font-size: x-large;"><ElIcon style="rotate: 180deg;"><Warning /></ElIcon><b v-text="tr('ui.settings.changesTakeEffectAfterPageReload')" style="margin-left: 0.5em;"></b></div>
                 <div style="display: flex; margin-top: 0.5em;">
                     <ElButton @click="reloadPage" type="success" plain v-text="tr('ui.settings.changesTakeEffectAfterPageReloadnow')"></ElButton>
                     <ElButton @click="showChangesTip = false" type="danger" plain v-text="tr('ui.settings.changesTakeEffectAfterPageReloadno')"></ElButton>
                 </div>
             </div>
-        </ElDrawer>
+        </div>
+        <!-- </ElDrawer> -->
     </details>
 
     <div v-deep class="ver">
