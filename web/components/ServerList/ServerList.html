@@ -1,7 +1,10 @@
 <div v-deep>
     <h1>{{tr('doctitle$=serverList')}}</h1>
 
-    <p><ElButton size="large" @click="addServer">{{ tr('ui.string:addServer') }}</ElButton></p>
+    <p>
+        <ElButton size="large" @click="addServer">{{ tr('ui.string:addServer') }}</ElButton>
+        <ElButton size="large" @click="backupui = true">{{ tr('ui.string:srvbackupui') }}</ElButton>
+    </p>
 
     <ElCard v-for="item in srvBuffer" style="overflow: auto; margin-top: 30px;">
         <template #header>
@@ -44,6 +47,21 @@
     <ElDialog v-model="showDeleteConfirm" title="" align-center :show-close="false" :close-on-click-modal="false" style="width: auto">
         <ElButton type="primary" @click="showDeleteConfirm=false">{{tr('dialog.cancel')}}</ElButton>
         <ElButton type="danger" @click="confirmDelete">{{tr('Delete')}}</ElButton>
+    </ElDialog>
+
+    <ElDialog v-model="backupui" :title="tr('ui.string:srvbackupui')" :draggable="true" :show-close="!backuprunning" :close-on-click-modal="!backuprunning" :close-on-press-escape="!backuprunning">
+        <fieldset :disabled="backuprunning">
+            <legend v-text="tr('ui.server.backupandrestore.backup')"></legend>
+            <div v-if="backupfiledownloadurl" style="display: flex; align-items: center;"><a v-text="tr('ui.server.backupandrestore.backupfile')" :href="backupfiledownloadurl" :download="backupfiledownloadname"></a><a href="#" @click.prevent="bsapi(2)" style="margin-left: 1em;">x</a></div>
+            <ElButton :disabled="backuprunning" v-else type="success" @click="bsapi(0)" v-text="tr('ui.server.backupandrestore.backup')"></ElButton>
+        </fieldset>
+        <fieldset style="margin-top: 1em;" :disabled="backuprunning">
+            <legend v-text="tr('ui.server.backupandrestore.restore')"></legend>
+            <div style="display: flex; align-items: center;"><span v-text="tr('ui.server.backupandrestore.restorefile')"></span><input type="file" :disabled="backuprunning" ref="rstrfile" style="margin-left: 0.5em;"></div>
+            <ElButton :disabled="backuprunning" type="success" @click="bsapi(1)" v-text="tr('ui.server.backupandrestore.restore')"></ElButton>
+        </fieldset>
+        <br>
+        <ElButton :disabled="backuprunning" type="primary" @click="backupui=false">{{tr('dialog.cancel')}}</ElButton>
     </ElDialog>
 </div>
 

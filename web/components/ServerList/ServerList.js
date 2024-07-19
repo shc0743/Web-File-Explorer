@@ -1,6 +1,6 @@
 import { getHTML } from '@/assets/js/browser_side-compiler.js';
 import { db_name } from '@/assets/app/userdata.js';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import TextEdit from '../TextEdit/TextEdit.js';
 
 
@@ -12,6 +12,10 @@ const data = {
             srvBuffer: [],
             showDeleteConfirm: false,
             pendingDeleteInfo: { addr: '' },
+            backupui: false,
+            backupfiledownloadurl: '',
+            backupfiledownloadname: '',
+            backuprunning: false,
         }
     },
 
@@ -70,6 +74,70 @@ const data = {
             updateId();
             globalThis.notifyDataUpdate();
             globalThis.loadServers();
+        },
+
+        async bsapi(cmd) {
+            if (cmd === 0) {
+                this.backuprunning = true;
+
+                try {
+                    const json = Object.create(null);
+
+                    const keys = await userdata.getAllKeys('servers');
+                    for (const key of keys) {
+                        const data = await userdata.get('servers', key);
+                        Reflect.set(json, key, data);
+                    }
+
+                    const blob = new Blob([JSON.stringify(json)]);
+                    this.backupfiledownloadurl = URL.createObjectURL(blob);
+                    this.backupfiledownloadname = 'backup-' + ((new Date).toLocaleString()) + '.json';
+
+                }
+                catch (error) {
+                    ElMessage.error(error);
+                }
+                finally {
+                    this.backuprunning = false;
+                }
+            }
+            else if (cmd === 1) {
+                try {
+                    if (!await ElMessageBox.confirm(tr('ui.server.backupandrestore.restoreconfirm')
+                        , tr('ui.server.backupandrestore.restore'), {
+                        confirmButtonText: tr('dialog.ok'),
+                        cancelButtonText: tr('dialog.cancel'),
+                        type: 'warn'
+                    })) return;
+                } catch { return; }
+                
+                try {
+                    const file = this.$refs.rstrfile?.files?.[0];
+                    if (!file) throw '未选择文件';
+                    const text = await file.text()
+                    const json = JSON.parse(text);
+
+                    const keys = Reflect.ownKeys(json);
+                    for (const key of keys) {
+                        await userdata.put('servers', Reflect.get(json, key));
+                    }
+
+                    this.backupui = false;
+                    ElMessageBox.alert(tr('ui.server.backupandrestore.restored')
+                        , tr('ui.server.backupandrestore.restore'), {
+                        type: 'success'
+                    }).finally(() => location.reload());
+                }
+                catch (error) {
+                    ElMessage.error(error);
+                    console.error(error);
+                }
+            }
+            else if (cmd === 2) {
+                URL.revokeObjectURL(this.backupfiledownloadurl);
+                this.backupfiledownloadurl = '';
+            }
+            else throw cmd
         },
     },
 

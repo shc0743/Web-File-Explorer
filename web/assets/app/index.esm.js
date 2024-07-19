@@ -55,7 +55,7 @@ console.log('[main]', 'pwa=', pwa);
 updateLoadStat('Waiting');
 await new Promise(resolve => setTimeout(resolve));
 
-import { registerResizableWidget } from '../js/BindMove.js';
+import { addCSS, registerResizableWidget } from '../js/BindMove.js';
 registerResizableWidget();
 
 let db_name = null;
@@ -68,6 +68,76 @@ try {
 }
 catch (error) {
     throw reportFatalError(error, 'main');
+}
+
+// break long tasks
+await delay();
+
+try {
+    updateLoadStat('Checking whether default settings should be loaded or not')
+    const settings_set = await userdata.get('config', 'settings_set');
+    if (!settings_set) {
+        updateLoadStat('Loading default settings')
+        const def = (await import('../static/default_settings.js')).default;
+        for (const i of Reflect.ownKeys(def)) {
+            await userdata.put('config', def[i], i);
+        }
+    }
+    updateLoadStat('Loading additional settings')
+    const def = (await import('../static/default_settings.js')).additional_settings;
+    for (const i of Reflect.ownKeys(def)) {
+        if (undefined == await userdata.get('config', i))
+            await userdata.put('config', def[i], i);
+    }
+}
+catch (error) {
+    throw reportFatalError(error, 'main');
+}
+
+// break long tasks
+await delay();
+
+{
+    updateLoadStat('Loading custom themes')
+    const font = await userdata.get('config', 'ui.fontfamily');
+    if (font) {
+        addCSS(`#myApp, #myApp * { font-family: ${font}; }`)
+    }
+    const css = await userdata.get('config', 'ui.custom_css');
+    if (css) {
+        let verified = await userdata.get('config_internals', 'allow_custom_css');
+        if (undefined == verified) await userdata.put('config_internals', verified = await new Promise((resolve, reject) => {
+            const dialog = document.createElement('dialog');
+            dialog.innerHTML = `
+            <h1>You're trying to use the custom css.</h1>
+            <h1>Although you might have enough reasons to do it, we must tell you:</h1>
+            <ol>
+                <li><b>Custom CSS is risky.</li>
+                <li>Malformed-CSS can destroy the website and might cause data leak!!!</li>
+                <li>Uncareful changes to custom CSS may break the web frontend!</li>
+            </ol>
+            <div style="color:red"><b>Are you sure you want to enable Custom CSS?</div>
+            <a href="javascript:" data-value="true">Yes, continue</a><br>
+            <a href="javascript:" data-value="false">No, I don't know what this is</a><br>
+            <a href="javascript:" data-value="false">No, disable the feature</a><br>
+            <a href="javascript:" data-value="undefined">Not now, please ask me later</a><br>
+            `;
+            document.body.appendChild(dialog);
+            dialog.addEventListener('click', ev => {
+                let val = ev.target?.dataset?.value;
+                switch (val) {
+                    case 'true': resolve(true); break;
+                    case 'false': resolve(false); break;
+                    case 'undefined': resolve(undefined); break;
+                    default: return;
+                }
+                dialog.close();
+            });
+            dialog.onclose = () => (resolve(undefined), dialog.remove());
+            dialog.showModal();
+        }), 'allow_custom_css');
+        if (verified) addCSS(css);
+    }
 }
 
 // break long tasks

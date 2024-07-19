@@ -39,6 +39,7 @@
 .tracker-lineno {
     background-color: rgb(240, 240, 240);
     text-align: right;
+    user-select: none;
 }</style>`;
     const cont = el.querySelector('[data-content]');
     (document.body || document.documentElement).append(el);

@@ -48,7 +48,7 @@
         </div>
     </details>
 
-    <details v-deep>
+    <details v-deep open>
         <summary>{{tr('ui.settings.generic')}}</summary>
 
         <div style="padding: 10px;">
@@ -56,8 +56,20 @@
                 {{tr('ui.settings.hasAdvancedChanges')}} <a style="font-family: NSimsun; margin-left: 0.5em;" href="javascript:;" @click.prevent="showChangesTip = true">{{tr('ui.settings.hasAdvancedChangesg')}}</a>
             </label>
             <label class="settings-item" v-deep>
-                <input type="checkbox" :disabled="hasAdvancedChanges" v-model="settings_data.all2['file.preview.auto']">
-                {{tr('ui.settings.item/file.preview.auto')}}
+                <input type="checkbox" :disabled="hasAdvancedChanges" v-model="settings_data.all2['dev.disableJsCon']">
+                {{tr('ui.settings.item/dev.disableJsCon')}}
+            </label>
+        </div>
+    </details>
+
+    <details v-deep open>
+        <summary>{{tr('ui.settings.interface')}}</summary>
+
+        <div style="padding: 10px;">
+            <label class="settings-item" v-deep style="display: flex; flex-direction: row; align-items: center;">
+                <span>{{tr('ui.settings.item/ui.fontfamily')}}</span>
+                <sup :title="tr('ui.settings.item/ui.fontfamilyd')" style="text-decoration: dashed; padding-bottom: 5px;">?</sup>
+                <ElInput v-model="settings_data.all2['ui.fontfamily']" style="flex: 1; margin-left: 0.5em;" maxlength="64" show-word-limit></ElInput>
             </label>
             <label class="settings-item" v-deep>
                 <input type="checkbox" :disabled="hasAdvancedChanges" v-model="settings_data.all2['nav.autohide']">
@@ -66,7 +78,34 @@
         </div>
     </details>
 
-    <details v-deep>
+    <details v-deep open>
+        <summary>{{tr('ui.settings.explorer')}}</summary>
+
+        <div style="padding: 10px;">
+            <label class="settings-item" v-deep>
+                <input type="checkbox" :disabled="hasAdvancedChanges" v-model="settings_data.all2['explorer.clickToOpen']">
+                {{tr('ui.settings.item/explorer.clickToOpen')}}
+            </label>
+            <label class="settings-item" v-deep>
+                <input type="checkbox" :disabled="hasAdvancedChanges" v-model="settings_data.all2['volumes.doNotUseLongPath']">
+                {{tr('ui.settings.item/volumes.doNotUseLongPath')}}
+            </label>
+            <label class="settings-item" v-deep>
+                <input type="checkbox" :disabled="hasAdvancedChanges" v-model="settings_data.all2['explorer.noFullpath']">
+                {{tr('ui.settings.item/explorer.noFullpath')}}
+            </label>
+            <label class="settings-item" v-deep>
+                <input type="checkbox" :disabled="hasAdvancedChanges" v-model="settings_data.all2['file.size.unittype.dec']">
+                {{tr('ui.settings.item/file.size.unittype.dec')}}
+            </label>
+            <label class="settings-item" v-deep>
+                <input type="checkbox" :disabled="hasAdvancedChanges" v-model="settings_data.all2['file.preview.auto']">
+                {{tr('ui.settings.item/file.preview.auto')}}
+            </label>
+        </div>
+    </details>
+
+    <details v-deep open>
         <summary>{{tr('ui.settings.mediaplayers')}}</summary>
 
         <div style="padding: 10px;">
@@ -78,6 +117,21 @@
     </details>
 
     <details v-deep open>
+        <summary>{{tr('ui.settings.transfer')}}</summary>
+
+        <div style="padding: 10px;">
+            <label class="settings-item" v-deep>
+                <input type="checkbox" :disabled="hasAdvancedChanges" v-model="settings_data.all2['noAskBeforeFileOps']">
+                {{tr('ui.settings.item/noAskBeforeFileOps')}}
+            </label>
+            <label class="settings-item" v-deep>
+                <input type="checkbox" :disabled="hasAdvancedChanges" v-model="settings_data.all2['upload.useNewUploader']">
+                {{tr('ui.settings.item/upload.useNewUploader')}}
+            </label>
+        </div>
+    </details>
+
+    <details v-deep>
         <summary ref="allSettingsSummary">{{tr('ui.settings.all')}}</summary>
 
         <style>.c3ac44d7765f440791d15f66bcaf38a8[inert]{opacity: 0.3;}</style>
